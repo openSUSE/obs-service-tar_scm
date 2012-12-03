@@ -1,0 +1,6 @@
+This is the git for openSUSE:Tools/obs-service-tar_scm
+
+tar_scm.config  -> /etc/obs/services/tar_scm
+tar_scm         -> /usr/lib/obs/service/tar_scm
+tar_scm.service -> /usr/lib/obs/service/tar_scm.service
+

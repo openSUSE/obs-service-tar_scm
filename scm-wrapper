@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Wrapper around SCM to enable behaviour verification testing
+# on tar_scm's repository caching code.  This is cleaner than
+# writing tests which look inside the cache, because then they
+# become coupled to the cache's implementation, and require
+# knowledge of where the cache lives etc.
+
+me=`basename $0`
+
+if [ -z "$SCM_INVOCATION_LOG" ]; then
+    cat <<EOF >&2
+\$SCM_INVOCATION_LOG must be set before calling $0.
+It should be invoked from the test suite, not directly.
+EOF
+    exit 1
+fi
+
+if [ "$me" = 'scm-wrapper' ]; then
+    echo "$me should not be invoked directly, only via symlink" >&2
+    exit 1
+fi
+
+echo "$me $*" >> "$SCM_INVOCATION_LOG"
+
+/usr/bin/$me "$@"
