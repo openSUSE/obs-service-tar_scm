@@ -1,0 +1,11 @@
+#
+# Define a cache directory here to avoid repeating downloads of the
+# same file. This works on the server and on the client side.
+#
+# Note that this file can be overridden with per-user config placed
+# in ~/.obs/tar_scm
+#
+# WARNING: you need to create three directories inside, when changing from default:
+#          mkdir -p repo{,url} incoming
+#
+#CACHEDIRECTORY="/var/cache/obs/tar_scm"
