@@ -1,0 +1,6 @@
+language: python
+python:
+  - "2.7"
+install:
+  - sudo apt-get install bzr git mercurial subversion
+script: python setup.py
