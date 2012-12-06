@@ -402,6 +402,7 @@ get_version () {
   case "$MYSCM" in
     git)
       #version=`safe_run git show --pretty=format:"$MYFORMAT" | head -n 1`
+      MYFORMAT=${MYFORMAT/@PARENT_TAG@/$(git describe --tags --abbrev=0)}
       version=`safe_run git log -n1 --date=short --pretty=format:"$MYFORMAT"|sed 's@-@@g'`
       ;;
     svn)
