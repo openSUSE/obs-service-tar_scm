@@ -1,7 +1,7 @@
 language: python
 python:
   - "2.7"
-install:
-  - sudo apt-get update
-  - sudo apt-get install -y bzr git mercurial subversion
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq bzr git mercurial subversion
 script: python test.py
