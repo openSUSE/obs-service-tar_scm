@@ -4,4 +4,4 @@ python:
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq bzr git mercurial subversion
-script: python test.py
+script: python tests/test.py
