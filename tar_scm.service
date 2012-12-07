@@ -20,7 +20,7 @@
     <description>Specify version to be used in tarball. Defaults to automatically detected value formatted by versionformat parameter.</description>
   </parameter>
   <parameter name="versionformat">
-    <description>Auto-generate version from checked out source using this format string. For git, value is passed via git show --pretty=format:... (default '%ct'); for hg, via hg log --template=... (default '{rev}'); for bzr and svn, %r is revision (default '%r'). Overrides tarball name defined by version parameter.</description>
+    <description>Auto-generate version from checked out source using this format string. For git, value is passed via git show --pretty=format:... (default '%ct'); for hg, via hg log --template=... (default '{rev}'); for bzr and svn, %r is revision (default '%r'). Overrides tarball name defined by version parameter. For git, @PARENT_TAG@ points to the first tag that is reachable from the current revision of the chosen branch.</description>
   </parameter>
   <parameter name="versionprefix">
     <description>specify a base version as prefix.</description>
