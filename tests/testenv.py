@@ -7,12 +7,12 @@ from scmlogs   import ScmInvocationLogs
 
 class TestEnvironment:
     tests_dir   = os.path.abspath(os.path.dirname(__file__)) # os.getcwd()
-    tmp_dir     = tests_dir + '/tmp'
+    tmp_dir     = os.path.join(tests_dir, 'tmp')
     is_setup    = False
 
     @classmethod
     def tar_scm_bin(cls):
-        tar_scm = cls.tests_dir + '/tar_scm'
+        tar_scm = os.path.join(cls.tests_dir, '..', 'tar_scm')
         if not os.path.isfile(tar_scm):
             raise RuntimeError, "Failed to find tar_scm executable at " + tar_scm
         return tar_scm
