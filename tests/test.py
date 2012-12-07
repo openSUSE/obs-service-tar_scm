@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import os
+import shutil
 import sys
 import unittest
 
@@ -7,6 +9,7 @@ from gittests import GitTests
 from svntests import SvnTests
 from hgtests  import HgTests
 from bzrtests import BzrTests
+from testenv import TestEnvironment
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
@@ -30,6 +33,10 @@ if __name__ == '__main__':
 
     runner = unittest.TextTestRunner(**runner_args)
     result = runner.run(suite)
+
+    # Cleanup:
+    if os.path.exists(TestEnvironment.tmp_dir):
+        shutil.rmtree(TestEnvironment.tmp_dir)
 
     if result.wasSuccessful():
         sys.exit(0)
