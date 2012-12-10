@@ -1,53 +1,53 @@
 <service name="tar_scm">
   <summary>Create a tar ball from SCM repository</summary>
   <description>This service uses a scm client to checkout or update from a given repository. Supported are svn, git, hg and bzr.</description>
-  <parameter name="scm">
+  <param name="scm">
     <description>Used SCM</description>
     <allowedvalue>svn</allowedvalue>
     <allowedvalue>git</allowedvalue>
     <allowedvalue>hg</allowedvalue>
     <allowedvalue>bzr</allowedvalue>
     <required/>
-  </parameter>
-  <parameter name="url">
+  </param>
+  <param name="url">
     <description>Checkout url</description>
     <required/>
-  </parameter>
-  <parameter name="subdir">
+  </param>
+  <param name="subdir">
     <description>package just a sub directory</description>
-  </parameter>
-  <parameter name="version">
+  </param>
+  <param name="version">
     <description>Specify version to be used in tarball. Defaults to automatically detected value formatted by versionformat parameter.</description>
-  </parameter>
-  <parameter name="versionformat">
+  </param>
+  <param name="versionformat">
     <description>Auto-generate version from checked out source using this format string. For git, value is passed via git show --pretty=format:... (default '%ct'); for hg, via hg log --template=... (default '{rev}'); for bzr and svn, %r is revision (default '%r'). Overrides tarball name defined by version parameter. For git, @PARENT_TAG@ points to the first tag that is reachable from the current revision of the chosen branch.</description>
-  </parameter>
-  <parameter name="versionprefix">
+  </param>
+  <param name="versionprefix">
     <description>specify a base version as prefix.</description>
-  </parameter>
-  <parameter name="revision">
+  </param>
+  <param name="revision">
     <description>specify a revision</description>
-  </parameter>
-  <parameter name="filename">
+  </param>
+  <param name="filename">
     <description>name of package - used together with version to determine tarball name</description>
-  </parameter>
-  <parameter name="exclude">
+  </param>
+  <param name="exclude">
     <description>for specifying excludes when creating the tar ball</description>
-  </parameter>
-  <parameter name="include">
+  </param>
+  <param name="include">
     <description>for specifying subset of files/subdirectories to pack in the tar ball</description>
-  </parameter>
-  <parameter name="package-meta">
+  </param>
+  <param name="package-meta">
     <description>Package the meta data of SCM to allow the user or OBS to update after un-tar</description>
     <allowedvalue>yes</allowedvalue>
-  </parameter>
-  <parameter name="history-depth">
+  </param>
+  <param name="history-depth">
     <description>Stored history depth. Special value "full" clones/pulls full history. Only valid if SCM git is used.</description>
-  </parameter>
-  <parameter name="submodules">
+  </param>
+  <param name="submodules">
     <description>Whether or not to include git submodules.  Default is 'enable'</description>
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
-  </parameter>
+  </param>
 </service>
 
