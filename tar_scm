@@ -475,6 +475,10 @@ cleanup () {
 }
 
 main () {
+  # Ensure we get predictable results when parsing the output of commands
+  # like 'git branch'
+  LANG=C
+
   set_default_params
   if [ -z "$DEBUG_TAR_SCM" ]; then
     get_config_options

@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import os
+
 from pprint         import pprint, pformat
 
 from testassertions import TestAssertions
@@ -58,6 +60,11 @@ class CommonTests(TestEnvironment, TestAssertions):
 
     def test_revision(self):
         self._revision()
+
+    def test_revision_lang_de(self):
+        os.putenv('LANG', 'de_DE.UTF-8')
+        self._revision()
+        os.unsetenv('LANG')
 
     def test_revision_no_cache(self):
         self._revision(use_cache=False)
