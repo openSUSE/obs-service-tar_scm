@@ -79,9 +79,9 @@ class TestAssertions(unittest.TestCase):
         tarpath = os.path.join(self.outdir, tar)
         return tarchecker(tarpath, toptardir)
 
-    def assertTarOnly(self, tarbasename, **kwargs):
+    def assertTarOnly(self, tarbasename, toptardir=None, **kwargs):
         dirents = self.assertNumDirents(self.outdir, 1)
-        return self.checkTar(dirents[0], tarbasename, **kwargs)
+        return self.checkTar(dirents[0], tarbasename, toptardir, **kwargs)
 
     def assertTarAndDir(self, tarbasename, dirname=None, **kwargs):
         if not dirname:
@@ -103,7 +103,7 @@ class TestAssertions(unittest.TestCase):
         self.assertTrue(os.path.isdir(os.path.join(self.outdir, wd)),
                         dirname + ' should be directory')
 
-        return self.checkTar(tar, tarbasename, **kwargs)
+        return self.checkTar(tar, tarbasename, toptardir=dirname, **kwargs)
 
     def assertTarMemberContains(self, th, tarmember, contents):
         f = th.extractfile(tarmember)
