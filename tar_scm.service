@@ -49,5 +49,11 @@
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </param>
+  <param name="tarfilename">
+    <description>RPM or Deb naming?</description>
+    <allowedvalue>${NAME}-${VERSION}</allowedvalue>
+    <allowedvalue>${NAME}_${VERSION}</allowedvalue>
+    <allowedvalue>${NAME}_${VERSION}.orig</allowedvalue>
+  </param>
 </service>
 
