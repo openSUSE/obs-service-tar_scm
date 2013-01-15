@@ -12,6 +12,7 @@ class HgTests(GitHgTests):
 
     abbrev_hash_format = '{node|short}'
     timestamp_format   = '{date}'
+    yyyymmdd_format    = '{date|shortdate}'
 
     def default_version(self):
         return self.rev(2)

@@ -423,7 +423,7 @@ get_version () {
       ;;
     hg)
       rev=`safe_run hg id -n`
-      version=`safe_run hg log -l1 -r$rev --template "$MYFORMAT"`
+      version=`safe_run hg log -l1 -r$rev --template "$MYFORMAT"|sed 's@-@@g'`
       ;;
     bzr)
       #safe_run bzr log -l1 ...
