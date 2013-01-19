@@ -12,6 +12,7 @@ class GitTests(GitHgTests):
 
     abbrev_hash_format = '%h'
     timestamp_format   = '%ct'
+    yyyymmdd_format    = '%cd'
 
     def default_version(self):
         return self.timestamps(self.rev(2))
