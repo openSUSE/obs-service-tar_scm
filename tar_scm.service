@@ -57,7 +57,7 @@
   </param>
   <param name="username">
     <description>Username for checkout. Only valid for svn.</description>
-  </parameter>
+  </param>
   <param name="password">
     <description>Password for checkout. Only valid for svn.</description>
   </param>
