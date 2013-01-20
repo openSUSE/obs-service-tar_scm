@@ -55,5 +55,11 @@
     <allowedvalue>${NAME}_${VERSION}</allowedvalue>
     <allowedvalue>${NAME}_${VERSION}.orig</allowedvalue>
   </param>
+  <param name="username">
+    <description>Username for checkout. Only valid for svn.</description>
+  </parameter>
+  <param name="password">
+    <description>Password for checkout. Only valid for svn.</description>
+  </param>
 </service>
 
