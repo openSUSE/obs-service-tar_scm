@@ -26,7 +26,23 @@
     <description>specify a base version as prefix.</description>
   </param>
   <param name="revision">
-    <description>specify a revision</description>
+    <description>
+       When using git, revision may refer to any of the following:
+      
+       * explicit SHA1: a1b2c3d4....
+         - the SHA1 must be reachable from a default clone/fetch
+           (generally, must be reachable from some branch or tag on the
+           remote).
+         - set by: git checkout <SHA1>
+      
+       * short branch name: "master", "devel" etc.
+         - set by: git checkout <branch> && git pull
+      
+       * explicit ref: refs/heads/master, refs/tags/v1.2.3,
+         refs/changes/49/11249/1
+         - set by: git fetch <url> +<revision>:<revision> && git
+           checkout <revision>
+    </description>
   </param>
   <param name="filename">
     <description>name of package - used together with version to determine tarball name</description>
