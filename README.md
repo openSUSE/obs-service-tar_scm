@@ -1,3 +1,5 @@
+# tar_scm (OBS source service) [![Build Status](https://travis-ci.org/openSUSE/obs-service-tar_scm.png?branch=master)](https://travis-ci.org/openSUSE/obs-service-tar_scm)
+
 This is the git repository for openSUSE:Tools/obs-service-tar_scm.
 The authoritative source is:
 
