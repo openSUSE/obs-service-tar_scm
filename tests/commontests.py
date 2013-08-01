@@ -111,6 +111,10 @@ class CommonTests(TestEnvironment, TestAssertions):
         self._revision(use_cache=False, use_subdir=True)
 
     def _revision(self, use_cache=True, use_subdir=False):
+        """
+        Check that the right revision is packaged up, regardless of
+        whether new commits have been introduced since previous runs.
+        """
         version = '3.0'
         args_tag2 = [
             '--version', version,
@@ -144,6 +148,11 @@ class CommonTests(TestEnvironment, TestAssertions):
         self._revision_master_alternating(use_cache=False, use_subdir=True)
 
     def _revision_master_alternating(self, use_cache=True, use_subdir=False):
+        """
+        Call tar_scm 7 times, alternating between a specific revision
+        and the default branch (master), and checking the results each
+        time.  New commits are created before some of the invocations.
+        """
         version = '4.0'
         args_head = [
             '--version', version,
@@ -167,6 +176,11 @@ class CommonTests(TestEnvironment, TestAssertions):
         )
 
     def _sequential_calls_with_revision(self, version, calls, use_cache=True):
+        """
+        Call tar_scm a number of times, optionally creating some
+        commits before each invocation, and checking that the result
+        contains the right revision after each invocation.
+        """
         mkfreshdir(self.pkgdir)
         basename = self.basename(version = version)
 
