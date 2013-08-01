@@ -173,11 +173,14 @@ class CommonTests(TestEnvironment, TestAssertions):
         if not use_cache:
             self.disableCache()
 
+        step_number = 0
         while calls:
+            step_number += 1
             new_commits, args, expected, expect_cache_hit = calls.pop(0)
             if new_commits > 0:
                 self.fixtures.create_commits(new_commits)
-            self.scmlogs.annotate("about to run: " + pformat(args))
+            self.scmlogs.annotate("step #%s: about to run tar_scm with args: %s" %
+                                  (step_number, pformat(args)))
             self.scmlogs.annotate("expecting tar to contain: " + expected)
             self.tar_scm_std(*args)
             logpath  = self.scmlogs.current_log_path
