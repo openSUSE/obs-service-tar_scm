@@ -53,6 +53,10 @@ class GitFixtures(Fixtures):
                  wd)
         )
 
+    def submodule_path(self, submodule_name):
+        return self.submodules_path + '/' + submodule_name
+
     def create_submodule(self, submodule_name):
-        submodule_path = self.submodules_path + '/' + submodule_name
-        self.create_repo(submodule_path)
+        path = self.submodule_path(submodule_name)
+        #self.scmlogs.annotate("Creating repo in %s" % path)
+        self.create_repo(path)
