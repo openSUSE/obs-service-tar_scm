@@ -79,6 +79,7 @@ class Fixtures:
         Caller should ensure correct cwd.
         Returns list of newly created files.
         """
+        self.scmlogs.annotate("cwd is %s" % os.getcwd())
         newly_created = [ ]
 
         if not os.path.exists('a'):
