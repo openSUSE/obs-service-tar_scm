@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import datetime
+import os
 
 from   githgtests  import GitHgTests
 from   gitfixtures import GitFixtures
@@ -44,3 +45,24 @@ class GitTests(GitHgTests):
     def test_versionformat_parenttag(self):
         self.tar_scm_std('--versionformat', "@PARENT_TAG@")
         self.assertTarOnly(self.basename(version = self.rev(2)))
+
+    def test_submodule_update(self):
+        submod_name = 'submod1'
+
+        fix = self.fixtures
+        repo_path = fix.repo_path
+        submod_path = fix.submodule_path(submod_name)
+
+        self.scmlogs.next('submodule-create')
+        fix.create_submodule(submod_name)
+
+        self.scmlogs.next('submodule-fixtures')
+        fix.create_commits(3, submod_path)
+
+        os.chdir(repo_path)
+        fix.safe_run('submodule add file://%s' % submod_path)
+        new_rev = fix.next_commit_rev(repo_path)
+        fix.do_commit(repo_path, new_rev, [ '.gitmodules', submod_name ])
+        fix.record_rev(repo_path, new_rev)
+
+        self.tar_scm_std('--submodules', 'enable')
