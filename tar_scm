@@ -436,8 +436,8 @@ prep_tree_for_tar () {
   if [ -z "$TAR_VERSION" ]; then
     TAR_BASENAME="$FILE"
   else
-    NAME=${FILE}
-    VERSION=${TAR_VERSION}
+    NAME="$FILE"
+    VERSION="$TAR_VERSION"
     TAR_BASEDIR="${FILE}-${TAR_VERSION}"
     TAR_BASENAME=`eval echo ${MYTARFILENAME}`
   fi
