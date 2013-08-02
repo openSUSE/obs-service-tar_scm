@@ -35,10 +35,10 @@ if __name__ == '__main__':
     result = runner.run(suite)
 
     # Cleanup:
-    if os.path.exists(TestEnvironment.tmp_dir):
-        shutil.rmtree(TestEnvironment.tmp_dir)
-
     if result.wasSuccessful():
+        if os.path.exists(TestEnvironment.tmp_dir):
+            shutil.rmtree(TestEnvironment.tmp_dir)
         sys.exit(0)
     else:
+        print("Left temporary files in %s" % TestEnvironment.tmp_dir)
         sys.exit(1)

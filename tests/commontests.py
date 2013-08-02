@@ -111,6 +111,10 @@ class CommonTests(TestEnvironment, TestAssertions):
         self._revision(use_cache=False, use_subdir=True)
 
     def _revision(self, use_cache=True, use_subdir=False):
+        """
+        Check that the right revision is packaged up, regardless of
+        whether new commits have been introduced since previous runs.
+        """
         version = '3.0'
         args_tag2 = [
             '--version', version,
@@ -144,6 +148,11 @@ class CommonTests(TestEnvironment, TestAssertions):
         self._revision_master_alternating(use_cache=False, use_subdir=True)
 
     def _revision_master_alternating(self, use_cache=True, use_subdir=False):
+        """
+        Call tar_scm 7 times, alternating between a specific revision
+        and the default branch (master), and checking the results each
+        time.  New commits are created before some of the invocations.
+        """
         version = '4.0'
         args_head = [
             '--version', version,
@@ -167,17 +176,25 @@ class CommonTests(TestEnvironment, TestAssertions):
         )
 
     def _sequential_calls_with_revision(self, version, calls, use_cache=True):
+        """
+        Call tar_scm a number of times, optionally creating some
+        commits before each invocation, and checking that the result
+        contains the right revision after each invocation.
+        """
         mkfreshdir(self.pkgdir)
         basename = self.basename(version = version)
 
         if not use_cache:
             self.disableCache()
 
+        step_number = 0
         while calls:
+            step_number += 1
             new_commits, args, expected, expect_cache_hit = calls.pop(0)
             if new_commits > 0:
                 self.fixtures.create_commits(new_commits)
-            self.scmlogs.annotate("about to run: " + pformat(args))
+            self.scmlogs.annotate("step #%s: about to run tar_scm with args: %s" %
+                                  (step_number, pformat(args)))
             self.scmlogs.annotate("expecting tar to contain: " + expected)
             self.tar_scm_std(*args)
             logpath  = self.scmlogs.current_log_path
