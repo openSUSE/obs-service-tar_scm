@@ -28,19 +28,19 @@ def quietrun(cmd):
         print stderr
     return (stdout, stderr, ret)
 
-def run_scm(scm, repo, opts):
-    cmd = 'cd %s && %s %s' % (repo, scm, opts)
+def run_scm(scm, repo, args):
+    cmd = 'cd %s && %s %s' % (repo, scm, args)
     #return subprocess.check_output(cmd, shell=True)
     return quietrun(cmd)
 
-def run_git(repo, opts):
-    return run_scm('git', repo, opts)
+def run_git(repo, args):
+    return run_scm('git', None, args)
 
-def run_svn(repo, opts):
-    return run_scm('svn', repo, opts)
+def run_svn(repo, args):
+    return run_scm('svn', repo, args)
 
-def run_hg(repo, opts):
-    return run_scm('hg',  repo, opts)
+def run_hg(repo, args):
+    return run_scm('hg',  repo, args)
 
-def run_bzr(repo, opts):
-    return run_scm('bzr', repo, opts)
+def run_bzr(repo, args):
+    return run_scm('bzr', repo, args)
