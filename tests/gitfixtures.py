@@ -30,10 +30,6 @@ class GitFixtures(Fixtures):
         self.run('config user.email test@test.com')
         print "created repo", repo_path
 
-    def do_commit(self, newly_created):
-        self.run('add .')
-        self.run('commit -m%d' % self.next_commit_rev)
-
     def get_metadata(self, formatstr):
         return self.run('log -n1 --pretty=format:"%s"' % formatstr)[0]
 

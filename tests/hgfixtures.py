@@ -27,10 +27,6 @@ class HgFixtures(Fixtures):
         self.wd = self.repo_path
         print "created repo", self.repo_path
 
-    def do_commit(self, newly_created):
-        self.run('add .')
-        self.run('commit -m%d' % self.next_commit_rev)
-
     def get_metadata(self, formatstr):
         return self.run('log -l1 --template "%s"' % formatstr)[0]
 
