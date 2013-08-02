@@ -24,23 +24,32 @@ class TestEnvironment:
         # to support Python < 2.7
         if cls.is_setup:
             return
-        print "++++++ setupClass ++++++"
+        print("--v-v-- begin setupClass for %s --v-v--" % cls.__name__)
         ScmInvocationLogs.setup_bin_wrapper(cls.scm, cls.tmp_dir)
         os.putenv('DEBUG_TAR_SCM', 'yes')
         cls.is_setup = True
+        print "--^-^-- end   setupClass --^-^--"
+        print
 
     def calcPaths(self):
         if not self._testMethodName.startswith('test_'):
             raise RuntimeError, "unexpected test method name: " + self._testMethodName
-        self.test_name = self._testMethodName[5:]
         self.test_dir  = os.path.join(self.tmp_dir,  self.scm, self.test_name)
         self.pkgdir    = os.path.join(self.test_dir, 'pkg')
         self.outdir    = os.path.join(self.test_dir, 'out')
         self.cachedir  = os.path.join(self.test_dir, 'cache')
 
     def setUp(self):
+        print("- " * 35)
+        print(self._testMethodName)
+        print("- " * 35)
+        print
+
+        self.test_name = self._testMethodName[5:]
+
         self.setupClass()
-        print "++++++ setUp ++++++"
+
+        print("--v-v-- begin setUp for %s --v-v--" % self.test_name)
 
         self.calcPaths()
 
@@ -58,6 +67,8 @@ class TestEnvironment:
         os.putenv('CACHEDIRECTORY', self.cachedir)
         # osc launches source services with cwd as pkg dir
         os.chdir(self.pkgdir)
+        print("--^-^-- end setUp for %s --^-^--" % self.test_name)
+        print
 
     def initDirs(self):
         # pkgdir persists between tests to simulate real world use
@@ -72,11 +83,12 @@ class TestEnvironment:
         os.unsetenv('CACHEDIRECTORY')
 
     def tearDown(self):
-        print "++++++ tearDown ++++++"
+        print("--v-v-- begin tearDown for %s --v-v--" % self.test_name)
         self.postRun()
+        print("--^-^-- end tearDown for %s --^-^--" % self.test_name)
+        print
 
     def postRun(self):
-        print "++++++ postRun +++++++"
         self.service = { 'mode' : 'disabled' }
         if os.path.exists(self.outdir):
             self.simulate_osc_postrun()
@@ -118,18 +130,20 @@ class TestEnvironment:
         quotedargs = [ "'%s'" % arg for arg in cmdargs ]
         cmdstr = 'bash %s %s 2>&1' % (self.tar_scm_bin(), " ".join(quotedargs))
         print "\n"
-        print "-" * 70
+        print ">>>>>>>>>>>"
         print "Running", cmdstr
+        print
         (stdout, stderr, ret) = run_cmd(cmdstr)
         if stdout:
-            print "STDOUT:"
-            print "------"
+            print "--v-v-- begin STDOUT from tar_scm --v-v--"
             print stdout,
+            print "--^-^-- end   STDOUT from tar_scm --^-^--"
         if stderr:
-            print "STDERR:"
-            print "------"
+            print "\n"
+            print "--v-v-- begin STDERR from tar_scm --v-v--"
             print stderr,
-        print "-" * 70
+            print "--^-^-- end   STDERR from tar_scm --^-^--"
+        print "\n"
         succeeded = ret == 0
         self.assertEqual(succeeded, should_succeed)
         return (stdout, stderr, ret)

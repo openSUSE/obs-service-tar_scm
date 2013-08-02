@@ -116,7 +116,6 @@ class TestAssertions(unittest.TestCase):
         self._find(logpath, loglines, self.update_cache_command, self.initial_clone_command)
 
     def _find(self, logpath, loglines, should_find, should_not_find):
-        print "####", should_find
         found = False
         regexp = re.compile('^' + should_find)
         for line in loglines:

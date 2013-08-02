@@ -343,23 +343,16 @@ switch_to_revision () {
       # - explicit SHA1: a1b2c3d4....
       #   - the SHA1 must be reachable from a default clone/fetch (generally, must be
       #     reachable from some branch or tag on the remote).
-      #   - set by: git checkout <SHA1>
-      #
       # - short branch name: "master", "devel" etc.
-      #   - set by: git checkout <branch> && git pull
-      #
       # - explicit ref: refs/heads/master, refs/tags/v1.2.3, refs/changes/49/11249/1
-      #   - set by: git fetch <url> +<revision>:<revision> && git checkout <revision>
       #
-      if ! git checkout "$MYREVISION"; then
-        echo "$MYREVISION not accessible by default clone/fetch, attempting explicit fetch"
-        safe_run git fetch "$MYURL" "+$MYREVISION:$MYREVISION"
-        safe_run git checkout "$MYREVISION"
+      if ! git rev-parse --verify --quiet tar_scm_tmp >/dev/null; then
+        safe_run git checkout -b tar_scm_tmp
       fi
-      if git branch | grep -q '^\* (no branch)$'; then
-        echo "$MYREVISION does not refer to a branch, not attempting git pull"
+      if git rev-parse --verify --quiet "origin/$MYREVISION" >/dev/null; then
+          safe_run git reset --hard "origin/$MYREVISION"
       else
-        safe_run git pull
+          safe_run git reset --hard "$MYREVISION"
       fi
       ;;
     svn|bzr)
