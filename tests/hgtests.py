@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import datetime
+
 from   githgtests  import GitHgTests
 from   hgfixtures  import HgFixtures
 from   utils       import run_hg
@@ -16,3 +18,13 @@ class HgTests(GitHgTests):
 
     def default_version(self):
         return self.rev(2)
+
+    def version(self, rev):
+        # Hyphens aren't allowed in version number.  This substitution
+        # mirrors the use of sed "s@-@@g" in tar_scm.
+        version = "%s%s" % self.timestamps(self.rev(rev))
+        return version.replace('-', '')
+
+    def dateYYYYMMDD(self, rev):
+        dateobj = datetime.date.fromtimestamp(self.timestamps(rev)[0])
+        return dateobj.strftime("%4Y%02m%02d")
