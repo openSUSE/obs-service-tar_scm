@@ -39,6 +39,6 @@ class SvnFixtures(Fixtures):
     def get_metadata(self, formatstr):
         return self.run('log -n1' % formatstr)[0]
 
-    def record_rev(self, rev_num):
+    def record_rev(self, wd, rev_num):
         self.revs[rev_num] = str(rev_num)
         self.scmlogs.annotate("Recorded rev %d" % rev_num)

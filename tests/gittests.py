@@ -29,6 +29,18 @@ class GitTests(GitHgTests):
         dateobj = datetime.date.fromtimestamp(float(self.timestamps(rev)))
         return dateobj.strftime("%4Y%02m%02d")
 
+    def rev(self, rev):
+        f = self.fixtures
+        return f.revs[f.repo_path][rev]
+
+    def timestamps(self, rev):
+        f = self.fixtures
+        return f.timestamps[f.repo_path][rev]
+
+    def sha1s(self, rev):
+        f = self.fixtures
+        return f.sha1s[f.repo_path][rev]
+
     def test_versionformat_parenttag(self):
         self.tar_scm_std('--versionformat', "@PARENT_TAG@")
         self.assertTarOnly(self.basename(version = self.rev(2)))

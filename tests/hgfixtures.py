@@ -34,7 +34,7 @@ class HgFixtures(Fixtures):
     def get_metadata(self, formatstr):
         return self.run('log -l1 --template "%s"' % formatstr)[0]
 
-    def record_rev(self, rev_num):
+    def record_rev(self, wd, rev_num):
         tag = str(rev_num - 1) # hg starts counting changesets at 0
         self.revs[rev_num]   = tag
         epoch_secs, tz_delta_to_utc = self.get_metadata('{date|hgdate}').split()
