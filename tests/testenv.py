@@ -40,6 +40,7 @@ class TestEnvironment:
         self.cachedir  = os.path.join(self.test_dir, 'cache')
 
     def setUp(self):
+        print
         print("- " * 35)
         print(self._testMethodName)
         print("- " * 35)
@@ -68,7 +69,6 @@ class TestEnvironment:
         # osc launches source services with cwd as pkg dir
         os.chdir(self.pkgdir)
         print("--^-^-- end setUp for %s --^-^--" % self.test_name)
-        print
 
     def initDirs(self):
         # pkgdir persists between tests to simulate real world use
@@ -83,6 +83,7 @@ class TestEnvironment:
         os.unsetenv('CACHEDIRECTORY')
 
     def tearDown(self):
+        print
         print("--v-v-- begin tearDown for %s --v-v--" % self.test_name)
         self.postRun()
         print("--^-^-- end tearDown for %s --^-^--" % self.test_name)
@@ -129,7 +130,7 @@ class TestEnvironment:
         cmdargs = args + [ '--outdir', self.outdir ]
         quotedargs = [ "'%s'" % arg for arg in cmdargs ]
         cmdstr = 'bash %s %s 2>&1' % (self.tar_scm_bin(), " ".join(quotedargs))
-        print "\n"
+        print
         print ">>>>>>>>>>>"
         print "Running", cmdstr
         print
@@ -143,7 +144,6 @@ class TestEnvironment:
             print "--v-v-- begin STDERR from tar_scm --v-v--"
             print stderr,
             print "--^-^-- end   STDERR from tar_scm --^-^--"
-        print "\n"
         succeeded = ret == 0
         self.assertEqual(succeeded, should_succeed)
         return (stdout, stderr, ret)
