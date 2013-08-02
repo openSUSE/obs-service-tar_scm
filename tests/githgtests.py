@@ -14,7 +14,7 @@ class GitHgTests(CommonTests):
 
     def test_versionformat_timestamp(self):
         self.tar_scm_std('--versionformat', self.timestamp_format)
-        self.assertTarOnly(self.basename(version = self.timestamps(self.rev(2))))
+        self.assertTarOnly(self.basename(version = self.version(2)))
 
     def test_versionformat_dateYYYYMMDD(self):
         self.tar_scm_std('--versionformat', self.yyyymmdd_format)
@@ -24,9 +24,8 @@ class GitHgTests(CommonTests):
         return self.mixed_version_template % (self.timestamp_format, self.abbrev_hash_format)
 
     def _mixed_version(self, rev):
-        version = self.timestamps(self.rev(rev))
         return self.mixed_version_template % \
-            (version, self.sha1s(self.rev(rev)))
+            (self.version(rev), self.sha1s(self.rev(rev)))
 
     def test_versionformat_mixed(self):
         self.tar_scm_std('--versionformat', self._mixed_version_format())

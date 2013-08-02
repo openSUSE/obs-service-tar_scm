@@ -154,11 +154,6 @@ class TestEnvironment:
     def timestamps(self, rev):
         return self.fixtures.timestamps[rev]
 
-    def dateYYYYMMDD(self, rev):
-        timestamp = self.timestamps(rev)
-        dateobj = datetime.date.fromtimestamp(float(timestamp))
-        return dateobj.strftime("%4Y%02m%02d")
-
     def sha1s(self, rev):
         return self.fixtures.sha1s[rev]
 

@@ -416,6 +416,31 @@ get_version () {
       ;;
     hg)
       rev=`safe_run hg id -n`
+      # Mercurial internally stores commit dates in its changelog
+      # context objects as (epoch_secs, tz_delta_to_utc) tuples (see
+      # mercurial/util.py).  For example, if the commit was created
+      # whilst the timezone was BST (+0100) then tz_delta_to_utc is
+      # -3600.  In this case,
+      #
+      #     hg log -l1 -r$rev --template '{date}\n'
+      #
+      # will result in something like '1375437706.0-3600' where the
+      # first number is timezone-agnostic.  However, hyphens are not
+      # permitted in rpm version numbers, so tar_scm removes them via
+      # sed.  This is required for this template format for any time
+      # zone "numerically east" of UTC.
+      #
+      # N.B. since the extraction of the timestamp as a version number
+      # is generally done in order to provide chronological sorting,
+      # ideally we would ditch the second number.  However the
+      # template format string is left up to the author of the
+      # _service file, so we can't do it here because we don't know
+      # what it will expand to.  Mercurial provides template filters
+      # for dates (e.g. 'hgdate') which _service authors could
+      # potentially use, but unfortunately none of them can easily
+      # extract only the first value from the tuple, except for maybe
+      # 'sub(...)' which is only available since 2.4 (first introduced
+      # in openSUSE 12.3).
       version=`safe_run hg log -l1 -r$rev --template "$MYFORMAT"|sed 's@-@@g'`
       ;;
     bzr)
