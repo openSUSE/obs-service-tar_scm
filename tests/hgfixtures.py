@@ -37,7 +37,8 @@ class HgFixtures(Fixtures):
     def record_rev(self, rev_num):
         tag = str(rev_num - 1) # hg starts counting changesets at 0
         self.revs[rev_num]   = tag
-        self.timestamps[tag] = self.get_metadata('{date}')
+        epoch_secs, tz_delta_to_utc = self.get_metadata('{date|hgdate}').split()
+        self.timestamps[tag] = (float(epoch_secs), int(tz_delta_to_utc))
         self.sha1s[tag]      = self.get_metadata('{node|short}')
         self.scmlogs.annotate(
             "Recorded rev %d: id %s, timestamp %s, SHA1 %s" % \
