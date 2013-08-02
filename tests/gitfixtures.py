@@ -20,7 +20,7 @@ class GitFixtures(Fixtures):
         self.create_commits(2)
 
     def run(self, cmd):
-        return run_git(self.repo_path, cmd)
+        return run_git(cmd)
 
     def create_repo(self, repo_path):
         os.makedirs(repo_path)

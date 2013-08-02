@@ -29,11 +29,13 @@ def quietrun(cmd):
     return (stdout, stderr, ret)
 
 def run_scm(scm, repo, args):
-    cmd = 'cd %s && %s %s' % (repo, scm, args)
+    cmd = '%s %s' % (scm, args)
+    if repo:
+        cmd = 'cd %s && %s' % (repo, cmd)
     #return subprocess.check_output(cmd, shell=True)
     return quietrun(cmd)
 
-def run_git(repo, args):
+def run_git(args):
     return run_scm('git', None, args)
 
 def run_svn(repo, args):
