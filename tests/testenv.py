@@ -28,7 +28,7 @@ class TestEnvironment:
         ScmInvocationLogs.setup_bin_wrapper(cls.scm, cls.tmp_dir)
         os.putenv('DEBUG_TAR_SCM', 'yes')
         cls.is_setup = True
-        print "--^-^-- end   setupClass --^-^--"
+        print("--^-^-- end   setupClass for %s --^-^--" % cls.__name__)
         print
 
     def calcPaths(self):
@@ -68,7 +68,7 @@ class TestEnvironment:
         os.putenv('CACHEDIRECTORY', self.cachedir)
         # osc launches source services with cwd as pkg dir
         os.chdir(self.pkgdir)
-        print("--^-^-- end setUp for %s --^-^--" % self.test_name)
+        print("--^-^-- end   setUp for %s --^-^--" % self.test_name)
 
     def initDirs(self):
         # pkgdir persists between tests to simulate real world use
@@ -86,7 +86,7 @@ class TestEnvironment:
         print
         print("--v-v-- begin tearDown for %s --v-v--" % self.test_name)
         self.postRun()
-        print("--^-^-- end tearDown for %s --^-^--" % self.test_name)
+        print("--^-^-- end   tearDown for %s --^-^--" % self.test_name)
         print
 
     def postRun(self):
