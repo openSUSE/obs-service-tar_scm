@@ -20,7 +20,7 @@ class HgFixtures(Fixtures):
     def create_repo(self):
         os.makedirs(self.repo_path)
         os.chdir(self.repo_path)
-        self.run('init')
+        self.safe_run('init')
         c = open('.hg/hgrc', 'w')
         c.write("[ui]\nusername = %s\n" % self.name_and_email)
         c.close()
@@ -28,7 +28,7 @@ class HgFixtures(Fixtures):
         print "created repo", self.repo_path
 
     def get_metadata(self, formatstr):
-        return self.run('log -l1 --template "%s"' % formatstr)[0]
+        return self.safe_run('log -l1 --template "%s"' % formatstr)[0]
 
     def record_rev(self, wd, rev_num):
         tag = str(rev_num - 1) # hg starts counting changesets at 0

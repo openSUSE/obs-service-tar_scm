@@ -32,13 +32,13 @@ class SvnFixtures(Fixtures):
     def do_commit(self, wd, new_rev, newly_created):
         for new in newly_created:
             if not new in self.added:
-                self.run('add ' + new)
+                self.safe_run('add ' + new)
                 self.added[new] = True
-        self.run('commit -m%d' % new_rev)
+        self.safe_run('commit -m%d' % new_rev)
         return new_rev
 
     def get_metadata(self, formatstr):
-        return self.run('log -n1' % formatstr)[0]
+        return self.safe_run('log -n1' % formatstr)[0]
 
     def record_rev(self, wd, rev_num):
         self.revs[rev_num] = str(rev_num)

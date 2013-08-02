@@ -23,6 +23,12 @@ class Fixtures:
         # values can be passed to --revision
         self.revs = { }
 
+    def safe_run(self, cmd):
+        stdout, stderr, exitcode = self.run(cmd)
+        if exitcode != 0:
+            raise RuntimeError, "Command failed; aborting."
+        return stdout, stderr, exitcode
+
     def setup(self):
         print self.__class__.__name__ + ": setting up fixtures"
         self.init_fixtures_dir()
@@ -65,8 +71,8 @@ class Fixtures:
         return new_rev
 
     def do_commit(self, wd, new_rev, newly_created):
-        self.run('add .')
-        self.run('commit -m%d' % new_rev)
+        self.safe_run('add .')
+        self.safe_run('commit -m%d' % new_rev)
 
     def prep_commit(self, new_rev):
         """

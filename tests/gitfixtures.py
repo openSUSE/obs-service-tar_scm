@@ -25,17 +25,17 @@ class GitFixtures(Fixtures):
     def create_repo(self, repo_path):
         os.makedirs(repo_path)
         os.chdir(repo_path)
-        self.run('init')
-        self.run('config user.name test')
-        self.run('config user.email test@test.com')
+        self.safe_run('init')
+        self.safe_run('config user.name test')
+        self.safe_run('config user.email test@test.com')
         print "created repo", repo_path
 
     def get_metadata(self, formatstr):
-        return self.run('log -n1 --pretty=format:"%s"' % formatstr)[0]
+        return self.safe_run('log -n1 --pretty=format:"%s"' % formatstr)[0]
 
     def record_rev(self, wd, rev_num):
         tag = 'tag' + str(rev_num)
-        self.run('tag ' + tag)
+        self.safe_run('tag ' + tag)
 
         for d in (self.revs, self.timestamps, self.sha1s):
             if wd not in d:

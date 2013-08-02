@@ -16,8 +16,8 @@ class BzrFixtures(Fixtures):
     def create_repo(self):
         os.makedirs(self.repo_path)
         os.chdir(self.repo_path)
-        self.run('init')
-        self.run('whoami "%s"' % self.name_and_email)
+        self.safe_run('init')
+        self.safe_run('whoami "%s"' % self.name_and_email)
         self.wd = self.repo_path
         print "created repo", self.repo_path
 
