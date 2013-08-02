@@ -19,8 +19,15 @@ if __name__ == '__main__':
         HgTests,
         BzrTests,
     ]
-    for testclass in testclasses:
-        suite.addTests(unittest.TestLoader().loadTestsFromTestCase(testclass))
+
+    if True:  # change to False to run a specific test
+        for testclass in testclasses:
+            suite.addTests(unittest.TestLoader().loadTestsFromTestCase(testclass))
+    else:
+        # tweak this to run specific tests
+        suite.addTest(HgTests('test_version_versionformat'))
+        suite.addTest(HgTests('test_versionformat_dateYYYYMMDD'))
+        suite.addTest(HgTests('test_versionformat_timestamp'))
 
     runner_args = {
         #'verbosity' : 2,
