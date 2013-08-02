@@ -29,16 +29,17 @@ class SvnFixtures(Fixtures):
         quietrun('svn checkout %s %s' % (self.repo_url, self.wd_path))
         self.wd = self.wd_path
 
-    def do_commit(self, newly_created):
+    def do_commit(self, wd, new_rev, newly_created):
         for new in newly_created:
             if not new in self.added:
-                self.run('add ' + new)
+                self.safe_run('add ' + new)
                 self.added[new] = True
-        self.run('commit -m%d' % self.next_commit_rev)
+        self.safe_run('commit -m%d' % new_rev)
+        return new_rev
 
     def get_metadata(self, formatstr):
-        return self.run('log -n1' % formatstr)[0]
+        return self.safe_run('log -n1' % formatstr)[0]
 
-    def record_rev(self, rev_num):
+    def record_rev(self, wd, rev_num):
         self.revs[rev_num] = str(rev_num)
         self.scmlogs.annotate("Recorded rev %d" % rev_num)
