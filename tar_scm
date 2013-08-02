@@ -285,7 +285,7 @@ cache_repo () {
     error "Somebody else beat us to populating the cache for $MYURL ($REPOCACHE)"
   else
     # FIXME: small race window here; do source services need to be thread-safe?
-    debug mv2 "$CLONE_TO" "$REPOCACHE"
+    debug "mv #1: $CLONE_TO -> $REPOCACHE"
     safe_run mv "$CLONE_TO" "$REPOCACHE"
     echo "$MYURL" > "$REPOURLCACHE"
     echo "Cached $MYURL at $REPOCACHE"
@@ -457,7 +457,7 @@ prep_tree_for_tar () {
     debug cp -a "$REPOPATH/$MYSUBDIR" "$TAR_BASEDIR"
     safe_run cp -a "$REPOPATH/$MYSUBDIR" "$TAR_BASEDIR"
   else
-    debug mv3 "$REPOPATH/$MYSUBDIR" "$TAR_BASEDIR"
+    debug "mv #2: $REPOPATH/$MYSUBDIR -> $TAR_BASEDIR"
     safe_run mv "$REPOPATH/$MYSUBDIR" "$TAR_BASEDIR"
   fi
 }
