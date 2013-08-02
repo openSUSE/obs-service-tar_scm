@@ -23,16 +23,18 @@ class GitHgTests(CommonTests):
     def _mixed_version_format(self):
         return self.mixed_version_template % (self.timestamp_format, self.abbrev_hash_format)
 
-    def _mixed_version(self):
-        return self.mixed_version_template % (self.timestamps(self.rev(2)), self.sha1s(self.rev(2)))
+    def _mixed_version(self, rev):
+        version = self.timestamps(self.rev(rev))
+        return self.mixed_version_template % \
+            (version, self.sha1s(self.rev(rev)))
 
     def test_versionformat_mixed(self):
         self.tar_scm_std('--versionformat', self._mixed_version_format())
-        self.assertTarOnly(self.basename(version = self._mixed_version()))
+        self.assertTarOnly(self.basename(version = self._mixed_version(2)))
 
     def test_version_versionformat(self):
         self.tar_scm_std('--version', '3.0', '--versionformat', self._mixed_version_format())
-        self.assertTarOnly(self.basename(version = self._mixed_version()))
+        self.assertTarOnly(self.basename(version = self._mixed_version(2)))
 
     def test_versionformat_revision(self):
         self.fixtures.create_commits(4)
