@@ -7,7 +7,8 @@ from   utils     import mkfreshdir, run_git
 
 class GitFixtures(Fixtures):
     def init(self):
-        self.create_repo()
+        self.create_repo(self.repo_path)
+        self.wd = self.repo_path
 
         self.timestamps   = { }
         self.sha1s        = { }
@@ -17,14 +18,13 @@ class GitFixtures(Fixtures):
     def run(self, cmd):
         return run_git(self.repo_path, cmd)
 
-    def create_repo(self):
-        os.makedirs(self.repo_path)
-        os.chdir(self.repo_path)
+    def create_repo(self, repo_path):
+        os.makedirs(repo_path)
+        os.chdir(repo_path)
         self.run('init')
         self.run('config user.name test')
         self.run('config user.email test@test.com')
-        self.wd = self.repo_path
-        print "created repo", self.repo_path
+        print "created repo", repo_path
 
     def do_commit(self, newly_created):
         self.run('add .')
