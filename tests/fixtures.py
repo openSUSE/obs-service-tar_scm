@@ -36,19 +36,22 @@ class Fixtures:
         raise NotImplementedError, \
             self.__class__.__name__ + " didn't implement init()"
 
-    def create_commits(self, num_commits):
+    def create_commits(self, num_commits, wd=None):
         self.scmlogs.annotate("Creating %d commits ..." % num_commits)
         if num_commits == 0:
             return
 
+        if wd is None:
+            wd = self.wd
+        os.chdir(wd)
+
         for i in xrange(0, num_commits):
             new_rev = self.create_commit()
-        self.record_rev(new_rev)
+        self.record_rev(wd, new_rev)
 
         self.scmlogs.annotate("Created %d commits; now at %s" % (num_commits, new_rev))
 
     def create_commit(self):
-        os.chdir(self.wd)
         newly_created = self.prep_commit()
         self.do_commit(newly_created)
         new_rev = self.next_commit_rev
