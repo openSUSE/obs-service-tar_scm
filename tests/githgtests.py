@@ -20,6 +20,10 @@ class GitHgTests(CommonTests):
         self.tar_scm_std('--versionformat', self.yyyymmdd_format)
         self.assertTarOnly(self.basename(version = self.dateYYYYMMDD(self.rev(2))))
 
+    def test_versionformat_dateYYYYMMDDHHMMSS(self):
+        self.tar_scm_std('--versionformat', self.yyyymmddhhmmss_format)
+        self.assertTarOnly(self.basename(version = self.dateYYYYMMDDHHMMSS(self.rev(2))))
+
     def _mixed_version_format(self):
         return self.mixed_version_template % (self.timestamp_format, self.abbrev_hash_format)
 
