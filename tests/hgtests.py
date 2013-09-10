@@ -15,6 +15,7 @@ class HgTests(GitHgTests):
     abbrev_hash_format = '{node|short}'
     timestamp_format   = '{date}'
     yyyymmdd_format    = '{date|shortdate}'
+    yyyymmddhhmmss_format = '{date|isodatesec}'
 
     def default_version(self):
         return self.rev(2)
@@ -28,3 +29,7 @@ class HgTests(GitHgTests):
     def dateYYYYMMDD(self, rev):
         dateobj = datetime.date.fromtimestamp(self.timestamps(rev)[0])
         return dateobj.strftime("%4Y%02m%02d")
+
+    def dateYYYYMMDDHHMMSS(self, rev):
+        dateobj = datetime.datetime.fromtimestamp(self.timestamps(rev)[0])
+        return dateobj.strftime("%4Y%02m%02dT%02H%02M%02S")
