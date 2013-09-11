@@ -16,6 +16,7 @@ class GitTests(GitHgTests):
     abbrev_hash_format = '%h'
     timestamp_format   = '%ct'
     yyyymmdd_format    = '%cd'
+    yyyymmddhhmmss_format = '%ci'
 
     def default_version(self):
         return self.timestamps(self.rev(2))
@@ -29,6 +30,11 @@ class GitTests(GitHgTests):
     def dateYYYYMMDD(self, rev):
         dateobj = datetime.date.fromtimestamp(float(self.timestamps(rev)))
         return dateobj.strftime("%4Y%02m%02d")
+
+    # This comment line helps align lines with hgtests.py.
+    def dateYYYYMMDDHHMMSS(self, rev):
+        dateobj = datetime.datetime.fromtimestamp(float(self.timestamps(rev)))
+        return dateobj.strftime("%4Y%02m%02dT%02H%02M%02S")
 
     def rev(self, rev):
         f = self.fixtures
