@@ -403,7 +403,10 @@ get_version () {
     git)
       #version=`safe_run git show --pretty=format:"$MYFORMAT" | head -n 1`
       if [[ "$MYFORMAT" =~ .*@PARENT_TAG@.*  ]] ; then
-          MYFORMAT=${MYFORMAT/@PARENT_TAG@/$(git describe --tags --abbrev=0)}
+          PARENT_TAG=$(git describe --tags --abbrev=0)
+          PARENT_TAG=${PARENT_TAG/-/.}
+          MYFORMAT=${MYFORMAT/@PARENT_TAG@/$PARENT_TAG}
+          echo "MYFORMAT: $MYFORMAT"
           if [ $? -gt 0 ] ; then
               echo -e "\e[0;31mThe git repository has no tags, thus @PARENT_TAG@ can not be expanded\e[0m"
               exit 1
