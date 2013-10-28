@@ -23,6 +23,9 @@ set_default_params () {
   MYPACKAGEMETA=""
   USE_SUBMODULES=enable
 #  MYHISTORYDEPTH=""
+  CHANGES_GENERATE=disable
+  CHANGES_REVISION=""
+  CHANGES_AUTHOR=""
   INCLUDES=""
 }
 
@@ -96,6 +99,18 @@ parse_params () {
         USE_SUBMODULES="$2"
         shift
       ;;
+      *-changesgenerate)
+        CHANGES_GENERATE="$2"
+        shift
+      ;;
+      *-changesrevision)
+        CHANGES_REVISION="$2"
+        shift
+      ;;
+      *-changesauthor)
+        CHANGES_AUTHOR="$2"
+        shift
+      ;;
       *)
         echo "Unknown parameter: $1"
         echo 'Usage: $SERVICE --scm $SCM --url $URL [--subdir $SUBDIR] [--revision $REVISION] [--version $VERSION] [--include $INCLUDE]* [--exclude $EXCLUDE]* [--versionformat $FORMAT] [--versionprefix $PREFIX] [--filename $FILENAME] [--package-meta $META] [--submodules disable] --outdir $OUT'
@@ -165,6 +180,102 @@ detect_default_filename_param () {
   esac
 }
 
+detect_changes () {
+  case "$MYSCM" in
+    git)
+      if [ -z "$CHANGES_REVISION" ]; then
+          CHANGES_REVISION=`safe_run git log -n10 --pretty=format:%H | tail -n 1`
+      fi
+      CURRENT_REVISION=`safe_run git log -n1 --pretty=format:%H`
+      CURRENT_REVISION=${CURRENT_REVISION:0:10} # shorten SHA1 hash
+      # Use pattern-matching to check if either revision is a prefix of the other. It's pretty common at least
+      # for git users to abbreviate commit hashes but people disagree on the exact length, thus:
+      if [[ ${CURRENT_REVISION} == ${CHANGES_REVISION}* || ${CHANGES_REVISION} == ${CURRENT_REVISION}* ]]; then
+        debug "No new commits, skipping changes file generation"
+        return
+      fi
+      debug "Generate changes between $CHANGES_REVISION and $CURRENT_REVISION"
+      lines=`safe_run git log --pretty=format:%s --no-merges ${CHANGES_REVISION}..${CURRENT_REVISION} | tac`
+      ;;
+    svn|hg|bzr)
+      debug "Unable to generate changes for subversion, mercurial or bazaar, skipping changes file generation"
+      return
+    ;;
+    *)
+      error "Unknown SCM '$MYSCM'"
+  esac
+  OLD_IFS="$IFS"
+  IFS=$'\n' CHANGES_LINES=( $lines )
+  IFS="$OLD_IFS"
+  CHANGES_REVISION=$CURRENT_REVISION
+}
+
+write_changes () {
+  safe_run cd "$SRCDIR"
+  # Replace or add changesrevision in _service file and do it in Python, otherwise sth. like
+  # https://gist.github.com/mralexgray/1209534 would be needed. The stdlib xml module's XPath
+  # support is quite basic, thus there are some for-loops in the code:
+  python <<-EOF
+try:
+    # If lxml is available, we can use a parser that doesn't destroy comments
+    import lxml.etree as ET
+    tree = ET.parse("_service", parser=ET.XMLParser(remove_comments=False))
+except ImportError:
+    import xml.etree.ElementTree as ET
+    tree = ET.parse("_service")
+root = tree.getroot()
+changed = False
+for service in root.findall("service[@name='tar_scm']"):
+    for param in service.findall("param[@name='url']"):
+        if param.text == "${MYURL}":
+            tar_scm_service = service
+            break
+changerev_params = tar_scm_service.findall("param[@name='changesrevision']")
+if len(changerev_params) == 1:  # already present, just update
+    if changerev_params[0].text != "${CHANGES_REVISION}":
+        changerev_params[0].text = "${CHANGES_REVISION}"
+        changed = True
+else:  # not present, add changesrevision element
+    changes_revision_element = ET.Element("param", {"name": "changesrevision"})
+    changes_revision_element.text = "${CHANGES_REVISION}"
+    tar_scm_service.append(changes_revision_element)
+    changed = True
+if changed:
+    tree.write("_service")
+EOF
+
+  if [ ${#CHANGES_LINES[@]} -eq 0 ] ; then
+    echo "No changes since $CHANGES_REVISION, skipping changes file generation"
+    return
+  fi
+
+  if [ -z "$CHANGES_AUTHOR" ] ; then
+    OSCRC="$HOME/.oscrc"
+    if [ -f $OSCRC ] ; then
+      CHANGES_AUTHOR=$(grep -e '^email.*=' $OSCRC | head -n1 | cut -d"=" -f2)
+    else
+      CHANGES_AUTHOR="opensuse-packaging@opensuse.org"
+    fi
+  fi
+
+  change_entry="-------------------------------------------------------------------
+$(LC_ALL=POSIX TZ=UTC date) - ${CHANGES_AUTHOR}
+
+- Update to version ${TAR_VERSION}:"
+  for commit in "${CHANGES_LINES[@]}" ; do
+      change_entry="$change_entry
+  + $commit"
+  done
+  change_entry="$change_entry
+"
+
+  # Prepend change entry to changes files
+  for changes_file in *.changes ; do
+      tmpfile=$(mktemp)
+      echo "$change_entry" | cat - $changes_file > $tmpfile && mv $tmpfile $changes_file
+  done
+}
+
 fetch_upstream () {
   TOHASH="$MYURL"
   [ "$MYSCM" = 'svn' ] && TOHASH="$TOHASH/$MYSUBDIR"
@@ -224,6 +335,9 @@ fetch_upstream () {
   switch_to_revision
   if [ "$TAR_VERSION" == "_auto_" -o -n "$MYFORMAT" ]; then
     detect_version
+  fi
+  if [ "$CHANGES_GENERATE" == "enable" ]; then
+    detect_changes
   fi
 }
 
@@ -493,6 +607,7 @@ create_tar () {
 }
 
 cleanup () {
+  cd "$MYOUTDIR"
   debug rm -rf "$TAR_BASENAME" "$FILE"
   rm -rf "$TAR_BASENAME" "$FILE"
 }
@@ -521,6 +636,9 @@ main () {
 
   prep_tree_for_tar
   create_tar
+  if [ "$CHANGES_GENERATE" == "enable" ]; then
+    write_changes
+  fi
 
   cleanup
 }
