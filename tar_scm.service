@@ -66,5 +66,13 @@
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </param>
+  <param name="changesgenerate">
+    <description>Whether or not to generate changes file entries from SCM commit log since a given parent revision (see changesrevision).  Default is 'disable'.</description>
+    <allowedvalue>enable</allowedvalue>
+    <allowedvalue>disable</allowedvalue>
+  </param>
+  <param name="changesauthor">
+    <description>The author of the changes file entry to be written, defaults to first email entry in ~/.oscrc or "opensuse-packaging@opensuse.org" if there is no .oscrc found.</description>
+  </param>
 </service>
 
