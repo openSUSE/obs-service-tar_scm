@@ -101,6 +101,14 @@ parse_params () {
         MYTARFILENAME="$2"
         shift
       ;;
+      *-username)
+        USERNAME="$2"
+        shift
+      ;;
+      *-password)
+        PASSWORD="$2"
+        shift
+      ;;
       *)
         echo "Unknown parameter: $1"
         echo 'Usage: $SERVICE --scm $SCM --url $URL [--subdir $SUBDIR] [--revision $REVISION] [--version $VERSION] [--include $INCLUDE]* [--exclude $EXCLUDE]* [--versionformat $FORMAT] [--versionprefix $PREFIX] [--filename $FILENAME] [--package-meta $META] [--submodules disable] [--tarfilename "${NAME}-${VERSION}"] --outdir $OUT'
@@ -263,7 +271,12 @@ initial_clone () {
       if [[ $(svn --version --quiet) > "1.5.99" ]]; then
         TRUST_SERVER_CERT="--trust-server-cert"
       fi
-      safe_run svn checkout --non-interactive $TRUST_SERVER_CERT \
+      if [ -n "$USERNAME" ] && [ -n "$PASSWORD" ] ; then
+        AUTHARGS="--no-auth-cache --username $USERNAME --password $PASSWORD"
+      else
+        AUTHARGS=""
+      fi
+      safe_run svn checkout $AUTHARGS --non-interactive $TRUST_SERVER_CERT \
         $args "$MYURL/$MYSUBDIR" "$CLONE_TO"
       MYSUBDIR= # repo root is subdir
       ;;
