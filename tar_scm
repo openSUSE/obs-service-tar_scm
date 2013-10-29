@@ -251,11 +251,6 @@ initial_clone () {
     git)
       # Clone with full depth; so that the revision can be found if specified
       safe_run git clone "$MYURL" "$CLONE_TO"
-      if [ "$USE_SUBMODULES" == "enable" ]; then
-        safe_run cd "$CLONE_TO"
-        safe_run git submodule update --init --recursive
-        safe_run cd ..
-      fi
       ;;
     svn)
       args=
@@ -353,6 +348,9 @@ switch_to_revision () {
           safe_run git reset --hard "origin/$MYREVISION"
       else
           safe_run git reset --hard "$MYREVISION"
+      fi
+      if [ "$USE_SUBMODULES" == "enable" ]; then
+        safe_run git submodule update --init --recursive
       fi
       ;;
     svn|bzr)
