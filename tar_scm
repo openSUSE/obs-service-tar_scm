@@ -24,7 +24,6 @@ set_default_params () {
   USE_SUBMODULES=enable
 #  MYHISTORYDEPTH=""
   INCLUDES=""
-  MYTARFILENAME='${NAME}-${VERSION}'
 }
 
 get_config_options () {
@@ -97,13 +96,9 @@ parse_params () {
         USE_SUBMODULES="$2"
         shift
       ;;
-      *-tarfilename)
-        MYTARFILENAME="$2"
-        shift
-      ;;
       *)
         echo "Unknown parameter: $1"
-        echo 'Usage: $SERVICE --scm $SCM --url $URL [--subdir $SUBDIR] [--revision $REVISION] [--version $VERSION] [--include $INCLUDE]* [--exclude $EXCLUDE]* [--versionformat $FORMAT] [--versionprefix $PREFIX] [--filename $FILENAME] [--package-meta $META] [--submodules disable] [--tarfilename "${NAME}-${VERSION}"] --outdir $OUT'
+        echo 'Usage: $SERVICE --scm $SCM --url $URL [--subdir $SUBDIR] [--revision $REVISION] [--version $VERSION] [--include $INCLUDE]* [--exclude $EXCLUDE]* [--versionformat $FORMAT] [--versionprefix $PREFIX] [--filename $FILENAME] [--package-meta $META] [--submodules disable] --outdir $OUT'
         exit 1
       ;;
     esac
@@ -466,29 +461,26 @@ prep_tree_for_tar () {
   if [ -z "$TAR_VERSION" ]; then
     TAR_BASENAME="$FILE"
   else
-    NAME="$FILE"
-    VERSION="$TAR_VERSION"
-    TAR_BASEDIR="${FILE}-${TAR_VERSION}"
-    TAR_BASENAME=`eval echo ${MYTARFILENAME}`
+    TAR_BASENAME="${FILE}-${TAR_VERSION}"
   fi
 
   MYINCLUDES=""
 
   for INC in $INCLUDES; do
-    MYINCLUDES="$MYINCLUDES $TAR_BASEDIR/$INC"
+    MYINCLUDES="$MYINCLUDES $TAR_BASENAME/$INC"
   done
   if [ -z "$MYINCLUDES" ]; then
-    MYINCLUDES="$TAR_BASEDIR"
+    MYINCLUDES="$TAR_BASENAME"
   fi
 
   safe_run cd "$MYOUTDIR"
 
   if [ -n "$CACHEDIRECTORY" ]; then
-    debug cp -a "$REPOPATH/$MYSUBDIR" "$TAR_BASEDIR"
-    safe_run cp -a "$REPOPATH/$MYSUBDIR" "$TAR_BASEDIR"
+    debug cp -a "$REPOPATH/$MYSUBDIR" "$TAR_BASENAME"
+    safe_run cp -a "$REPOPATH/$MYSUBDIR" "$TAR_BASENAME"
   else
-    debug "mv #2: $REPOPATH/$MYSUBDIR -> $TAR_BASEDIR"
-    safe_run mv "$REPOPATH/$MYSUBDIR" "$TAR_BASEDIR"
+    debug mv3 "$REPOPATH/$MYSUBDIR" "$TAR_BASENAME"
+    safe_run mv "$REPOPATH/$MYSUBDIR" "$TAR_BASENAME"
   fi
 }
 
@@ -501,8 +493,8 @@ create_tar () {
 }
 
 cleanup () {
-  debug rm -rf "$TAR_BASEDIR" "$FILE"
-  rm -rf "$TAR_BASEDIR" "$FILE"
+  debug rm -rf "$TAR_BASENAME" "$FILE"
+  rm -rf "$TAR_BASENAME" "$FILE"
 }
 
 main () {

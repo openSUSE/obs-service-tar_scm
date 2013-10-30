@@ -9,12 +9,7 @@ from testenv        import TestEnvironment
 from utils          import mkfreshdir
 
 class CommonTests(TestEnvironment, TestAssertions):
-    def default_name(self):
-        return "repo"
-
-    def basename(self, name=None, version=None):
-        if name is None:
-            name = self.default_name()
+    def basename(self, name='repo', version=None):
         if version is None:
             version = self.default_version()
         return '%s-%s' % (name, version)
@@ -57,36 +52,6 @@ class CommonTests(TestEnvironment, TestAssertions):
         version = '0.6'
         self.tar_scm_std('--filename', filename, '--version', version)
         self.assertTarOnly(self.basename(filename, version))
-
-    def test_tarfilename(self):
-        filename = 'myfilename'
-        version = '0.7'
-        tarfilename = '${NAME}-${VERSION}'
-        tarbasename = filename + "-" + version
-        self.tar_scm_std('--filename', filename, '--version', version, '--tarfilename', tarfilename)
-        self.assertTarOnly( tarbasename = tarbasename, toptardir = self.basename(filename, version) )
-
-    def test_tarfilename_NAME_VERSION_defaults(self):
-        tarfilename = '${NAME}_${VERSION}'
-        tarbasename = self.default_name() + "_" + self.default_version()
-        self.tar_scm_std( '--tarfilename', tarfilename)
-        self.assertTarOnly( tarbasename = tarbasename, toptardir = self.basename() )
-
-    def test_tarfilename_NAME_VERSION(self):
-        filename = 'myfilename'
-        version = '0.7'
-        tarfilename = '${NAME}_${VERSION}'
-        tarbasename = filename + "_" + version
-        self.tar_scm_std('--filename', filename, '--version', version, '--tarfilename', tarfilename)
-        self.assertTarOnly( tarbasename = tarbasename, toptardir = self.basename(filename, version) )
-
-    def test_tarfilename_NAME_VERSION_orig(self):
-        filename = 'myfilename'
-        version = '0.7'
-        tarfilename = '${NAME}_${VERSION}.orig'
-        tarbasename = filename + "_" + version + ".orig"
-        self.tar_scm_std('--filename', filename, '--version', version, '--tarfilename', tarfilename)
-        self.assertTarOnly( tarbasename = tarbasename, toptardir = self.basename(filename, version) )
 
     def test_revision_nop(self):
         self.tar_scm_std('--revision', self.rev(2))
