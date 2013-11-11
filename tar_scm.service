@@ -66,19 +66,10 @@
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </param>
-  <param name="tarfilename">
-    <description>RPM or Deb naming?</description>
-    <allowedvalue>${NAME}-${VERSION}</allowedvalue>
-    <allowedvalue>${NAME}_${VERSION}</allowedvalue>
-    <allowedvalue>${NAME}_${VERSION}.orig</allowedvalue>
-  </param>
   <param name="changesgenerate">
     <description>Whether or not to generate changes file entries from SCM commit log since a given parent revision (see changesrevision).  Default is 'disable'.</description>
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
-  </param>
-  <param name="changesrevision">
-    <description>Marks the beginning of the SCM commit range for which a changes file entry will be generated. Has to be an ancestor of "revision". If not set, tar_scm will use the 10 most recent commits. If "changesgenerate" is enabled, tar_scm will replace this with the previous "revision" in a package's _service file.</description>
   </param>
   <param name="changesauthor">
     <description>The author of the changes file entry to be written, defaults to first email entry in ~/.oscrc or "opensuse-packaging@opensuse.org" if there is no .oscrc found.</description>

@@ -103,10 +103,6 @@ parse_params () {
         CHANGES_GENERATE="$2"
         shift
       ;;
-      *-changesrevision)
-        CHANGES_REVISION="$2"
-        shift
-      ;;
       *-changesauthor)
         CHANGES_AUTHOR="$2"
         shift
@@ -181,10 +177,62 @@ detect_default_filename_param () {
 }
 
 detect_changes () {
+  # Try to load from _servicedata. We have to change $PWD, ET.parse() seems to be relative...
+  CHANGES_REVISION=$(python <<-EOF
+import os, shutil
+try:
+    # If lxml is available, we can use a parser that doesnt destroy comments
+    import lxml.etree as ET
+    xml_parser = ET.XMLParser(remove_comments=False)
+except ImportError:
+    import xml.etree.ElementTree as ET
+    xml_parser = None
+create_servicedata, tar_scm_service = False, None
+tar_scm_xmlstring = "  <service name=\"tar_scm\">\n    <param name=\"url\">${MYURL}</param>\n  </service>\n"
+try:
+    tree = ET.parse(os.path.join("$SRCDIR", "_servicedata"), parser=xml_parser)
+    root = tree.getroot()
+    for service in root.findall("service[@name='tar_scm']"):
+        for param in service.findall("param[@name='url']"):
+            if param.text == "${MYURL}":
+                tar_scm_service = service
+                break
+    if tar_scm_service:
+        changerev_params = tar_scm_service.findall("param[@name='changesrevision']")
+        if len(changerev_params) == 1:
+            print(changerev_params[0].text)  # Found what we searched for!
+    else:
+        # File exists, is well-formed but does not contain the service we search
+        root.append(ET.fromstring(tar_scm_xmlstring))
+        tree.write(os.path.join("$MYOUTDIR", "_servicedata"))
+except IOError as e:
+    create_servicedata = True  # File doesnt exist
+except ET.ParseError as e:
+    if e.message.startswith("Document is empty"):
+        create_servicedata = True  # File is empty
+    else:
+        print("error: %s" % e) # File is mal-formed, bail out.
+except Exception as e:
+    print("error: %s" % e)  # Catch-all, since we are in a here-document
+if create_servicedata:
+    root = ET.fromstring("<servicedata>\n%s</servicedata>\n" % tar_scm_xmlstring)
+    ET.ElementTree(root).write(os.path.join("$MYOUTDIR", "_servicedata"))
+else:
+    shutil.copy(os.path.join("$SRCDIR", "_servicedata"), os.path.join("$MYOUTDIR", "_servicedata"))
+EOF
+)
+  if [[ $CHANGES_REVISION == error* ]] ; then
+    echo $CHANGES_REVISION  # All we can do here, really.
+    exit 1
+  fi
+
+  safe_run cd $REPOPATH
+
   case "$MYSCM" in
     git)
       if [ -z "$CHANGES_REVISION" ]; then
-          CHANGES_REVISION=`safe_run git log -n10 --pretty=format:%H | tail -n 1`
+        # Ok, first run. Let's ask git for a range...
+        CHANGES_REVISION=`safe_run git log -n10 --pretty=format:%H | tail -n 1`
       fi
       CURRENT_REVISION=`safe_run git log -n1 --pretty=format:%H`
       CURRENT_REVISION=${CURRENT_REVISION:0:10} # shorten SHA1 hash
@@ -211,37 +259,39 @@ detect_changes () {
 }
 
 write_changes () {
-  safe_run cd "$SRCDIR"
-  # Replace or add changesrevision in _service file and do it in Python, otherwise sth. like
+  # Replace or add changesrevision in _servicedata file and do it in Python, otherwise sth. like
   # https://gist.github.com/mralexgray/1209534 would be needed. The stdlib xml module's XPath
   # support is quite basic, thus there are some for-loops in the code:
   python <<-EOF
+import os
 try:
     # If lxml is available, we can use a parser that doesn't destroy comments
     import lxml.etree as ET
-    tree = ET.parse("_service", parser=ET.XMLParser(remove_comments=False))
+    xml_parser = ET.XMLParser(remove_comments=False)
 except ImportError:
     import xml.etree.ElementTree as ET
-    tree = ET.parse("_service")
+    xml_parser = None
+tree = ET.parse(os.path.join("$MYOUTDIR", "_servicedata"), parser=xml_parser)
 root = tree.getroot()
-changed = False
+changed, tar_scm_service = False, None
 for service in root.findall("service[@name='tar_scm']"):
     for param in service.findall("param[@name='url']"):
         if param.text == "${MYURL}":
             tar_scm_service = service
             break
-changerev_params = tar_scm_service.findall("param[@name='changesrevision']")
-if len(changerev_params) == 1:  # already present, just update
-    if changerev_params[0].text != "${CHANGES_REVISION}":
-        changerev_params[0].text = "${CHANGES_REVISION}"
+if tar_scm_service:
+    changerev_params = tar_scm_service.findall("param[@name='changesrevision']")
+    if len(changerev_params) == 1:  # already present, just update
+        if changerev_params[0].text != "${CHANGES_REVISION}":
+            changerev_params[0].text = "${CHANGES_REVISION}"
+            changed = True
+    else:  # not present, add changesrevision element
+        tar_scm_service.append(ET.fromstring("    <param name=\"changesrevision\">${CHANGES_REVISION}</param>\n"))
         changed = True
-else:  # not present, add changesrevision element
-    changes_revision_element = ET.Element("param", {"name": "changesrevision"})
-    changes_revision_element.text = "${CHANGES_REVISION}"
-    tar_scm_service.append(changes_revision_element)
-    changed = True
-if changed:
-    tree.write("_service")
+    if changed:
+        tree.write(os.path.join("$MYOUTDIR", "_servicedata"))
+else:
+    print("File _servicedata is missing tar_scm with URL '${MYURL}'")
 EOF
 
   if [ ${#CHANGES_LINES[@]} -eq 0 ] ; then
@@ -270,9 +320,9 @@ $(LC_ALL=POSIX TZ=UTC date) - ${CHANGES_AUTHOR}
 "
 
   # Prepend change entry to changes files
-  for changes_file in *.changes ; do
+  for changes_file in $SRCDIR/*.changes ; do
       tmpfile=$(mktemp)
-      echo "$change_entry" | cat - $changes_file > $tmpfile && mv $tmpfile $changes_file
+      echo "$change_entry" | cat - $changes_file > $tmpfile && mv $tmpfile $MYOUTDIR/$(basename $changes_file)
   done
 }
 
@@ -607,7 +657,6 @@ create_tar () {
 }
 
 cleanup () {
-  cd "$MYOUTDIR"
   debug rm -rf "$TAR_BASENAME" "$FILE"
   rm -rf "$TAR_BASENAME" "$FILE"
 }
