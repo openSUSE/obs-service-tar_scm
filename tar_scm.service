@@ -20,7 +20,34 @@
     <description>Specify version to be used in tarball. Defaults to automatically detected value formatted by versionformat parameter.</description>
   </param>
   <param name="versionformat">
-    <description>Auto-generate version from checked out source using this format string. For git, value is passed via git show --pretty=format:... (default '%ct'); for hg, via hg log --template=... (default '{rev}'); for bzr and svn, %r is revision (default '%r'). Overrides tarball name defined by version parameter. For git, @PARENT_TAG@ points to the first tag that is reachable from the current revision of the chosen branch.</description>
+    <description>
+	Auto-generate version from checked out source using this format
+	string.  This parameter is used if the 'version' parameter is not
+	specified.
+
+	For git, the value is passed to git log --date=short --pretty=format:...
+	for the topmost commit, and the output from git is cleaned up to
+	remove some unhelpful characters.  Here are some useful examples of
+	strings which are expanded, see the git-log documentation for more.
+
+	%ct		Commit time as a UNIX timestamp, e.g. 1384855776.
+			This is the default.
+
+	%at		Author time as a UNIX timestamp, e.g. 1384855776.
+
+	%cd		Commit date in YYYYMMDD format, e.g. 20131119
+
+	%ad		Author date in YYYYMMDD format, e.g. 20131119
+
+	%h		Abbreviated hash, e.g. cc62c54
+
+	@PARENT_TAG@	the first tag that is reachable, e.g. v0.2.3
+
+	For hg, the value is passed to hg log --template=....  See the
+	hg documentation for more information.  The default is '{rev}'
+
+	For bzr and svn, '%r' is expanded to the revision, and is the default.
+    </description>
   </param>
   <param name="versionprefix">
     <description>specify a base version as prefix.</description>
