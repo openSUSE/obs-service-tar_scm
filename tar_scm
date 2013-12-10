@@ -189,6 +189,7 @@ except ImportError:
     xml_parser = None
 create_servicedata, tar_scm_service = False, None
 tar_scm_xmlstring = "  <service name=\"tar_scm\">\n    <param name=\"url\">${MYURL}</param>\n  </service>\n"
+root=None
 try:
     tree = ET.parse(os.path.join("$SRCDIR", "_servicedata"), parser=xml_parser)
     root = tree.getroot()
@@ -204,18 +205,20 @@ try:
     else:
         # File exists, is well-formed but does not contain the service we search
         root.append(ET.fromstring(tar_scm_xmlstring))
-        tree.write(os.path.join("$MYOUTDIR", "_servicedata"))
+        create_servicedata = True
 except IOError as e:
+    root = ET.fromstring("<servicedata>\n%s</servicedata>\n" % tar_scm_xmlstring)
     create_servicedata = True  # File doesnt exist
 except ET.ParseError as e:
     if e.message.startswith("Document is empty"):
+        root = ET.fromstring("<servicedata>\n%s</servicedata>\n" % tar_scm_xmlstring)
         create_servicedata = True  # File is empty
     else:
         print("error: %s" % e) # File is mal-formed, bail out.
 except Exception as e:
     print("error: %s" % e)  # Catch-all, since we are in a here-document
+
 if create_servicedata:
-    root = ET.fromstring("<servicedata>\n%s</servicedata>\n" % tar_scm_xmlstring)
     ET.ElementTree(root).write(os.path.join("$MYOUTDIR", "_servicedata"))
 else:
     shutil.copy(os.path.join("$SRCDIR", "_servicedata"), os.path.join("$MYOUTDIR", "_servicedata"))
