@@ -197,7 +197,7 @@ try:
             if param.text == "${MYURL}":
                 tar_scm_service = service
                 break
-    if tar_scm_service:
+    if tar_scm_service is not None:
         changerev_params = tar_scm_service.findall("param[@name='changesrevision']")
         if len(changerev_params) == 1:
             print(changerev_params[0].text)  # Found what we searched for!
@@ -279,7 +279,7 @@ for service in root.findall("service[@name='tar_scm']"):
         if param.text == "${MYURL}":
             tar_scm_service = service
             break
-if tar_scm_service:
+if tar_scm_service is not None:
     changerev_params = tar_scm_service.findall("param[@name='changesrevision']")
     if len(changerev_params) == 1:  # already present, just update
         if changerev_params[0].text != "${CHANGES_REVISION}":
