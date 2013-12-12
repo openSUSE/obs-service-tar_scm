@@ -246,7 +246,7 @@ EOF
         return
       fi
       debug "Generate changes between $CHANGES_REVISION and $CURRENT_REVISION"
-      lines=`safe_run git log --pretty=format:%s --no-merges ${CHANGES_REVISION}..${CURRENT_REVISION}`
+      lines=`safe_run git log --pretty=tformat:%s --no-merges ${CHANGES_REVISION}..${CURRENT_REVISION} | tac`
       ;;
     svn|hg|bzr)
       debug "Unable to generate changes for subversion, mercurial or bazaar, skipping changes file generation"
