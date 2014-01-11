@@ -16,6 +16,7 @@ set_default_params () {
   MYSCM=""
   MYURL=""
   MYVERSION="_auto_"
+  MYBASETAG=""
   MYFORMAT=""
   MYPREFIX=""
   MYFILENAME=""
@@ -107,6 +108,10 @@ parse_params () {
         CHANGES_AUTHOR="$2"
         shift
       ;;
+      --basetag)
+        MYBASETAG="$2"
+        shift
+        ;;
       *)
         echo "Unknown parameter: $1"
         echo 'Usage: $SERVICE --scm $SCM --url $URL [--subdir $SUBDIR] [--revision $REVISION] [--version $VERSION] [--include $INCLUDE]* [--exclude $EXCLUDE]* [--versionformat $FORMAT] [--versionprefix $PREFIX] [--filename $FILENAME] [--package-meta $META] [--submodules disable] --outdir $OUT'
@@ -564,6 +569,16 @@ get_version () {
   case "$MYSCM" in
     git)
       #version=`safe_run git show --pretty=format:"$MYFORMAT" | head -n 1`
+      if [[ "$MYFORMAT" =~ .*@REVISION@.* ]]; then
+          LREV=$(git describe --tags --long ${MYBASETAG:+--match="$MYBASETAG"})
+          if [[ "$?" -eq 0 ]]; then
+              LREV=$(echo "$LREV" | perl -pe 's{^.*-(\d+)-g\w+$}{$1}g')
+          else
+              LREV=$(git rev-list --count HEAD)
+          fi
+          MYFORMAT="${MYFORMAT/@REVISION@/$LREV}"
+          echo "MYFORMAT: $MYFORMAT"
+      fi
       if [[ "$MYFORMAT" =~ .*@PARENT_TAG@.*  ]] ; then
           PARENT_TAG=$(git describe --tags --abbrev=0)
           if [[ "$?" -gt 0 ]]; then

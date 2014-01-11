@@ -19,6 +19,13 @@
   <param name="version">
     <description>Specify version to be used in tarball. Defaults to automatically detected value formatted by versionformat parameter.</description>
   </param>
+  <param name="basetag">
+    <description>Name of the git tag that equals the base version part of what
+    is actually being packaged.
+    For example, considering the obs-service-tar_scm repository itself, if
+    &lt;versionformat&gt;0.3.2+git@REVISION@&lt;/versionformat&gt; is set,
+    then the basetag would be v0.3.2.</description>
+  </param>
   <param name="versionformat">
     <description>
 	Auto-generate version from checked out source using this format
@@ -42,6 +49,9 @@
 	%h		Abbreviated hash, e.g. cc62c54
 
 	@PARENT_TAG@	the first tag that is reachable, e.g. v0.2.3
+
+	@REVISION@	the distance to the given base tag, or if no base tag
+			is given, the nearest tag
 
 	For hg, the value is passed to hg log --template=....  See the
 	hg documentation for more information.  The default is '{rev}'
