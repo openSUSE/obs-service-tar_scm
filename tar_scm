@@ -238,7 +238,7 @@ EOF
         CHANGES_REVISION=`safe_run git log -n10 --pretty=format:%H | tail -n 1`
       fi
       CURRENT_REVISION=`safe_run git log -n1 --pretty=format:%H`
-      CURRENT_REVISION=${CURRENT_REVISION:0:10} # shorten SHA1 hash
+      CURRENT_REVISION=$(git rev-parse --short "$CURRENT_REVISION")
       # Use pattern-matching to check if either revision is a prefix of the other. It's pretty common at least
       # for git users to abbreviate commit hashes but people disagree on the exact length, thus:
       if [[ ${CURRENT_REVISION} == ${CHANGES_REVISION}* || ${CHANGES_REVISION} == ${CURRENT_REVISION}* ]]; then
