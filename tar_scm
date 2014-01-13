@@ -16,6 +16,7 @@ set_default_params () {
   MYSCM=""
   MYURL=""
   MYVERSION="_auto_"
+  MYBASETAG=""
   MYFORMAT=""
   MYPREFIX=""
   MYFILENAME=""
@@ -31,18 +32,18 @@ set_default_params () {
 
 get_config_options () {
   # config options for this host ?
-  if [ -f /etc/obs/services/$SERVICE ]; then
-    . /etc/obs/services/$SERVICE
+  if [ -f "/etc/obs/services/$SERVICE" ]; then
+    . "/etc/obs/services/$SERVICE"
   fi
   # config options for this user ?
-  if [ -f "$HOME"/.obs/$SERVICE ]; then
-    . "$HOME"/.obs/$SERVICE
+  if [ -f "$HOME/.obs/$SERVICE" ]; then
+    . "$HOME/.obs/$SERVICE"
   fi
 }
 
 parse_params () {
-  while test $# -gt 0; do
-    case $1 in
+  while test "$#" -gt 0; do
+    case "$1" in
       *-scm)
         MYSCM="$2"
         shift
@@ -107,6 +108,10 @@ parse_params () {
         CHANGES_AUTHOR="$2"
         shift
       ;;
+      --basetag)
+        MYBASETAG="$2"
+        shift
+        ;;
       *)
         echo "Unknown parameter: $1"
         echo 'Usage: $SERVICE --scm $SCM --url $URL [--subdir $SUBDIR] [--revision $REVISION] [--version $VERSION] [--include $INCLUDE]* [--exclude $EXCLUDE]* [--versionformat $FORMAT] [--versionprefix $PREFIX] [--filename $FILENAME] [--package-meta $META] [--submodules disable] --outdir $OUT'
@@ -225,11 +230,11 @@ else:
 EOF
 )
   if [[ $CHANGES_REVISION == error* ]] ; then
-    echo $CHANGES_REVISION  # All we can do here, really.
+    echo "$CHANGES_REVISION"  # All we can do here, really.
     exit 1
   fi
 
-  safe_run cd $REPOPATH
+  safe_run cd "$REPOPATH"
 
   case "$MYSCM" in
     git)
@@ -238,7 +243,7 @@ EOF
         CHANGES_REVISION=`safe_run git log -n10 --pretty=format:%H | tail -n 1`
       fi
       CURRENT_REVISION=`safe_run git log -n1 --pretty=format:%H`
-      CURRENT_REVISION=${CURRENT_REVISION:0:10} # shorten SHA1 hash
+      CURRENT_REVISION=$(git rev-parse --short "$CURRENT_REVISION")
       # Use pattern-matching to check if either revision is a prefix of the other. It's pretty common at least
       # for git users to abbreviate commit hashes but people disagree on the exact length, thus:
       if [[ ${CURRENT_REVISION} == ${CHANGES_REVISION}* || ${CHANGES_REVISION} == ${CURRENT_REVISION}* ]]; then
@@ -304,8 +309,8 @@ EOF
 
   if [ -z "$CHANGES_AUTHOR" ] ; then
     OSCRC="$HOME/.oscrc"
-    if [ -f $OSCRC ] ; then
-      CHANGES_AUTHOR=$(grep -e '^email.*=' $OSCRC | head -n1 | cut -d"=" -f2)
+    if [ -f "$OSCRC" ] ; then
+      CHANGES_AUTHOR=$(grep -e '^email.*=' "$OSCRC" | head -n1 | cut -d"=" -f2)
     else
       CHANGES_AUTHOR="opensuse-packaging@opensuse.org"
     fi
@@ -323,9 +328,9 @@ $(LC_ALL=POSIX TZ=UTC date) - ${CHANGES_AUTHOR}
 "
 
   # Prepend change entry to changes files
-  for changes_file in $SRCDIR/*.changes ; do
+  for changes_file in "$SRCDIR"/*.changes ; do
       tmpfile=$(mktemp)
-      echo "$change_entry" | cat - $changes_file > $tmpfile && mv $tmpfile $MYOUTDIR/$(basename $changes_file)
+      echo "$change_entry" | cat - "$changes_file" >"$tmpfile" && mv "$tmpfile" "$MYOUTDIR/$(basename "$changes_file")"
   done
 }
 
@@ -564,15 +569,25 @@ get_version () {
   case "$MYSCM" in
     git)
       #version=`safe_run git show --pretty=format:"$MYFORMAT" | head -n 1`
+      if [[ "$MYFORMAT" =~ .*@REVISION@.* ]]; then
+          LREV=$(git describe --tags --long ${MYBASETAG:+--match="$MYBASETAG"})
+          if [[ "$?" -eq 0 ]]; then
+              LREV=$(echo "$LREV" | perl -pe 's{^.*-(\d+)-g\w+$}{$1}g')
+          else
+              LREV=$(git rev-list --count HEAD)
+          fi
+          MYFORMAT="${MYFORMAT/@REVISION@/$LREV}"
+          echo "MYFORMAT: $MYFORMAT"
+      fi
       if [[ "$MYFORMAT" =~ .*@PARENT_TAG@.*  ]] ; then
           PARENT_TAG=$(git describe --tags --abbrev=0)
-          PARENT_TAG=${PARENT_TAG/-/.}
-          MYFORMAT=${MYFORMAT/@PARENT_TAG@/$PARENT_TAG}
-          echo "MYFORMAT: $MYFORMAT"
-          if [ $? -gt 0 ] ; then
+          if [[ "$?" -gt 0 ]]; then
               echo -e "\e[0;31mThe git repository has no tags, thus @PARENT_TAG@ can not be expanded\e[0m"
               exit 1
           fi
+          PARENT_TAG=${PARENT_TAG/-/.}
+          MYFORMAT=${MYFORMAT/@PARENT_TAG@/$PARENT_TAG}
+          echo "MYFORMAT: $MYFORMAT"
       fi
       version=`safe_run git log -n1 --date=short --pretty=format:"$MYFORMAT" | sed -r -e "$ISO_CLEANUP_RE" -e 's@[-:]@@g'`
       ;;
