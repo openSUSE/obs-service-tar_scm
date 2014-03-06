@@ -42,6 +42,10 @@ get_config_options () {
 
 parse_params () {
   while test $# -gt 0; do
+    if test -n "`echo \"$2\" | sed 's,[0-9a-zA-Z{}|@%:/._-]*,,g'`"; then
+      echo "Argument $1 got an argument with not supported char."
+      exit 1
+    fi
     case $1 in
       *-scm)
         MYSCM="$2"
