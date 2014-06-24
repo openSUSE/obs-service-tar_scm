@@ -2,6 +2,7 @@
 
 import datetime
 import os
+import tarfile
 
 from   githgtests  import GitHgTests
 from   gitfixtures import GitFixtures
@@ -71,11 +72,20 @@ class GitTests(GitHgTests):
 
         self.scmlogs.next('submodule-fixtures')
         fix.create_commits(3, submod_path)
+        fix.create_commits(2, submod_path)
 
         os.chdir(repo_path)
         fix.safe_run('submodule add file://%s' % submod_path)
         new_rev = fix.next_commit_rev(repo_path)
         fix.do_commit(repo_path, new_rev, [ '.gitmodules', submod_name ])
         fix.record_rev(repo_path, new_rev)
+        os.chdir(os.path.join(repo_path,submod_name))
+        fix.safe_run('checkout tag3')
+        os.chdir(repo_path)
+        new_rev = fix.next_commit_rev(repo_path)
+        fix.do_commit(repo_path, new_rev, [ '.gitmodules', submod_name ])
+        fix.record_rev(repo_path, new_rev)
 
-        self.tar_scm_std('--submodules', 'enable')
+        self.tar_scm_std('--submodules', 'enable','--revision', 'tag3','--version', 'tag3')
+        th = tarfile.open(os.path.join(self.outdir , self.basename(version = 'tag3')+'.tar'))
+        self.assertTarMemberContains(th ,os.path.join(self.basename(version = 'tag3'),submod_name,'a'),'5')
