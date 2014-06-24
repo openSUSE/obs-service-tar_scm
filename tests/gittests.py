@@ -70,5 +70,10 @@ class GitTests(GitHgTests):
         new_rev = fix.next_commit_rev(repo_path)
         fix.do_commit(repo_path, new_rev, [ '.gitmodules', submod_name ])
         fix.record_rev(repo_path, new_rev)
-
+        
+        submod_ver = fix.safe_run('submodule status %s' % submod_name)
         self.tar_scm_std('--submodules', 'enable')
+        os.chdir(repo_path)
+        submod_ver_after = fix.safe_run('submodule status %s' % submod_name)
+        self.assertEquals(submod_ver,submod_ver_after)
+        

@@ -520,6 +520,9 @@ switch_to_revision () {
       else
           safe_run git reset --hard "$MYREVISION"
       fi
+      if [ "$USE_SUBMODULES" == "enable" ]; then
+          safe_run git submodule update --recursive
+      fi
       ;;
     svn|bzr)
       : # should have already happened via checkout or update
