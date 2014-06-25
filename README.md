@@ -42,8 +42,4 @@ invocation before continuing.
 
 ## Contributions
 
-N.B. pull requests are very welcome, but will not be accepted unless
-they contain corresponding additions/modifications to the test suite.
-Test suite bit-rot is the path to gloom and despair :-)
-
-Many thanks in advance!
+See the [CONTRIBUTING.md](CONTRIBUTING.md) file.
