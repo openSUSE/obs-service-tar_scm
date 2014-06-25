@@ -6,6 +6,12 @@ from   fixtures  import Fixtures
 from   utils     import mkfreshdir, quietrun, run_svn
 
 class SvnFixtures(Fixtures):
+
+    """Methods to create and populate a svn repository.
+
+    svn tests use this class in order to have something to test against.
+    """
+
     def init(self):
         self.wd_path = self.container_dir + '/wd'
 

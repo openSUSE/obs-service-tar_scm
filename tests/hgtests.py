@@ -7,6 +7,13 @@ from   hgfixtures  import HgFixtures
 from   utils       import run_hg
 
 class HgTests(GitHgTests):
+
+    """Unit tests for 'tar_scm --scm hg'.
+
+    hg-specific tests are in this class.  Other shared tests are
+    included via the class inheritance hierarchy.
+    """
+
     scm = 'hg'
     initial_clone_command = 'hg clone'
     update_cache_command  = 'hg pull'

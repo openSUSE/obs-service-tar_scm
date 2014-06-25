@@ -7,6 +7,16 @@ from utils     import mkfreshdir, run_cmd
 from scmlogs   import ScmInvocationLogs
 
 class TestEnvironment:
+
+    """Framework for testing tar_scm.
+
+    This class provides methods for:
+
+      - setting up and tearing down a test environment similar to what
+        'osc service' would provide, and
+      - running tar_scm inside that environment.
+    """
+
     tests_dir   = os.path.abspath(os.path.dirname(__file__)) # os.getcwd()
     tmp_dir     = os.path.join(tests_dir, 'tmp')
     is_setup    = False

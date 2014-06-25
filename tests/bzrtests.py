@@ -5,6 +5,13 @@ from   bzrfixtures import BzrFixtures
 from   utils       import run_bzr
 
 class BzrTests(CommonTests):
+
+    """Unit tests for 'tar_scm --scm bzr'.
+
+    bzr-specific tests are in this class.  Other shared tests are
+    included via the class inheritance hierarchy.
+    """
+
     scm = 'bzr'
     initial_clone_command = 'bzr checkout'
     update_cache_command  = 'bzr update'

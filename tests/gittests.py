@@ -8,6 +8,13 @@ from   gitfixtures import GitFixtures
 from   utils       import run_git
 
 class GitTests(GitHgTests):
+
+    """Unit tests for 'tar_scm --scm git'.
+
+    git-specific tests are in this class.  Other shared tests are
+    included via the class inheritance hierarchy.
+    """
+
     scm = 'git'
     initial_clone_command = 'git clone'
     update_cache_command  = 'git fetch'

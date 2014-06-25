@@ -9,6 +9,13 @@ from testenv        import TestEnvironment
 from utils          import mkfreshdir
 
 class CommonTests(TestEnvironment, TestAssertions):
+
+    """Unit tests common to all version control systems.
+
+    Unit tests here are not specific to any particular version control
+    system, and will be run for all of git / hg / svn / bzr.
+    """
+
     def basename(self, name='repo', version=None):
         if version is None:
             version = self.default_version()

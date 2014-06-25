@@ -6,6 +6,12 @@ from   fixtures  import Fixtures
 from   utils     import mkfreshdir, run_git
 
 class GitFixtures(Fixtures):
+
+    """Methods to create and populate a git repository.
+
+    git tests use this class in order to have something to test against.
+    """
+
     def init(self):
         self.create_repo(self.repo_path)
         self.wd = self.repo_path

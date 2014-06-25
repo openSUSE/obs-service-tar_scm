@@ -6,6 +6,12 @@ from   fixtures  import Fixtures
 from   utils     import mkfreshdir, run_hg
 
 class HgFixtures(Fixtures):
+
+    """Methods to create and populate a mercurial repository.
+
+    mercurial tests use this class in order to have something to test against.
+    """
+
     def init(self):
         self.create_repo()
 

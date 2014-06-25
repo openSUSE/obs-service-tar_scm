@@ -5,6 +5,13 @@ from   svnfixtures import SvnFixtures
 from   utils       import run_svn
 
 class SvnTests(CommonTests):
+
+    """Unit tests for 'tar_scm --scm svn'.
+
+    svn-specific tests are in this class.  Other shared tests are
+    included via the class inheritance hierarchy.
+    """
+
     scm = 'svn'
     initial_clone_command = 'svn (co|checkout) '
     update_cache_command  = 'svn up(date)?'

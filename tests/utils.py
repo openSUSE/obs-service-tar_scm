@@ -1,4 +1,6 @@
 #!/usr/bin/python
+#
+# Simple utility functions to help executing processes.
 
 import os
 import re

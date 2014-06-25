@@ -4,6 +4,9 @@ import os
 import shutil
 
 class Fixtures:
+
+    """Base class for all fixture classes."""
+
     name  = 'tar_scm test suite'
     email = 'root@localhost'
     name_and_email = '%s <%s>' % (name, email)

@@ -6,6 +6,9 @@ from   commontests import CommonTests
 from   utils       import run_hg
 
 class GitHgTests(CommonTests):
+
+    """Unit tests which are shared between git and hg."""
+
     mixed_version_template = '%s.master.%s'
 
     def test_versionformat_abbrevhash(self):

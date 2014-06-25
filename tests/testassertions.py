@@ -9,6 +9,13 @@ import unittest
 line_start = '(^|\n)'
 
 class TestAssertions(unittest.TestCase):
+
+    """Library of test assertions used by tar_scm unit tests.
+
+    This class augments Python's standard unittest.TestCase assertions
+    with operations which the tar_scm unit tests commonly need.
+    """
+
     ######################################################################
     # backported from 2.7 just in case we're running on an older Python
     def assertRegexpMatches(self, text, expected_regexp, msg=None):

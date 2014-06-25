@@ -1,4 +1,7 @@
 #!/usr/bin/python
+#
+# This CLI tool is responsible for running the tests.
+# See TESTING.md for more information.
 
 import os
 import shutil
@@ -14,6 +17,8 @@ from testenv import TestEnvironment
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     testclasses = [
+        # If you are only interested in a particular VCS, you can
+        # temporarily comment out any of these:
         SvnTests,
         GitTests,
         HgTests,
