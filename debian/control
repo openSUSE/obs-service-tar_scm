@@ -1,0 +1,14 @@
+Source: obs-service-tar-scm
+Section: devel
+Priority: extra
+Maintainer: Daniel Gollub <dgollub@brocade.com>
+Build-Depends: debhelper (>= 8.0.0), bzr, git, mercurial, subversion, python-unittest2
+Standards-Version: 3.9.3
+Homepage: https://github.com/openSUSE/obs-service-tar_scm
+
+Package: obs-service-tar-scm
+Architecture: all
+Depends: ${misc:Depends}, bzr, git, mercurial, subversion
+Description: An OBS source service: fetches SCM tarballs
+ This is a source service for openSUSE Build Service.
+ It supports downloading from svn, git, hg and bzr repositories.

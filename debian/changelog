@@ -1,0 +1,5 @@
+obs-service-tar-scm (0.2.3) unstable; urgency=low
+
+  * Initial release
+
+ -- Daniel Gollub <dgollub@brocade.com>  Thu, 03 Jul 2014 08:31:41 +0200
