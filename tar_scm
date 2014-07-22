@@ -4,12 +4,12 @@
 #
 # (C) 2010 by Adrian Schroeter <adrian@suse.de>
 # (C) 2014 by Jan Blunck <jblunck@infradead.org> (Python rewrite)
-#  
-# This program is free software; you can redistribute it and/or  
-# modify it under the terms of the GNU General Public License  
-# as published by the Free Software Foundation; either version 2  
-# of the License, or (at your option) any later version.  
-# See http://www.gnu.org/licenses/gpl-2.0.html for full license text.  
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# See http://www.gnu.org/licenses/gpl-2.0.html for full license text.
 
 import argparse
 import datetime
@@ -27,6 +27,7 @@ import logging
 import glob
 import ConfigParser
 import StringIO
+
 
 def safe_run(cmd, cwd):
 
@@ -46,16 +47,19 @@ def safe_run(cmd, cwd):
     proc.wait()
     output = proc.stdout.read().strip()
     if proc.returncode:
-        logging.info("ERROR(%d): %s" % ( proc.returncode, output ))
-        sys.exit("Command failed(%d): %s" % ( proc.returncode, output ))
+        logging.info("ERROR(%d): %s" % (proc.returncode, output))
+        sys.exit("Command failed(%d): %s" % (proc.returncode, output))
     else:
-        logging.debug("RESULT(%d): %s" % ( proc.returncode, output ))
+        logging.debug("RESULT(%d): %s" % (proc.returncode, output))
     return (proc.returncode, output)
+
 
 def fetch_upstream_git(url, clone_dir, revision, cwd):
 
     safe_run(['git', 'clone', url, clone_dir], cwd=cwd)
-    safe_run(['git', 'submodule', 'update', '--init', '--recursive'], clone_dir)
+    safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
+             clone_dir)
+
 
 def fetch_upstream_svn(url, clone_dir, revision, cwd):
 
@@ -64,9 +68,11 @@ def fetch_upstream_svn(url, clone_dir, revision, cwd):
         command.insert(4, '-r%s' % revision)
     safe_run(command, cwd)
 
+
 def fetch_upstream_hg(url, clone_dir, revision, cwd):
 
     safe_run(['hg', 'clone', url, clone_dir], cwd)
+
 
 def fetch_upstream_bzr(url, clone_dir, revision, cwd):
 
@@ -76,6 +82,7 @@ def fetch_upstream_bzr(url, clone_dir, revision, cwd):
         command.insert(4, revision)
     safe_run(command, cwd)
 
+
 fetch_upstream_commands = {
     'git': fetch_upstream_git,
     'svn': fetch_upstream_svn,
@@ -83,9 +90,11 @@ fetch_upstream_commands = {
     'bzr': fetch_upstream_bzr,
 }
 
+
 def update_cache_git(url, clone_dir, revision):
 
     safe_run(['git', 'fetch'], cwd=clone_dir)
+
 
 def update_cache_svn(url, clone_dir, revision):
 
@@ -93,6 +102,7 @@ def update_cache_svn(url, clone_dir, revision):
     if revision:
         command.insert(3, "-r%s" % revision)
     safe_run(command, cwd=clone_dir)
+
 
 def update_cache_hg(url, clone_dir, revision):
 
@@ -105,6 +115,7 @@ def update_cache_hg(url, clone_dir, revision):
         if re.match('.*no changes found.*', e) is None:
             raise
 
+
 def update_cache_bzr(url, clone_dir, revision):
 
     command = ['bzr', 'update']
@@ -113,6 +124,7 @@ def update_cache_bzr(url, clone_dir, revision):
         command.insert(4, revision)
     safe_run(command, cwd=clone_dir)
 
+
 update_cache_commands = {
     'git': update_cache_git,
     'svn': update_cache_svn,
@@ -120,19 +132,21 @@ update_cache_commands = {
     'bzr': update_cache_bzr,
 }
 
+
 def switch_revision_git(clone_dir, revision):
     """ $revision may refer to any of the following:
     - explicit SHA1: a1b2c3d4....
     - the SHA1 must be reachable from a default clone/fetch (generally, must be
       reachable from some branch or tag on the remote).
     - short branch name: "master", "devel" etc.
-    - explicit ref: refs/heads/master, refs/tags/v1.2.3, refs/changes/49/11249/1
+    - explicit ref: refs/heads/master, refs/tags/v1.2.3,
+      refs/changes/49/11249/1
     """
 
     if revision is None:
         revision = 'master'
 
-    revs = [ x + revision for x in [ 'origin/', '' ]]
+    revs = [x + revision for x in ['origin/', '']]
     for rev in revs:
         try:
             safe_run(['git', 'rev-parse', '--verify', '--quiet', rev],
@@ -171,7 +185,9 @@ switch_revision_commands = {
     'bzr': switch_revision_none,
 }
 
+
 def fetch_upstream(scm, url, revision, out_dir):
+
     # calc_dir_to_clone_to
     basename = os.path.basename(re.sub(r'/.git$', '', url))
     clone_dir = os.path.abspath(os.path.join(out_dir, basename))
@@ -189,6 +205,7 @@ def fetch_upstream(scm, url, revision, out_dir):
 
     return clone_dir
 
+
 def prep_tree_for_tar(repodir, subdir, outdir, dstname):
 
     src = os.path.join(repodir, subdir)
@@ -196,7 +213,8 @@ def prep_tree_for_tar(repodir, subdir, outdir, dstname):
         sys.exit("%s: No such file or directory" % src)
 
     dst = os.path.join(outdir, dstname)
-    if os.path.exists(dst) and ( os.path.samefile(src, dst) or os.path.samefile(os.path.dirname(src), dst) ):
+    if os.path.exists(dst) and (os.path.samefile(src, dst) or
+                                os.path.samefile(os.path.dirname(src), dst)):
         sys.exit("%s: src and dst refer to same file" % src)
 
     shutil.copytree(src, dst)
@@ -207,8 +225,7 @@ def prep_tree_for_tar(repodir, subdir, outdir, dstname):
 def create_tar(repodir, outdir, dstname, extension='tar',
                exclude=[], include=[], package_metadata=False):
 
-    ( workdir, topdir ) = os.path.split(repodir)
-
+    (workdir, topdir) = os.path.split(repodir)
 
     incl_patterns = []
     excl_patterns = []
@@ -262,6 +279,7 @@ def create_tar(repodir, outdir, dstname, extension='tar',
 
 cleanup_dirs = []
 
+
 def cleanup(dirs):
 
     logging.info("Cleaning: %s" % ' '.join(dirs))
@@ -275,11 +293,14 @@ def cleanup(dirs):
                 os.rmdir(os.path.join(root, name))
         os.rmdir(d)
 
+
 def version_iso_cleanup(version):
 
-    version = re.sub(r'([0-9]{4})-([0-9]{2})-([0-9]{2}) +([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?( +[-+][0-9]{3,4})', r'\1\2\3T\4\6\8', version)
+    version = re.sub(r'([0-9]{4})-([0-9]{2})-([0-9]{2}) +([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?( +[-+][0-9]{3,4})',
+                     r'\1\2\3T\4\6\8', version)
     version = re.sub(r'[-:]', '', version)
     return version
+
 
 def detect_version_git(repodir, versionformat):
 
@@ -292,18 +313,20 @@ def detect_version_git(repodir, versionformat):
                          repodir)[1]
             versionformat = re.sub('@PARENT_TAG@', p, versionformat)
         except SystemExit:
-            sys.exit('\e[0;31mThe git repository has no tags, thus @PARENT_TAG@ can not be expanded\e[0m')
+            sys.exit('\e[0;31mThe git repository has no tags,' +
+                     ' thus @PARENT_TAG@ can not be expanded\e[0m')
 
     version = safe_run(['git', 'log', '-n1', '--date=short',
-                        "--pretty=format:%s" % versionformat ], repodir)[1]
+                        "--pretty=format:%s" % versionformat], repodir)[1]
     return version_iso_cleanup(version)
+
 
 def detect_version_svn(repodir, versionformat):
 
     if versionformat is None:
         versionformat = '%r'
 
-    svn_info = safe_run([ 'svn', 'info' ], repodir)[1]
+    svn_info = safe_run(['svn', 'info'], repodir)[1]
 
     version = ''
     m = re.search('Last Changed Rev: (.*)', svn_info, re.MULTILINE)
@@ -311,12 +334,13 @@ def detect_version_svn(repodir, versionformat):
         version = m.group(1).strip()
     return re.sub('%r', version, versionformat)
 
+
 def detect_version_hg(repodir, versionformat):
 
     if versionformat is None:
         versionformat = '{rev}'
 
-    version = safe_run([ 'hg', 'id', '-n',  ], repodir)[1]
+    version = safe_run(['hg', 'id', '-n'], repodir)[1]
 
     # Mercurial internally stores commit dates in its changelog
     # context objects as (epoch_secs, tz_delta_to_utc) tuples (see
@@ -344,17 +368,19 @@ def detect_version_hg(repodir, versionformat):
     # 'sub(...)' which is only available since 2.4 (first introduced
     # in openSUSE 12.3).
 
-    version = safe_run([ 'hg', 'log', '-l1', "-r%s" % version, '--template',
-                         versionformat ], repodir)[1]
+    version = safe_run(['hg', 'log', '-l1', "-r%s" % version, '--template',
+                        versionformat], repodir)[1]
     return version_iso_cleanup(version)
+
 
 def detect_version_bzr(repodir, versionformat):
 
     if versionformat is None:
         versionformat = '%r'
 
-    version = safe_run([ 'bzr', 'revno' ], repodir)[1]
+    version = safe_run(['bzr', 'revno'], repodir)[1]
     return re.sub('%r', version, versionformat)
+
 
 def detect_version(scm, repodir, versionformat=None):
 
@@ -369,6 +395,7 @@ def detect_version(scm, repodir, versionformat=None):
     logging.debug("VERSION(auto): %s" % version)
     return version
 
+
 def get_repocache_hash(scm, url, subdir):
 
     m = hashlib.sha256()
@@ -376,6 +403,7 @@ def get_repocache_hash(scm, url, subdir):
     if scm == 'svn':
         m.update('/' + subdir)
     return m.hexdigest()
+
 
 def read_changes_revision(url, srcdir, outdir):
     """Reads the _servicedata file and returns a dictionary with 'revision' on
@@ -389,7 +417,8 @@ def read_changes_revision(url, srcdir, outdir):
     }
 
     try:
-        # If lxml is available, we can use a parser that doesnt destroy comments
+        # If lxml is available, we can use a parser that doesnt destroy
+        # comments
         import lxml.etree as ET
         xml_parser = ET.XMLParser(remove_comments=False)
     except ImportError:
@@ -397,8 +426,11 @@ def read_changes_revision(url, srcdir, outdir):
         xml_parser = None
 
     create_servicedata, tar_scm_service = False, None
-    tar_scm_xmlstring = "  <service name=\"tar_scm\">\n    <param name=\"url\">%s</param>\n  </service>\n" % url
-    root=None
+    tar_scm_xmlstring = """  <service name=\"tar_scm\">
+    <param name=\"url\">%s</param>
+  </service>
+""" % url
+    root = None
     try:
         tree = ET.parse(os.path.join(srcdir, "_servicedata"),
                         parser=xml_parser)
@@ -414,17 +446,20 @@ def read_changes_revision(url, srcdir, outdir):
                 # Found what we searched for!
                 change['revision'] = params[0].text
         else:
-            # File exists, is well-formed but does not contain the service we search
+            # File exists, is well-formed but does not contain the service
+            # we search
             root.append(ET.fromstring(tar_scm_xmlstring))
             create_servicedata = True
     except IOError as e:
         # File doesnt exist
-        root = ET.fromstring("<servicedata>\n%s</servicedata>\n" % tar_scm_xmlstring)
+        root = ET.fromstring("<servicedata>\n%s</servicedata>\n" %
+                             tar_scm_xmlstring)
         create_servicedata = True
     except ET.ParseError as e:
         if e.message.startswith("Document is empty"):
             # File is empty
-            root = ET.fromstring("<servicedata>\n%s</servicedata>\n" % tar_scm_xmlstring)
+            root = ET.fromstring("<servicedata>\n%s</servicedata>\n" %
+                                 tar_scm_xmlstring)
             create_servicedata = True
         else:
             # File is corrupt
@@ -440,12 +475,14 @@ def read_changes_revision(url, srcdir, outdir):
 
     return change
 
+
 def write_changes_revision(url, outdir, revision):
 
     logging.debug("Updating %s" % os.path.join(outdir, '_servicedata'))
 
     try:
-        # If lxml is available, we can use a parser that doesn't destroy comments
+        # If lxml is available, we can use a parser that doesn't destroy
+        # comments
         import lxml.etree as ET
         xml_parser = ET.XMLParser(remove_comments=False)
     except ImportError:
@@ -461,18 +498,21 @@ def write_changes_revision(url, outdir, revision):
                 tar_scm_service = service
                 break
     if tar_scm_service is not None:
-        changerev_params = tar_scm_service.findall("param[@name='changesrevision']")
+        changerev_params = tar_scm_service.findall(
+            "param[@name='changesrevision']")
         if len(changerev_params) == 1:  # already present, just update
             if changerev_params[0].text != revision:
                 changerev_params[0].text = revision
                 changed = True
         else:  # not present, add changesrevision element
-            tar_scm_service.append(ET.fromstring("    <param name=\"changesrevision\">%s</param>\n" % revision))
+            tar_scm_service.append(ET.fromstring(
+                "    <param name=\"changesrevision\">%s</param>\n" % revision))
             changed = True
         if changed:
             tree.write(os.path.join(outdir, "_servicedata"))
     else:
         sys.exit("File _servicedata is missing tar_scm with URL '%s'" % url)
+
 
 def write_changes(filename, changes, version, author):
 
@@ -482,10 +522,11 @@ def write_changes(filename, changes, version, author):
     logging.debug("Writing changes file " + filename)
 
     f = tempfile.NamedTemporaryFile(delete=False)
-    f.write('-------------------------------------------------------------------\n')
-    f.write("%s - %s\n" % (
-        datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y'),
-        author ))
+    f.write('---------------------------------------------------------------' +
+            '----\n')
+    f.write("%s - %s\n" %
+            (datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y'),
+             author))
     f.write('\n')
     f.write("- Update to version %s:\n" % version)
     for line in changes.split(os.linesep):
@@ -500,29 +541,31 @@ def write_changes(filename, changes, version, author):
 
     os.rename(f.name, filename)
 
+
 def detect_changes_commands_git(repodir, changes):
 
     last_rev = changes['revision']
 
     if last_rev is None:
         last_rev = safe_run(['git', 'log', '-n1', '--pretty=format:%H',
-                               '--skip=10'], cwd=repodir)[1]
+                             '--skip=10'], cwd=repodir)[1]
     current_rev = safe_run(['git', 'log', '-n1', '--pretty=format:%H'],
-                          cwd=repodir)[1]
+                           cwd=repodir)[1]
 
     if last_rev == current_rev:
         logging.debug("No new commits, skipping changes file generation")
         return
 
     logging.debug("Generating changes between %s and %s" %
-                  ( last_rev , current_rev ))
+                  (last_rev, current_rev))
 
-    lines=safe_run(['git', 'log', '--no-merges', '--pretty=tformat:%s',
-                    "%s..%s" % ( last_rev , current_rev )], repodir)[1]
+    lines = safe_run(['git', 'log', '--no-merges', '--pretty=tformat:%s',
+                      "%s..%s" % (last_rev, current_rev)], repodir)[1]
 
     changes['revision'] = current_rev
     changes['lines'] = '\n'.join(reversed(lines.split('\n')))
     return changes
+
 
 def detect_changes(scm, url, repodir, outdir):
 
@@ -537,6 +580,7 @@ def detect_changes(scm, url, repodir, outdir):
 
     return detect_changes_commands[scm](repodir, changes)
 
+
 def get_config_options():
 
     config = ConfigParser.RawConfigParser()
@@ -549,8 +593,8 @@ def get_config_options():
         return config
 
     # fake a section header for configuration files
-    for f in [ '/etc/obs/services/tar_scm',
-               os.path.expanduser('~/.obs/tar_scm') ]:
+    for f in ['/etc/obs/services/tar_scm',
+              os.path.expanduser('~/.obs/tar_scm')]:
         try:
             c = StringIO.StringIO()
             c.write('[tar_scm]\n')
@@ -578,31 +622,45 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', '-v', action='store_true', default=False,
                         help='enable verbose output')
     parser.add_argument('--version', default='_auto_',
-                        help='Specify version to be used in tarball. Defaults to automatically detected value formatted by versionformat parameter.')
+                        help='Specify version to be used in tarball. ' +
+                        'Defaults to automatically detected value formatted ' +
+                        'by versionformat parameter.')
     parser.add_argument('--versionformat',
-                        help='Auto-generate version from checked out source using this format string.  This parameter is used if the \'version\' parameter is not specified.')
+                        help='Auto-generate version from checked out source ' +
+                        'using this format string.  This parameter is used ' +
+                        'if the \'version\' parameter is not specified.')
     parser.add_argument('--versionprefix',
                         help='specify a base version as prefix.')
     parser.add_argument('--changesgenerate', choices=['enable', 'disable'],
                         default='disable',
-                        help='Whether or not to generate changes file entries from SCM commit log since a given parent revision (see changesrevision).')
+                        help='Whether or not to generate changes file ' +
+                        'entries from SCM commit log since a given parent ' +
+                        'revision (see changesrevision).')
     parser.add_argument('--changesauthor',
-                        help='The author of the changes file entry to be written, defaults to first email entry in ~/.oscrc or "opensuse-packaging@opensuse.org" if there is no ~/.oscrc found.')
+                        help='The author of the changes file entry to be ' +
+                        'written, defaults to first email entry in ~/.oscrc ' +
+                        'or "opensuse-packaging@opensuse.org" if there is ' +
+                        'no ~/.oscrc found.')
     parser.add_argument('--filename',
-                        help='name of package - used together with version to determine tarball name')
+                        help='name of package - used together with version ' +
+                        'to determine tarball name')
     parser.add_argument('--extension', default='tar',
-                        help='suffix name of package - used together with filename to determine tarball name')
+                        help='suffix name of package - used together with ' +
+                        'filename to determine tarball name')
     parser.add_argument('--revision',
                         help='revision to package')
     parser.add_argument('--subdir', default='',
                         help='package just a sub directory')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--include', action='append', default=[],
-                       help='for specifying subset of files/subdirectories to pack in the tar ball')
+                       help='for specifying subset of files/subdirectories ' +
+                       'to pack in the tar ball')
     group.add_argument('--exclude', action='append', default=[],
-                       help='for specifying excludes when creating the tar ball')
-    parser.add_argument('--package-meta', choices=['yes','no'], default='no',
-                        help='Package the meta data of SCM to allow the user or OBS to update after un-tar')
+                       help='for specifying excludes when creating the tar ' +
+                       'ball')
+    parser.add_argument('--package-meta', choices=['yes', 'no'], default='no',
+                        help='Package the meta data of SCM to allow the ' +
+                        'user or OBS to update after un-tar')
     parser.add_argument('--history-depth',
                         help='osc service parameter that does nothing')
     parser.add_argument('--submodules',
@@ -611,7 +669,7 @@ if __name__ == '__main__':
 
     # basic argument validation
     if not os.path.isdir(args.outdir):
-        sys.exit("%s: No such directory" % args.outdir);
+        sys.exit("%s: No such directory" % args.outdir)
 
     if args.history_depth:
         print "history-depth parameter is obsolete and will be ignored"
@@ -667,21 +725,20 @@ if __name__ == '__main__':
         repodir = tempfile.mkdtemp(dir=args.outdir)
         cleanup_dirs.append(repodir)
 
-
     clone_dir = fetch_upstream(args.scm, args.url, args.revision, repodir)
 
     if args.filename:
-        dstname=args.filename
+        dstname = args.filename
     else:
-        dstname=os.path.basename(clone_dir)
+        dstname = os.path.basename(clone_dir)
 
     version = args.version
     if version == '_auto_' or args.versionformat:
         version = detect_version(args.scm, clone_dir, args.versionformat)
     if args.versionprefix:
-        version = "%s.%s" % ( args.versionprefix, version )
+        version = "%s.%s" % (args.versionprefix, version)
     if version:
-        dstname=dstname + '-' + version
+        dstname = dstname + '-' + version
 
     logging.debug("DST: %s" % dstname)
 
@@ -711,7 +768,8 @@ if __name__ == '__main__':
 
         for filename in glob.glob(os.path.join(args.outdir, '*.changes')):
             write_changes(filename, changes['lines'], version, changesauthor)
-        write_changes_revision(changes['url'], args.outdir, changes['revision'])
+        write_changes_revision(changes['url'], args.outdir,
+                               changes['revision'])
 
     # Populate cache
     if repocachedir and os.path.isdir(os.path.join(repocachedir, 'repo')):
