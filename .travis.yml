@@ -5,4 +5,6 @@ python:
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq bzr git mercurial subversion
+install: pip install pep8 --use-mirrors
+before_script: pep8 tar_scm
 script: python tests/test.py
