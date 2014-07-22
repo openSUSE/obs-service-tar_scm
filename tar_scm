@@ -30,8 +30,10 @@ import StringIO
 
 
 def safe_run(cmd, cwd):
+    """Execute the command cmd in the working directory cwd and check return
+    value. If the command returns non-zero raise a SystemExit exception."""
 
-    logging.debug("COMMAND: %s" % cmd)
+    logging.debug("COMMAND: %s", cmd)
 
     # Ensure we get predictable results when parsing the output of commands
     # like 'git branch'
@@ -47,14 +49,15 @@ def safe_run(cmd, cwd):
     proc.wait()
     output = proc.stdout.read().strip()
     if proc.returncode:
-        logging.info("ERROR(%d): %s" % (proc.returncode, output))
+        logging.info("ERROR(%d): %s", proc.returncode, output)
         sys.exit("Command failed(%d): %s" % (proc.returncode, output))
     else:
-        logging.debug("RESULT(%d): %s" % (proc.returncode, output))
+        logging.debug("RESULT(%d): %s", proc.returncode, output)
     return (proc.returncode, output)
 
 
 def fetch_upstream_git(url, clone_dir, revision, cwd):
+    """fetch sources from GIT"""
 
     safe_run(['git', 'clone', url, clone_dir], cwd=cwd)
     safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
@@ -62,6 +65,7 @@ def fetch_upstream_git(url, clone_dir, revision, cwd):
 
 
 def fetch_upstream_svn(url, clone_dir, revision, cwd):
+    """fetch sources from SVN"""
 
     command = ['svn', 'checkout', '--non-interactive', url, clone_dir]
     if revision:
@@ -70,11 +74,13 @@ def fetch_upstream_svn(url, clone_dir, revision, cwd):
 
 
 def fetch_upstream_hg(url, clone_dir, revision, cwd):
+    """fetch sources from HG"""
 
     safe_run(['hg', 'clone', url, clone_dir], cwd)
 
 
 def fetch_upstream_bzr(url, clone_dir, revision, cwd):
+    """fetch sources from BZR"""
 
     command = ['bzr', 'checkout', url, clone_dir]
     if revision:
@@ -83,7 +89,7 @@ def fetch_upstream_bzr(url, clone_dir, revision, cwd):
     safe_run(command, cwd)
 
 
-fetch_upstream_commands = {
+FETCH_UPSTREAM_COMMANDS = {
     'git': fetch_upstream_git,
     'svn': fetch_upstream_svn,
     'hg':  fetch_upstream_hg,
@@ -92,11 +98,13 @@ fetch_upstream_commands = {
 
 
 def update_cache_git(url, clone_dir, revision):
+    """update sources from GIT"""
 
     safe_run(['git', 'fetch'], cwd=clone_dir)
 
 
 def update_cache_svn(url, clone_dir, revision):
+    """update sources from SVN"""
 
     command = ['svn', 'update']
     if revision:
@@ -105,6 +113,7 @@ def update_cache_svn(url, clone_dir, revision):
 
 
 def update_cache_hg(url, clone_dir, revision):
+    """update sources from HG"""
 
     try:
         safe_run(['hg', 'pull'], cwd=clone_dir)
@@ -117,6 +126,7 @@ def update_cache_hg(url, clone_dir, revision):
 
 
 def update_cache_bzr(url, clone_dir, revision):
+    """update sources from BZR"""
 
     command = ['bzr', 'update']
     if revision:
@@ -125,7 +135,7 @@ def update_cache_bzr(url, clone_dir, revision):
     safe_run(command, cwd=clone_dir)
 
 
-update_cache_commands = {
+UPDATE_CACHE_COMMANDS = {
     'git': update_cache_git,
     'svn': update_cache_svn,
     'hg':  update_cache_hg,
@@ -134,7 +144,8 @@ update_cache_commands = {
 
 
 def switch_revision_git(clone_dir, revision):
-    """ $revision may refer to any of the following:
+    """Switch sources to revision. The GIT revision may refer to any of the
+    following:
     - explicit SHA1: a1b2c3d4....
     - the SHA1 must be reachable from a default clone/fetch (generally, must be
       reachable from some branch or tag on the remote).
@@ -151,8 +162,8 @@ def switch_revision_git(clone_dir, revision):
         try:
             safe_run(['git', 'rev-parse', '--verify', '--quiet', rev],
                      cwd=clone_dir)
-            p = safe_run(['git', 'reset', '--hard', rev], cwd=clone_dir)[1]
-            logging.info(p)
+            text = safe_run(['git', 'reset', '--hard', rev], cwd=clone_dir)[1]
+            logging.info(text)
             break
         except SystemExit:
             continue
@@ -163,6 +174,7 @@ def switch_revision_git(clone_dir, revision):
 
 
 def switch_revision_hg(clone_dir, revision):
+    """Switch sources to revision."""
 
     if revision is None:
         revision = 'tip'
@@ -174,11 +186,13 @@ def switch_revision_hg(clone_dir, revision):
 
 
 def switch_revision_none(clone_dir, revision):
+    """Switch sources to revision. Dummy implementation for version control
+    systems that change revision during fetch/update."""
 
     return
 
 
-switch_revision_commands = {
+SWITCH_REVISION_COMMANDS = {
     'git': switch_revision_git,
     'svn': switch_revision_none,
     'hg':  switch_revision_hg,
@@ -187,6 +201,7 @@ switch_revision_commands = {
 
 
 def fetch_upstream(scm, url, revision, out_dir):
+    """Fetch sources from repository and checkout given revision."""
 
     # calc_dir_to_clone_to
     basename = os.path.basename(re.sub(r'/.git$', '', url))
@@ -195,18 +210,20 @@ def fetch_upstream(scm, url, revision, out_dir):
     if not os.path.isdir(clone_dir):
         # initial clone
         os.mkdir(clone_dir)
-        fetch_upstream_commands[scm](url, clone_dir, revision, cwd=out_dir)
+        FETCH_UPSTREAM_COMMANDS[scm](url, clone_dir, revision, cwd=out_dir)
     else:
         logging.info("Detected cached repository...")
-        update_cache_commands[scm](url, clone_dir, revision)
+        UPDATE_CACHE_COMMANDS[scm](url, clone_dir, revision)
 
     # switch_to_revision
-    switch_revision_commands[scm](clone_dir, revision)
+    SWITCH_REVISION_COMMANDS[scm](clone_dir, revision)
 
     return clone_dir
 
 
 def prep_tree_for_tar(repodir, subdir, outdir, dstname):
+    """Prepare directory tree for creation of the tarball by copying the
+    requested sub-directory to the top-level destination directory."""
 
     src = os.path.join(repodir, subdir)
     if not os.path.exists(src):
@@ -224,6 +241,7 @@ def prep_tree_for_tar(repodir, subdir, outdir, dstname):
 
 def create_tar(repodir, outdir, dstname, extension='tar',
                exclude=[], include=[], package_metadata=False):
+    """Create a tarball of repodir in destination directory."""
 
     (workdir, topdir) = os.path.split(repodir)
 
@@ -247,17 +265,19 @@ def create_tar(repodir, outdir, dstname, extension='tar',
         '''Exclude (return True) or add (return False) file to tar achive'''
 
         if incl_patterns:
-            for p in incl_patterns:
-                if p.match(filename):
+            for pat in incl_patterns:
+                if pat.match(filename):
                     return False
             return True
 
-        for p in excl_patterns:
-            if p.match(filename):
+        for pat in excl_patterns:
+            if pat.match(filename):
                 return True
         return False
 
     def tar_filter(tarinfo):
+        '''Python 2.7 only: reset uid/gid to 0/0 (root)'''
+
         tarinfo.uid = tarinfo.gid = 0
         tarinfo.uname = tarinfo.gname = "root"
 
@@ -277,12 +297,13 @@ def create_tar(repodir, outdir, dstname, extension='tar',
     tar.close()
 
 
-cleanup_dirs = []
+CLEANUP_DIRS = []
 
 
 def cleanup(dirs):
+    '''Cleaning temporary directories.'''
 
-    logging.info("Cleaning: %s" % ' '.join(dirs))
+    logging.info("Cleaning: %s", ' '.join(dirs))
     for d in dirs:
         if not os.path.exists(d):
             continue
@@ -295,6 +316,7 @@ def cleanup(dirs):
 
 
 def version_iso_cleanup(version):
+    '''Reformat timestamp value.'''
 
     version = re.sub(r'([0-9]{4})-([0-9]{2})-([0-9]{2}) +([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?( +[-+][0-9]{3,4})',
                      r'\1\2\3T\4\6\8', version)
@@ -303,18 +325,19 @@ def version_iso_cleanup(version):
 
 
 def detect_version_git(repodir, versionformat):
+    '''Automatic detection of version number for checked-out GIT repository.'''
 
     if versionformat is None:
         versionformat = '%ct'
 
     if re.match('.*@PARENT_TAG@.*', versionformat):
         try:
-            p = safe_run(['git', 'describe', '--tags', '--abbrev=0'],
-                         repodir)[1]
-            versionformat = re.sub('@PARENT_TAG@', p, versionformat)
+            text = safe_run(['git', 'describe', '--tags', '--abbrev=0'],
+                            repodir)[1]
+            versionformat = re.sub('@PARENT_TAG@', text, versionformat)
         except SystemExit:
-            sys.exit('\e[0;31mThe git repository has no tags,' +
-                     ' thus @PARENT_TAG@ can not be expanded\e[0m')
+            sys.exit(r'\e[0;31mThe git repository has no tags,' +
+                     r' thus @PARENT_TAG@ can not be expanded\e[0m')
 
     version = safe_run(['git', 'log', '-n1', '--date=short',
                         "--pretty=format:%s" % versionformat], repodir)[1]
@@ -322,6 +345,7 @@ def detect_version_git(repodir, versionformat):
 
 
 def detect_version_svn(repodir, versionformat):
+    '''Automatic detection of version number for checked-out SVN repository.'''
 
     if versionformat is None:
         versionformat = '%r'
@@ -329,13 +353,14 @@ def detect_version_svn(repodir, versionformat):
     svn_info = safe_run(['svn', 'info'], repodir)[1]
 
     version = ''
-    m = re.search('Last Changed Rev: (.*)', svn_info, re.MULTILINE)
-    if m:
-        version = m.group(1).strip()
+    match = re.search('Last Changed Rev: (.*)', svn_info, re.MULTILINE)
+    if match:
+        version = match.group(1).strip()
     return re.sub('%r', version, versionformat)
 
 
 def detect_version_hg(repodir, versionformat):
+    '''Automatic detection of version number for checked-out HG repository.'''
 
     if versionformat is None:
         versionformat = '{rev}'
@@ -374,6 +399,7 @@ def detect_version_hg(repodir, versionformat):
 
 
 def detect_version_bzr(repodir, versionformat):
+    '''Automatic detection of version number for checked-out BZR repository.'''
 
     if versionformat is None:
         versionformat = '%r'
@@ -383,6 +409,7 @@ def detect_version_bzr(repodir, versionformat):
 
 
 def detect_version(scm, repodir, versionformat=None):
+    '''Automatic detection of version number for checked-out repository.'''
 
     detect_version_commands = {
         'git': detect_version_git,
@@ -392,17 +419,18 @@ def detect_version(scm, repodir, versionformat=None):
     }
 
     version = detect_version_commands[scm](repodir, versionformat)
-    logging.debug("VERSION(auto): %s" % version)
+    logging.debug("VERSION(auto): %s", version)
     return version
 
 
 def get_repocache_hash(scm, url, subdir):
+    '''Calculate hash fingerprint for repository cache.'''
 
-    m = hashlib.sha256()
-    m.update(url)
+    digest = hashlib.new('sha256')
+    digest.update(url)
     if scm == 'svn':
-        m.update('/' + subdir)
-    return m.hexdigest()
+        digest.update('/' + subdir)
+    return digest.hexdigest()
 
 
 def read_changes_revision(url, srcdir, outdir):
@@ -477,8 +505,9 @@ def read_changes_revision(url, srcdir, outdir):
 
 
 def write_changes_revision(url, outdir, revision):
+    '''Updates the changesrevision in the _servicedata file. '''
 
-    logging.debug("Updating %s" % os.path.join(outdir, '_servicedata'))
+    logging.debug("Updating %s", os.path.join(outdir, '_servicedata'))
 
     try:
         # If lxml is available, we can use a parser that doesn't destroy
@@ -514,35 +543,37 @@ def write_changes_revision(url, outdir, revision):
         sys.exit("File _servicedata is missing tar_scm with URL '%s'" % url)
 
 
-def write_changes(filename, changes, version, author):
+def write_changes(changes_filename, changes, version, author):
+    '''Add changes to given *.changes file.'''
 
     if changes is None:
         return
 
-    logging.debug("Writing changes file " + filename)
+    logging.debug("Writing changes file %s", changes_filename)
 
-    f = tempfile.NamedTemporaryFile(delete=False)
-    f.write('---------------------------------------------------------------' +
-            '----\n')
-    f.write("%s - %s\n" %
+    tmp_fp = tempfile.NamedTemporaryFile(delete=False)
+    tmp_fp.write('----------------------------------------------------------' +
+                 '---------\n')
+    tmp_fp.write("%s - %s\n" %
             (datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y'),
              author))
-    f.write('\n')
-    f.write("- Update to version %s:\n" % version)
+    tmp_fp.write('\n')
+    tmp_fp.write("- Update to version %s:\n" % version)
     for line in changes.split(os.linesep):
-        f.write(" + %s\n" % line)
-    f.write('\n')
+        tmp_fp.write(" + %s\n" % line)
+    tmp_fp.write('\n')
 
-    old_f = open(filename, 'r')
-    f.write(old_f.read())
-    old_f.close()
+    old_fp = open(changes_filename, 'r')
+    tmp_fp.write(old_fp.read())
+    old_fp.close()
 
-    f.close()
+    tmp_fp.close()
 
-    os.rename(f.name, filename)
+    os.rename(tmp_fp.name, changes_filename)
 
 
 def detect_changes_commands_git(repodir, changes):
+    '''Detect changes between GIT revisions.'''
 
     last_rev = changes['revision']
 
@@ -556,8 +587,8 @@ def detect_changes_commands_git(repodir, changes):
         logging.debug("No new commits, skipping changes file generation")
         return
 
-    logging.debug("Generating changes between %s and %s" %
-                  (last_rev, current_rev))
+    logging.debug("Generating changes between %s and %s", last_rev,
+                  current_rev)
 
     lines = safe_run(['git', 'log', '--no-merges', '--pretty=tformat:%s',
                       "%s..%s" % (last_rev, current_rev)], repodir)[1]
@@ -568,6 +599,7 @@ def detect_changes_commands_git(repodir, changes):
 
 
 def detect_changes(scm, url, repodir, outdir):
+    '''Detect changes between revisions.'''
 
     try:
         changes = read_changes_revision(url, os.getcwd(), outdir)
@@ -582,6 +614,8 @@ def detect_changes(scm, url, repodir, outdir):
 
 
 def get_config_options():
+    '''Read user-specific and system-wide service configuration files, if not
+    in test-mode. This function returns an instance of ConfigParser.'''
 
     config = ConfigParser.RawConfigParser()
     config.optionxform = str
@@ -593,21 +627,21 @@ def get_config_options():
         return config
 
     # fake a section header for configuration files
-    for f in ['/etc/obs/services/tar_scm',
-              os.path.expanduser('~/.obs/tar_scm')]:
+    for fname in ['/etc/obs/services/tar_scm',
+                  os.path.expanduser('~/.obs/tar_scm')]:
         try:
-            c = StringIO.StringIO()
-            c.write('[tar_scm]\n')
-            c.write(open(f, 'r').read())
-            c.seek(0, os.SEEK_SET)
-            config.readfp(c)
-        except (OSError, IOError) as e:
+            tmp_fp = StringIO.StringIO()
+            tmp_fp.write('[tar_scm]\n')
+            tmp_fp.write(open(fname, 'r').read())
+            tmp_fp.seek(0, os.SEEK_SET)
+            config.readfp(tmp_fp)
+        except (OSError, IOError):
             continue
 
     # strip quotes from pathname
-    for o in config.options('tar_scm'):
-        config.set('tar_scm', o, re.sub(r'"(.*)"', r'\1',
-                                        config.get('tar_scm', o)))
+    for opt in config.options('tar_scm'):
+        config.set('tar_scm', opt, re.sub(r'"(.*)"', r'\1',
+                                          config.get('tar_scm', opt)))
 
     return config
 
@@ -695,7 +729,7 @@ if __name__ == '__main__':
         logging.getLogger().setLevel(logging.DEBUG)
 
     # force cleaning of our workspace on exit
-    atexit.register(cleanup, cleanup_dirs)
+    atexit.register(cleanup, CLEANUP_DIRS)
 
     # check for enabled caches (1. environment, 2. user confog, 3. system wide)
     repocachedir = os.getenv('CACHEDIRECTORY')
@@ -707,13 +741,13 @@ if __name__ == '__main__':
             pass
 
     if repocachedir:
-        logging.debug("REPOCACHE: %s" % repocachedir)
+        logging.debug("REPOCACHE: %s", repocachedir)
 
     # construct repodir (the parent directory of the checkout)
     repodir = None
     if repocachedir and os.path.isdir(os.path.join(repocachedir, 'repo')):
         repohash = get_repocache_hash(args.scm, args.url, args.subdir)
-        logging.debug("HASH: %s" % repohash)
+        logging.debug("HASH: %s", repohash)
         repodir = os.path.join(repocachedir, 'repo')
         repodir = os.path.join(repodir, repohash)
 
@@ -723,7 +757,7 @@ if __name__ == '__main__':
 
     if repodir is None:
         repodir = tempfile.mkdtemp(dir=args.outdir)
-        cleanup_dirs.append(repodir)
+        CLEANUP_DIRS.append(repodir)
 
     clone_dir = fetch_upstream(args.scm, args.url, args.revision, repodir)
 
@@ -740,7 +774,7 @@ if __name__ == '__main__':
     if version:
         dstname = dstname + '-' + version
 
-    logging.debug("DST: %s" % dstname)
+    logging.debug("DST: %s", dstname)
 
     changes = None
     if args.changesgenerate:
@@ -748,7 +782,7 @@ if __name__ == '__main__':
 
     tar_dir = prep_tree_for_tar(clone_dir, args.subdir, args.outdir,
                                 dstname=dstname)
-    cleanup_dirs.append(tar_dir)
+    CLEANUP_DIRS.append(tar_dir)
 
     create_tar(tar_dir, args.outdir,
                dstname=dstname, extension=args.extension,
@@ -764,7 +798,7 @@ if __name__ == '__main__':
             config.read(os.path.expanduser('~/.oscrc'))
             changesauthor = config.get('https://api.opensuse.org', 'email')
 
-        logging.debug("AUTHOR: %s" % changesauthor)
+        logging.debug("AUTHOR: %s", changesauthor)
 
         for filename in glob.glob(os.path.join(args.outdir, '*.changes')):
             write_changes(filename, changes['lines'], version, changesauthor)
@@ -778,4 +812,4 @@ if __name__ == '__main__':
         if repodir2 and not os.path.isdir(repodir2):
             os.rename(repodir, repodir2)
         elif not os.path.samefile(repodir, repodir2):
-            cleanup_dirs.append(repodir)
+            CLEANUP_DIRS.append(repodir)
