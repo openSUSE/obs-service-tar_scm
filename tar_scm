@@ -29,7 +29,7 @@ import ConfigParser
 import StringIO
 
 
-def safe_run(cmd, cwd):
+def safe_run(cmd, cwd, interactive=False):
     """Execute the command cmd in the working directory cwd and check return
     value. If the command returns non-zero raise a SystemExit exception."""
 
@@ -46,8 +46,15 @@ def safe_run(cmd, cwd):
                             stderr=subprocess.STDOUT,
                             cwd=cwd,
                             env=env)
-    proc.wait()
-    output = proc.stdout.read().strip()
+    output = ''
+    if interactive:
+        while proc.poll() is None:
+            for line in proc.stdout:
+                print line.rstrip()
+                output = '\n'.join([output, line.rstrip()])
+    else:
+        output = proc.communicate()[0]
+
     if proc.returncode:
         logging.info("ERROR(%d): %s", proc.returncode, repr(output))
         sys.exit("Command failed(%d): %s" % (proc.returncode, repr(output)))
@@ -59,7 +66,8 @@ def safe_run(cmd, cwd):
 def fetch_upstream_git(url, clone_dir, revision, cwd):
     """fetch sources from GIT"""
 
-    safe_run(['git', 'clone', url, clone_dir], cwd=cwd)
+    safe_run(['git', 'clone', url, clone_dir], cwd=cwd,
+             interactive=sys.stdout.isatty())
     safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
              clone_dir)
 
@@ -70,13 +78,14 @@ def fetch_upstream_svn(url, clone_dir, revision, cwd):
     command = ['svn', 'checkout', '--non-interactive', url, clone_dir]
     if revision:
         command.insert(4, '-r%s' % revision)
-    safe_run(command, cwd)
+    safe_run(command, cwd, interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_hg(url, clone_dir, revision, cwd):
     """fetch sources from HG"""
 
-    safe_run(['hg', 'clone', url, clone_dir], cwd)
+    safe_run(['hg', 'clone', url, clone_dir], cwd,
+             interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_bzr(url, clone_dir, revision, cwd):
@@ -86,7 +95,7 @@ def fetch_upstream_bzr(url, clone_dir, revision, cwd):
     if revision:
         command.insert(3, '-r')
         command.insert(4, revision)
-    safe_run(command, cwd)
+    safe_run(command, cwd, interactive=sys.stdout.isatty())
 
 
 FETCH_UPSTREAM_COMMANDS = {
@@ -100,7 +109,7 @@ FETCH_UPSTREAM_COMMANDS = {
 def update_cache_git(url, clone_dir, revision):
     """update sources from GIT"""
 
-    safe_run(['git', 'fetch'], cwd=clone_dir)
+    safe_run(['git', 'fetch'], cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
 def update_cache_svn(url, clone_dir, revision):
@@ -109,14 +118,15 @@ def update_cache_svn(url, clone_dir, revision):
     command = ['svn', 'update']
     if revision:
         command.insert(3, "-r%s" % revision)
-    safe_run(command, cwd=clone_dir)
+    safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
 def update_cache_hg(url, clone_dir, revision):
     """update sources from HG"""
 
     try:
-        safe_run(['hg', 'pull'], cwd=clone_dir)
+        safe_run(['hg', 'pull'], cwd=clone_dir,
+                 interactive=sys.stdout.isatty())
     except SystemExit, e:
         # Contrary to the docs, hg pull returns exit code 1 when
         # there are no changes to pull, but we don't want to treat
@@ -132,7 +142,7 @@ def update_cache_bzr(url, clone_dir, revision):
     if revision:
         command.insert(3, '-r')
         command.insert(4, revision)
-    safe_run(command, cwd=clone_dir)
+    safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
 UPDATE_CACHE_COMMANDS = {
@@ -163,7 +173,7 @@ def switch_revision_git(clone_dir, revision):
             safe_run(['git', 'rev-parse', '--verify', '--quiet', rev],
                      cwd=clone_dir)
             text = safe_run(['git', 'reset', '--hard', rev], cwd=clone_dir)[1]
-            logging.info(text)
+            print text.rstrip()
             break
         except SystemExit:
             continue
@@ -180,7 +190,8 @@ def switch_revision_hg(clone_dir, revision):
         revision = 'tip'
 
     try:
-        safe_run(['hg', 'update', revision], cwd=clone_dir)
+        safe_run(['hg', 'update', revision], cwd=clone_dir,
+                 interactive=sys.stdout.isatty())
     except SystemExit:
         sys.exit('%s: No such revision' % revision)
 
