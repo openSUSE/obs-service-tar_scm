@@ -49,10 +49,10 @@ def safe_run(cmd, cwd):
     proc.wait()
     output = proc.stdout.read().strip()
     if proc.returncode:
-        logging.info("ERROR(%d): %s", proc.returncode, output)
-        sys.exit("Command failed(%d): %s" % (proc.returncode, output))
+        logging.info("ERROR(%d): %s", proc.returncode, repr(output))
+        sys.exit("Command failed(%d): %s" % (proc.returncode, repr(output)))
     else:
-        logging.debug("RESULT(%d): %s", proc.returncode, output)
+        logging.debug("RESULT(%d): %s", proc.returncode, repr(output))
     return (proc.returncode, output)
 
 
@@ -396,8 +396,8 @@ def detect_version_hg(repodir, versionformat):
     # 'sub(...)' which is only available since 2.4 (first introduced
     # in openSUSE 12.3).
 
-    version = safe_run(['hg', 'log', '-l1', "-r%s" % version, '--template',
-                        versionformat], repodir)[1]
+    version = safe_run(['hg', 'log', '-l1', "-r%s" % version.strip(),
+                        '--template', versionformat], repodir)[1]
     return version_iso_cleanup(version)
 
 
@@ -408,7 +408,7 @@ def detect_version_bzr(repodir, versionformat):
         versionformat = '%r'
 
     version = safe_run(['bzr', 'revno'], repodir)[1]
-    return re.sub('%r', version, versionformat)
+    return re.sub('%r', version.strip(), versionformat)
 
 
 def detect_version(scm, repodir, versionformat=None):
@@ -421,7 +421,7 @@ def detect_version(scm, repodir, versionformat=None):
         'bzr': detect_version_bzr,
     }
 
-    version = detect_version_commands[scm](repodir, versionformat)
+    version = detect_version_commands[scm](repodir, versionformat).strip()
     logging.debug("VERSION(auto): %s", version)
     return version
 
