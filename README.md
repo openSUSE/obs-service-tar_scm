@@ -7,11 +7,7 @@ The authoritative source is:
 
 The files in this top-level directory need to be installed using the following:
 
-    mkdir -p /usr/lib/obs/service
-    mkdir -p /etc/obs/services
-    install -m 0755 tar_scm /usr/lib/obs/service
-    install -m 0644 tar_scm.service /usr/lib/obs/service
-    install -m 0644 tar_scm.rc /etc/obs/services/tar_scm
+    make install
 
 ## Test suite
 
