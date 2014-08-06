@@ -5,6 +5,11 @@ SYSCFG   = /etc
 mylibdir = $(PREFIX)/lib/obs/service
 mycfgdir = $(SYSCFG)/obs/services
 
+.PHONY: check
+check:
+	: Running the test suite.  Please be patient - this takes a few minutes ...
+	python tests/test.py
+
 .PHONY: install
 install:
 	mkdir -p $(DESTDIR)$(mylibdir)
