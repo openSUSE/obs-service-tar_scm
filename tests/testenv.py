@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 import datetime
 import os
@@ -165,7 +165,7 @@ class TestEnvironment:
 
         cmdargs = args + ['--outdir', self.outdir]
         quotedargs = ["'%s'" % arg for arg in cmdargs]
-        cmdstr = 'python %s %s 2>&1' % \
+        cmdstr = 'python2 %s %s 2>&1' % \
                  (self.tar_scm_bin(), " ".join(quotedargs))
         print
         print ">>>>>>>>>>>"
