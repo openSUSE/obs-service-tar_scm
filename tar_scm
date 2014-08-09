@@ -41,9 +41,11 @@ get_config_options () {
 }
 
 parse_params () {
+  local unwanted
   while test $# -gt 0; do
-    if test -n "`echo \"$2\" | sed 's,[0-9a-zA-Z{}|@%:/._-]*,,g'`"; then
-      echo "Argument $1 got an argument with not supported char."
+    unwanted=$(echo "$2" | sed 's,[0-9a-zA-Z{}|@%:/._-]*,,g')
+    if test -n "$unwanted"; then
+      echo "Argument $1 got an argument with unsupported characters: $unwanted"
       exit 1
     fi
     case $1 in
