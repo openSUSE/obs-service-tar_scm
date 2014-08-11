@@ -48,10 +48,12 @@ def safe_run(cmd, cwd, interactive=False):
                             env=env)
     output = ''
     if interactive:
+        stdout_lines = []
         while proc.poll() is None:
             for line in proc.stdout:
                 print line.rstrip()
-                output = '\n'.join([output, line.rstrip()])
+                stdout_lines.append(line.rstrip())
+        output = '\n'.join(stdout_lines)
     else:
         output = proc.communicate()[0]
 
