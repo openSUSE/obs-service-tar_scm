@@ -139,7 +139,7 @@ class TestEnvironment:
         mkfreshdir(self.outdir)
         cmdargs = args + [ '--outdir', self.outdir ]
         quotedargs = [ "'%s'" % arg for arg in cmdargs ]
-        cmdstr = 'bash %s %s 2>&1' % (self.tar_scm_bin(), " ".join(quotedargs))
+        cmdstr = 'python %s %s 2>&1' % (self.tar_scm_bin(), " ".join(quotedargs))
         print
         print ">>>>>>>>>>>"
         print "Running", cmdstr
