@@ -1,3 +1,17 @@
+obs-service-tar-scm (0.4.0) unstable; urgency=low
+
+  * Python rewrite of tar_scm
+  * Make pep8 happy (except for regex in tar_scm:299)
+  * Address some feedback from pylint
+  * make Python version PEP8-compliant
+  * Let Travis execute pep8
+  * Strip newline ('\n') characters from safe_run output in detect_version()
+  * Make potentially long-running tasks print output in real-time
+  * Improve efficiency of stdout handling in safe_run()
+  * Release obs-service-tar_scm 0.4.0
+
+ -- Jan Blunck <jblunck@infradead.org>  Tue, 09 Sep 2014 18:37:39 +0200
+
 obs-service-tar-scm (0.2.3) unstable; urgency=low
 
   * Initial release
