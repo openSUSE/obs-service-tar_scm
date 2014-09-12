@@ -111,6 +111,7 @@ FETCH_UPSTREAM_COMMANDS = {
 def update_cache_git(url, clone_dir, revision):
     """update sources from GIT"""
 
+    safe_run(['git', 'fetch', '--tags'], cwd=clone_dir, interactive=sys.stdout.isatty())
     safe_run(['git', 'fetch'], cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
