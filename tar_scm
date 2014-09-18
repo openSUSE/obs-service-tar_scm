@@ -251,7 +251,7 @@ def prep_tree_for_tar(repodir, subdir, outdir, dstname):
          os.path.samefile(os.path.dirname(src), dst)):
         sys.exit("%s: src and dst refer to same file" % src)
 
-    shutil.copytree(src, dst)
+    shutil.copytree(src, dst, symlinks=True)
 
     return dst
 
