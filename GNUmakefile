@@ -5,8 +5,21 @@ SYSCFG   = /etc
 mylibdir = $(PREFIX)/lib/obs/service
 mycfgdir = $(SYSCFG)/obs/services
 
+default: check
+
 .PHONY: check
-check:
+check: pep8 test
+
+.PHONY: pep8
+pep8: tar_scm
+	@if ! which pep8 >/dev/null 2>&1; then \
+		echo "pep8 not installed!  Cannot check PEP8 compliance; aborting." >&2; \
+		exit 1; \
+	fi
+	pep8 tar_scm
+
+.PHONY: test
+test:
 	: Running the test suite.  Please be patient - this takes a few minutes ...
 	python tests/test.py
 

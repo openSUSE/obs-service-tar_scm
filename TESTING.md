@@ -1,8 +1,10 @@
-# `tar_scm` test suite
+# `tar_scm` testing
 
-Run the test suite via:
+## Unit tests
 
-    python tests/test.py
+Run the unit test suite via:
+
+    make test
 
 The output may become easier to understand if you uncomment the
 'failfast' option in `test.py`.  This requires Python 2.7, however.
@@ -24,3 +26,16 @@ OBS source service environment.  Whenever `tar_scm` invokes the VCS
 for which its functionality is being tested, through modification of
 `$PATH` it actually invokes `scm-wrapper`, which logs the VCS
 invocation before continuing.
+
+## PEP8 checking
+
+There's also a `pep8` rule for checking
+[PEP8](http://legacy.python.org/dev/peps/pep-0008/) compliance:
+
+    make pep8
+
+## Running all tests.
+
+You can run both sets of tests together via:
+
+    make check
