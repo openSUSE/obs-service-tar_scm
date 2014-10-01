@@ -13,6 +13,7 @@ from svntests import SvnTests
 from hgtests  import HgTests
 from bzrtests import BzrTests
 from testenv import TestEnvironment
+from unittestcases import UnitTestCases
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
@@ -23,6 +24,7 @@ if __name__ == '__main__':
         GitTests,
         HgTests,
         BzrTests,
+        UnitTestCases
     ]
 
     if True:  # change to False to run a specific test

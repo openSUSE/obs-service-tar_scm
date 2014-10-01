@@ -23,7 +23,7 @@ class TestEnvironment:
 
     @classmethod
     def tar_scm_bin(cls):
-        tar_scm = os.path.join(cls.tests_dir, '..', 'tar_scm')
+        tar_scm = os.path.join(cls.tests_dir, '..', 'tar_scm.py')
         if not os.path.isfile(tar_scm):
             raise RuntimeError, "Failed to find tar_scm executable at " + tar_scm
         return tar_scm
