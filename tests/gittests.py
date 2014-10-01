@@ -60,9 +60,7 @@ class GitTests(GitHgTests):
         self.tar_scm_std('--versionformat', "@PARENT_TAG@")
         self.assertTarOnly(self.basename(version = self.rev(2)))
 
-    def test_submodule_update(self):
-        submod_name = 'submod1'
-
+    def _submodule_fixture(self, submod_name):
         fix = self.fixtures
         repo_path = fix.repo_path
         submod_path = fix.submodule_path(submod_name)
@@ -86,6 +84,23 @@ class GitTests(GitHgTests):
         fix.do_commit(repo_path, new_rev, [ '.gitmodules', submod_name ])
         fix.record_rev(repo_path, new_rev)
 
+    def test_submodule_update(self):
+        submod_name = 'submod1'
+
+        self._submodule_fixture(submod_name)
+
         self.tar_scm_std('--submodules', 'enable','--revision', 'tag3','--version', 'tag3')
         th = tarfile.open(os.path.join(self.outdir , self.basename(version = 'tag3')+'.tar'))
         self.assertTarMemberContains(th ,os.path.join(self.basename(version = 'tag3'),submod_name,'a'),'5')
+
+    def test_submodule_disabled_update(self):
+        submod_name = 'submod1'
+
+        self._submodule_fixture(submod_name)
+
+        self.tar_scm_std('--submodules', 'disable', '--revision', 'tag3',
+                         '--version', 'tag3')
+        th = tarfile.open(os.path.join(self.outdir,
+                                       self.basename(version = 'tag3')+'.tar'))
+        self.assertRaises(KeyError, th.getmember, os.path.join(
+            self.basename(version = 'tag3'), submod_name, 'a'))

@@ -65,16 +65,17 @@ def safe_run(cmd, cwd, interactive=False):
     return (proc.returncode, output)
 
 
-def fetch_upstream_git(url, clone_dir, revision, cwd):
+def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """fetch sources from GIT"""
 
     safe_run(['git', 'clone', url, clone_dir], cwd=cwd,
              interactive=sys.stdout.isatty())
-    safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
-             clone_dir)
+    if 'submodules' in kwargs and kwargs['submodules']:
+        safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
+                 clone_dir)
 
 
-def fetch_upstream_svn(url, clone_dir, revision, cwd):
+def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
     """fetch sources from SVN"""
 
     command = ['svn', 'checkout', '--non-interactive', url, clone_dir]
@@ -83,14 +84,14 @@ def fetch_upstream_svn(url, clone_dir, revision, cwd):
     safe_run(command, cwd, interactive=sys.stdout.isatty())
 
 
-def fetch_upstream_hg(url, clone_dir, revision, cwd):
+def fetch_upstream_hg(url, clone_dir, revision, cwd, kwargs):
     """fetch sources from HG"""
 
     safe_run(['hg', 'clone', url, clone_dir], cwd,
              interactive=sys.stdout.isatty())
 
 
-def fetch_upstream_bzr(url, clone_dir, revision, cwd):
+def fetch_upstream_bzr(url, clone_dir, revision, cwd, kwargs):
     """fetch sources from BZR"""
 
     command = ['bzr', 'checkout', url, clone_dir]
@@ -185,7 +186,10 @@ def switch_revision_git(clone_dir, revision):
     else:
         sys.exit('%s: No such revision' % revision)
 
-    safe_run(['git', 'submodule', 'update', '--recursive'], cwd=clone_dir)
+    # only update submodules if they have been enabled
+    if os.path.exists(
+            os.path.join(clone_dir, os.path.join('.git', 'modules'))):
+        safe_run(['git', 'submodule', 'update', '--recursive'], cwd=clone_dir)
 
 
 def switch_revision_hg(clone_dir, revision):
@@ -216,7 +220,7 @@ SWITCH_REVISION_COMMANDS = {
 }
 
 
-def fetch_upstream(scm, url, revision, out_dir):
+def fetch_upstream(scm, url, revision, out_dir, **kwargs):
     """Fetch sources from repository and checkout given revision."""
 
     # calc_dir_to_clone_to
@@ -226,7 +230,8 @@ def fetch_upstream(scm, url, revision, out_dir):
     if not os.path.isdir(clone_dir):
         # initial clone
         os.mkdir(clone_dir)
-        FETCH_UPSTREAM_COMMANDS[scm](url, clone_dir, revision, cwd=out_dir)
+        FETCH_UPSTREAM_COMMANDS[scm](url, clone_dir, revision, cwd=out_dir,
+                                     kwargs=kwargs)
     else:
         logging.info("Detected cached repository...")
         UPDATE_CACHE_COMMANDS[scm](url, clone_dir, revision)
@@ -251,7 +256,7 @@ def prep_tree_for_tar(repodir, subdir, outdir, dstname):
          os.path.samefile(os.path.dirname(src), dst)):
         sys.exit("%s: src and dst refer to same file" % src)
 
-    shutil.copytree(src, dst)
+    shutil.copytree(src, dst, symlinks=True)
 
     return dst
 
@@ -325,12 +330,7 @@ def cleanup(dirs):
     for d in dirs:
         if not os.path.exists(d):
             continue
-        for root, dirs, files in os.walk(d, topdown=False):
-            for name in files:
-                os.remove(os.path.join(root, name))
-            for name in dirs:
-                os.rmdir(os.path.join(root, name))
-        os.rmdir(d)
+        shutil.rmtree(d)
 
 
 def version_iso_cleanup(version):
@@ -719,8 +719,11 @@ if __name__ == '__main__':
                              'or OBS to update after un-tar')
     parser.add_argument('--history-depth',
                         help='osc service parameter that does nothing')
-    parser.add_argument('--submodules',
-                        help='osc service parameter that does nothing')
+    parser.add_argument('--submodules', choices=['enable', 'disable'],
+                        default='enable',
+                        help='Whether or not to include git submodules.'
+                             'from SCM commit log since a given parent '
+                             'revision (see changesrevision).')
     args = parser.parse_args()
 
     # basic argument validation
@@ -740,6 +743,11 @@ if __name__ == '__main__':
         args.package_meta = True
     else:
         args.package_meta = False
+
+    if args.submodules == 'enable':
+        args.submodules = True
+    else:
+        args.submodules = False
 
     # force verbose mode in test-mode
     if os.getenv('DEBUG_TAR_SCM'):
@@ -781,7 +789,7 @@ if __name__ == '__main__':
         repodir = tempfile.mkdtemp(dir=args.outdir)
         CLEANUP_DIRS.append(repodir)
 
-    clone_dir = fetch_upstream(args.scm, args.url, args.revision, repodir)
+    clone_dir = fetch_upstream(out_dir=repodir, **args.__dict__)
 
     if args.filename:
         dstname = args.filename
