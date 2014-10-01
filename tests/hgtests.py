@@ -40,3 +40,9 @@ class HgTests(GitHgTests):
     def dateYYYYMMDDHHMMSS(self, rev):
         dateobj = datetime.datetime.fromtimestamp(self.timestamps(rev)[0])
         return dateobj.strftime("%4Y%02m%02dT%02H%02M%02S")
+
+    def test_fetch_upstream(self):
+        """Checkout an url that ends with a trailing slash"""
+        repo_url = self.fixtures.repo_url + '/'
+        args = ['--url', repo_url, '--scm', self.scm]
+        self.tar_scm(args)
