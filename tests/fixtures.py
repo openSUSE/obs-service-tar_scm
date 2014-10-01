@@ -99,4 +99,10 @@ class Fixtures:
             f.close()
             self.scmlogs.annotate("Wrote %s to %s" % (new_rev, fn))
 
+        # we never commit through symlink 'c' but instead see the updated
+        # revision through the symlink
+        if not os.path.lexists('c'):
+            os.symlink('a', 'c')
+            newly_created.append('c')
+
         return newly_created
