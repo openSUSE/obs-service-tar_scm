@@ -8,3 +8,6 @@ DESTDIR=debian/obs-service-tar-scm
 	dh $@ 
 
 override_dh_auto_build: ;
+
+override_dh_auto_install:
+	$(MAKE) DESTDIR=`pwd`/$(DESTDIR) PREFIX=/usr install
