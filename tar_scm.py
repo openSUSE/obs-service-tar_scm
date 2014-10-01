@@ -27,6 +27,7 @@ import logging
 import glob
 import ConfigParser
 import StringIO
+from urlparse import urlparse
 
 
 def safe_run(cmd, cwd, interactive=False):
@@ -137,7 +138,7 @@ def update_cache_hg(url, clone_dir, revision):
         # Contrary to the docs, hg pull returns exit code 1 when
         # there are no changes to pull, but we don't want to treat
         # this as an error.
-        if re.match('.*no changes found.*', e) is None:
+        if re.match('.*no changes found.*', e.message) is None:
             raise
 
 
@@ -220,12 +221,25 @@ SWITCH_REVISION_COMMANDS = {
 }
 
 
+def _calc_dir_to_clone_to(scm, url, out_dir):
+    # separate path from parameters etc.
+    url_path = urlparse(url)[2].rstrip('/')
+
+    # remove trailing scm extension
+    url_path = re.sub(r'\.%s$' % scm, '', url_path)
+
+    # special handling for cloning bare repositories (../repo/.git/)
+    url_path = url_path.rstrip('/')
+
+    basename = os.path.basename(os.path.normpath(url_path))
+    clone_dir = os.path.abspath(os.path.join(out_dir, basename))
+    return clone_dir
+
+
 def fetch_upstream(scm, url, revision, out_dir, **kwargs):
     """Fetch sources from repository and checkout given revision."""
 
-    # calc_dir_to_clone_to
-    basename = os.path.basename(re.sub(r'/.git$', '', url))
-    clone_dir = os.path.abspath(os.path.join(out_dir, basename))
+    clone_dir = _calc_dir_to_clone_to(scm, url, out_dir)
 
     if not os.path.isdir(clone_dir):
         # initial clone
