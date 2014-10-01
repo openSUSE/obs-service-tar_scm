@@ -106,3 +106,19 @@ class Fixtures:
             newly_created.append('c')
 
         return newly_created
+
+    def create_commit_broken_symlink(self, wd=None):
+        self.scmlogs.annotate("Creating broken symlink commit")
+
+        if wd is None:
+            wd = self.wd
+        os.chdir(wd)
+
+        new_rev = self.next_commit_rev(wd)
+        newly_created = self.prep_commit(new_rev)
+        os.unlink('c')
+        os.symlink('/../nir/va/na', 'c')
+        newly_created.append('c')
+        self.do_commit(wd, new_rev, newly_created)
+        self.record_rev(wd, new_rev)
+        self.scmlogs.annotate("Created 1 commit; now at %s" % (new_rev))

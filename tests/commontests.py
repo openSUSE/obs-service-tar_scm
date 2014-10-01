@@ -33,6 +33,16 @@ class CommonTests(TestEnvironment, TestAssertions):
         th = self.assertTarOnly(basename)
         self.assertTarMemberContains(th, basename + '/c', '3')
 
+    def test_broken_symlink(self):
+        self.fixtures.create_commit_broken_symlink()
+        self.tar_scm_std('--versionformat', '3',
+                         '--revision', self.rev(3))
+        basename = self.basename(version=3)
+        th = self.assertTarOnly(basename)
+        ti = th.getmember(basename + '/c')
+        self.assertTrue(ti.issym())
+        self.assertEquals(ti.linkname, '/../nir/va/na')
+
     def test_exclude(self):
         self.tar_scm_std('--exclude', '.' + self.scm)
         self.assertTarOnly(self.basename())
