@@ -11,12 +11,12 @@ default: check
 check: pep8 test
 
 .PHONY: pep8
-pep8: tar_scm
+pep8: tar_scm.py
 	@if ! which pep8 >/dev/null 2>&1; then \
 		echo "pep8 not installed!  Cannot check PEP8 compliance; aborting." >&2; \
 		exit 1; \
 	fi
-	pep8 tar_scm
+	pep8 $<
 
 .PHONY: test
 test:
@@ -27,6 +27,6 @@ test:
 install:
 	mkdir -p $(DESTDIR)$(mylibdir)
 	mkdir -p $(DESTDIR)$(mycfgdir)
-	install -m 0755 tar_scm $(DESTDIR)$(mylibdir)
+	install -m 0755 tar_scm.py $(DESTDIR)$(mylibdir)/tar_scm
 	install -m 0644 tar_scm.service $(DESTDIR)$(mylibdir)
 	install -m 0644 tar_scm.rc $(DESTDIR)$(mycfgdir)/tar_scm
