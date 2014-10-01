@@ -1,3 +1,18 @@
+obs-service-tar-scm (0.4.1~vyatta2) unstable; urgency=low
+
+  * Fix Debian build dependencies for python
+  * Change Debian package format to 3.0 (native)
+  * Simplify debian/rules due to addition of GNUmakefile
+  * Honor submodules=disable as before (fixes #38)
+  * Rename tar_scm to tar_scm.py
+  * Fix directory name of repository clone
+  * Fix handling of symbolic links
+  * Fix handling of symbolic links on cleanup
+  * Update Fixtures and CommonTests class to include a symlink test
+  * Update Fixtures and CommonTests to include a broken symlink test
+
+ -- Jan Blunck <jblunck@vyatta.com>  Wed, 01 Oct 2014 22:19:26 +0200
+
 obs-service-tar-scm (0.4.1~vyatta1) unstable; urgency=low
 
   [ Thorsten Behrens ]
