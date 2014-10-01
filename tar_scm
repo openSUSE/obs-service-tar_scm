@@ -136,7 +136,7 @@ def update_cache_hg(url, clone_dir, revision):
         # Contrary to the docs, hg pull returns exit code 1 when
         # there are no changes to pull, but we don't want to treat
         # this as an error.
-        if re.match('.*no changes found.*', e) is None:
+        if re.match('.*no changes found.*', e.message) is None:
             raise
 
 
@@ -220,7 +220,7 @@ def fetch_upstream(scm, url, revision, out_dir):
     """Fetch sources from repository and checkout given revision."""
 
     # calc_dir_to_clone_to
-    basename = os.path.basename(re.sub(r'/.git$', '', url))
+    basename = os.path.basename(os.path.normpath(re.sub(r'/.git$', '', url)))
     clone_dir = os.path.abspath(os.path.join(out_dir, basename))
 
     if not os.path.isdir(clone_dir):
