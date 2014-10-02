@@ -344,12 +344,7 @@ def cleanup(dirs):
     for d in dirs:
         if not os.path.exists(d):
             continue
-        for root, dirs, files in os.walk(d, topdown=False):
-            for name in files:
-                os.remove(os.path.join(root, name))
-            for name in dirs:
-                os.rmdir(os.path.join(root, name))
-        os.rmdir(d)
+        shutil.rmtree(d)
 
 
 def version_iso_cleanup(version):
