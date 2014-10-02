@@ -131,7 +131,7 @@ class CommonTests(TestEnvironment, TestAssertions):
         ]
         if use_subdir:
             args_head += [ '--subdir', self.fixtures.subdir ]
-        
+
         args_tag2 = args_head + [ '--revision', self.rev(2) ]
         self._sequential_calls_with_revision(
             version,
@@ -199,7 +199,7 @@ class CommonTests(TestEnvironment, TestAssertions):
             '--version', version,
         ]
         args_subdir = args+ [ '--subdir', self.fixtures.subdir ]
-        
+
         args_tag2 = args + [ '--revision', self.rev(2) ]
         self._sequential_calls_with_revision(
             version,
