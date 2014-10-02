@@ -25,6 +25,20 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.tar_scm_std()
         self.assertTarOnly(self.basename())
 
+    def test_symlink(self):
+        self.fixtures.create_commits(1)
+        self.tar_scm_std('--versionformat', '3',
+                         '--revision', self.rev(3))
+        basename = self.basename(version=3)
+        th = self.assertTarOnly(basename)
+        # tarfile.extractfile() in python 2.6 is broken when extracting
+        # relative symlinks as a file object so we construct linkname manually
+        ti = th.getmember(basename + '/c')
+        self.assertTrue(ti.issym())
+        self.assertEquals(ti.linkname, 'a')
+        linkname = '/'.join([os.path.dirname(ti.name), ti.linkname])
+        self.assertTarMemberContains(th, linkname, '3')
+
     def test_exclude(self):
         self.tar_scm_std('--exclude', '.' + self.scm)
         self.assertTarOnly(self.basename())
