@@ -16,6 +16,7 @@ def mkfreshdir(path):
     if os.path.exists(path):
         shutil.rmtree(path)
     os.makedirs(path)
+    os.chdir(cwd)
 
 def run_cmd(cmd):
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

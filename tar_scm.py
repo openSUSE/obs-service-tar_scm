@@ -322,6 +322,7 @@ def create_tar(repodir, outdir, dstname, extension='tar',
 
         return tarinfo
 
+    cwd = os.getcwd()
     os.chdir(workdir)
 
     tar = tarfile.open(os.path.join(outdir, dstname + '.' + extension), "w")
@@ -331,6 +332,8 @@ def create_tar(repodir, outdir, dstname, extension='tar',
         # Python 2.6 compatibility
         tar.add(topdir, exclude=tar_exclude)
     tar.close()
+
+    os.chdir(cwd)
 
 
 CLEANUP_DIRS = []

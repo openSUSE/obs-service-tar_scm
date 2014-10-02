@@ -52,6 +52,7 @@ class Fixtures:
 
         if wd is None:
             wd = self.wd
+        orig_wd = os.getcwd()
         os.chdir(wd)
 
         for i in xrange(0, num_commits):
@@ -59,6 +60,7 @@ class Fixtures:
         self.record_rev(wd, new_rev)
 
         self.scmlogs.annotate("Created %d commits; now at %s" % (num_commits, new_rev))
+        os.chdir(wd)
 
     def next_commit_rev(self, wd):
         if wd not in self._next_commit_revs:
