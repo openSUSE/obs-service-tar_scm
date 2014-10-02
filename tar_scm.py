@@ -539,7 +539,8 @@ def read_changes_revision(url, srcdir, outdir):
     if create_servicedata:
         ET.ElementTree(root).write(os.path.join(outdir, "_servicedata"))
     else:
-        if not os.path.samefile(os.path.join(srcdir, "_servicedata"),
+        if not os.path.exists(os.path.join(outdir, "_servicedata")) or \
+           not os.path.samefile(os.path.join(srcdir, "_servicedata"),
                                 os.path.join(outdir, "_servicedata")):
             shutil.copy(os.path.join(srcdir, "_servicedata"),
                         os.path.join(outdir, "_servicedata"))
