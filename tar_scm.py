@@ -244,6 +244,8 @@ def fetch_upstream(scm, url, revision, out_dir, **kwargs):
     if not os.path.isdir(clone_dir):
         # initial clone
         os.mkdir(clone_dir)
+        if scm not in FETCH_UPSTREAM_COMMANDS:
+            sys.exit("Don't know how to fetch for '%s' SCM" % scm)
         FETCH_UPSTREAM_COMMANDS[scm](url, clone_dir, revision, cwd=out_dir,
                                      kwargs=kwargs)
     else:
@@ -652,6 +654,9 @@ def detect_changes(scm, url, repodir, outdir):
         'git': detect_changes_commands_git,
     }
 
+    if scm not in detect_changes_commands:
+        sys.exit("changesgenerate not supported with %s SCM" % scm)
+
     return detect_changes_commands[scm](repodir, changes)
 
 
@@ -691,7 +696,7 @@ def get_config_options():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Git Tarballs')
     parser.add_argument('--scm', required=True,
-                        help='Used SCM')
+                        help='Used SCM', choices=[ 'git', 'hg', 'bzr', 'svn' ])
     parser.add_argument('--url', required=True,
                         help='upstream tarball URL to download')
     parser.add_argument('--outdir', required=True,
