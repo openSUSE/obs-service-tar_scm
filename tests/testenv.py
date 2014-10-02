@@ -51,9 +51,9 @@ class TestEnvironment:
 
     def setUp(self):
         print
-        print("- " * 35)
+        print("=" * 70)
         print(self._testMethodName)
-        print("- " * 35)
+        print("=" * 70)
         print
 
         self.test_name = self._testMethodName[5:]
