@@ -572,10 +572,10 @@ def write_changes_revision(url, outdir, revision):
                 changerev_params[0].text = revision
                 changed = True
         else:  # not present, add changesrevision element
-            tree = ET.fromstring(
+            changesrevision = ET.fromstring(
                 "    <param name=\"changesrevision\">%s</param>\n"
                 % revision)
-            tar_scm_service.append(tree)
+            tar_scm_service.append(changesrevision)
             changed = True
         if changed:
             tree.write(os.path.join(outdir, "_servicedata"))
