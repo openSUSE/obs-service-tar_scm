@@ -76,8 +76,6 @@ class TestEnvironment:
         self.scmlogs.annotate('Starting %s test' % self.test_name)
 
         os.putenv('CACHEDIRECTORY', self.cachedir)
-        # osc launches source services with cwd as pkg dir
-        os.chdir(self.pkgdir)
         print("--^-^-- end   setUp for %s --^-^--" % self.test_name)
 
     def initDirs(self):
@@ -137,6 +135,12 @@ class TestEnvironment:
     def tar_scm(self, args, should_succeed=True):
         # simulate new temporary outdir for each tar_scm invocation
         mkfreshdir(self.outdir)
+
+        # osc launches source services with cwd as pkg dir
+        # (see run_source_services() in osc/core.py)
+        print("chdir to pkgdir: %s" % self.pkgdir)
+        os.chdir(self.pkgdir)
+
         cmdargs = args + [ '--outdir', self.outdir ]
         quotedargs = [ "'%s'" % arg for arg in cmdargs ]
         cmdstr = 'python %s %s 2>&1' % (self.tar_scm_bin(), " ".join(quotedargs))
