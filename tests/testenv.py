@@ -159,7 +159,9 @@ class TestEnvironment:
             print stderr,
             print "--^-^-- end   STDERR from tar_scm --^-^--"
         succeeded = ret == 0
-        self.assertEqual(succeeded, should_succeed)
+        self.assertEqual(succeeded, should_succeed,
+                         "expected tar_scm to " +
+                         ("succeed" if should_succeed else "fail"))
         return (stdout, stderr, ret)
 
     def rev(self, rev):
