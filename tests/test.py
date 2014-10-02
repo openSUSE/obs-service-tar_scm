@@ -4,6 +4,7 @@
 # See TESTING.md for more information.
 
 import os
+import re
 import shutil
 import sys
 import unittest
@@ -27,14 +28,33 @@ if __name__ == '__main__':
         UnitTestCases
     ]
 
-    if True:  # change to False to run a specific test
+    if len(sys.argv) == 1:
         for testclass in testclasses:
             suite.addTests(unittest.TestLoader().loadTestsFromTestCase(testclass))
     else:
-        # tweak this to run specific tests
-        suite.addTest(HgTests('test_version_versionformat'))
-        suite.addTest(HgTests('test_versionformat_dateYYYYMMDD'))
-        suite.addTest(HgTests('test_versionformat_timestamp'))
+        # By default this uses the CLI args as string or regexp
+        # matches for names of git tests, but you can tweak this to run
+        # specific tests, e.g.:
+        #
+        #   suite.addTest(HgTests('test_version_versionformat'))
+        #   suite.addTest(HgTests('test_versionformat_dateYYYYMMDD'))
+        to_run = {}
+        for arg in sys.argv[1:]:
+            m = re.match('^/(.+)/$', arg)
+            if m:
+                # regexp mode
+                regexp = m.group(1)
+                matcher = lambda t: re.search(regexp, t)
+            else:
+                matcher = lambda t: t == arg
+            for t in dir(GitTests):
+                if not t.startswith('test_'):
+                    continue
+                if matcher(t):
+                    to_run[t] = True
+
+        for t in to_run.keys():
+            suite.addTest(GitTests(t))
 
     runner_args = {
         #'verbosity' : 2,
