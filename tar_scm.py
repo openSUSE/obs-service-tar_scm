@@ -696,13 +696,16 @@ def get_config_options():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Git Tarballs')
     parser.add_argument('--scm', required=True,
-                        help='Used SCM', choices=[ 'git', 'hg', 'bzr', 'svn' ])
+                        help='Specify SCM',
+                        choices=['git', 'hg', 'bzr', 'svn'])
     parser.add_argument('--url', required=True,
-                        help='upstream tarball URL to download')
+                        help='Specify URL of upstream tarball to download')
     parser.add_argument('--outdir', required=True,
-                        help='osc service parameter that does nothing')
+                        help='osc service parameter for internal use only '
+                             '(determines where generated files go before '
+                             'collection')
     parser.add_argument('--verbose', '-v', action='store_true', default=False,
-                        help='enable verbose output')
+                        help='Enable verbose output')
     parser.add_argument('--version', default='_auto_',
                         help='Specify version to be used in tarball. '
                              'Defaults to automatically detected value '
@@ -713,42 +716,45 @@ if __name__ == '__main__':
                              'used if the \'version\' parameter is not '
                              'specified.')
     parser.add_argument('--versionprefix',
-                        help='specify a base version as prefix.')
+                        help='Specify a base version as prefix.')
     parser.add_argument('--changesgenerate', choices=['enable', 'disable'],
                         default='disable',
-                        help='Whether or not to generate changes file entries '
-                             'from SCM commit log since a given parent '
-                             'revision (see changesrevision).')
+                        help='Specify whether to generate changes file '
+                             'entries from SCM commit log since a given '
+                             'parent revision (see changesrevision).')
     parser.add_argument('--changesauthor',
                         help='The author of the changes file entry to be '
                              'written, defaults to first email entry in '
                              '~/.oscrc or "opensuse-packaging@opensuse.org" '
                              'if there is no ~/.oscrc found.')
     parser.add_argument('--filename',
-                        help='name of package - used together with version '
+                        help='Name of package - used together with version '
                              'to determine tarball name')
     parser.add_argument('--extension', default='tar',
                         help='suffix name of package - used together with '
                              'filename to determine tarball name')
     parser.add_argument('--revision',
-                        help='revision to package')
+                        help='Specify revision to package')
     parser.add_argument('--subdir', default='',
-                        help='package just a sub directory')
+                        help='Package just a subdirectory of the sources')
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('--include', action='append', default=[],
-                       help='for specifying subset of files/subdirectories to '
-                            'pack in the tar ball')
-    group.add_argument('--exclude', action='append', default=[],
-                       help='for specifying excludes when creating the '
-                            'tar ball')
+    group.add_argument('--include', action='append',
+                       default=[], metavar='REGEXP',
+                       help='Specifies subset of files/subdirectories to '
+                            'pack in the tarball (can be repeated)')
+    group.add_argument('--exclude', action='append',
+                       default=[], metavar='REGEXP',
+                       help='Specifies excludes when creating the '
+                            'tarball (can be repeated)')
     parser.add_argument('--package-meta', choices=['yes', 'no'], default='no',
                         help='Package the meta data of SCM to allow the user '
                              'or OBS to update after un-tar')
     parser.add_argument('--history-depth',
-                        help='osc service parameter that does nothing')
+                        help='Obsolete osc service parameter that does '
+                             'nothing')
     parser.add_argument('--submodules', choices=['enable', 'disable'],
                         default='enable',
-                        help='Whether or not to include git submodules.'
+                        help='Whether or not to include git submodules '
                              'from SCM commit log since a given parent '
                              'revision (see changesrevision).')
     args = parser.parse_args()
