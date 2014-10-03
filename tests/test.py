@@ -38,6 +38,7 @@ if __name__ == '__main__':
         #
         #   suite.addTest(HgTests('test_version_versionformat'))
         #   suite.addTest(HgTests('test_versionformat_dateYYYYMMDD'))
+        test_class = GitTests
         to_run = {}
         for arg in sys.argv[1:]:
             m = re.match('^/(.+)/$', arg)
@@ -47,14 +48,14 @@ if __name__ == '__main__':
                 matcher = lambda t: re.search(regexp, t)
             else:
                 matcher = lambda t: t == arg
-            for t in dir(GitTests):
+            for t in dir(test_class):
                 if not t.startswith('test_'):
                     continue
                 if matcher(t):
                     to_run[t] = True
 
         for t in to_run.keys():
-            suite.addTest(GitTests(t))
+            suite.addTest(test_class(t))
 
     runner_args = {
         #'verbosity' : 2,
