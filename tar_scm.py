@@ -672,9 +672,10 @@ def get_changesauthor(args):
     if args.changesauthor:
         return args.changesauthor
 
-    config = ConfigParser.RawConfigParser({
-        'email': DEFAULT_AUTHOR,
-    })
+    config = ConfigParser.RawConfigParser()
+    obs = 'https://api.opensuse.org'
+    config.add_section(obs)
+    config.set(obs, 'email', DEFAULT_AUTHOR)
     config.read(os.path.expanduser('~/.oscrc'))
     changesauthor = config.get('https://api.opensuse.org', 'email')
 
