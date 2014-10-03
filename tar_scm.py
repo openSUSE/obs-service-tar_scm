@@ -244,6 +244,8 @@ def fetch_upstream(scm, url, revision, out_dir, **kwargs):
     if not os.path.isdir(clone_dir):
         # initial clone
         os.mkdir(clone_dir)
+        if scm not in FETCH_UPSTREAM_COMMANDS:
+            sys.exit("Don't know how to fetch for '%s' SCM" % scm)
         FETCH_UPSTREAM_COMMANDS[scm](url, clone_dir, revision, cwd=out_dir,
                                      kwargs=kwargs)
     else:
@@ -322,6 +324,7 @@ def create_tar(repodir, outdir, dstname, extension='tar',
 
         return tarinfo
 
+    cwd = os.getcwd()
     os.chdir(workdir)
 
     tar = tarfile.open(os.path.join(outdir, dstname + '.' + extension), "w")
@@ -331,6 +334,8 @@ def create_tar(repodir, outdir, dstname, extension='tar',
         # Python 2.6 compatibility
         tar.add(topdir, exclude=tar_exclude)
     tar.close()
+
+    os.chdir(cwd)
 
 
 CLEANUP_DIRS = []
@@ -534,7 +539,8 @@ def read_changes_revision(url, srcdir, outdir):
     if create_servicedata:
         ET.ElementTree(root).write(os.path.join(outdir, "_servicedata"))
     else:
-        if not os.path.samefile(os.path.join(srcdir, "_servicedata"),
+        if not os.path.exists(os.path.join(outdir, "_servicedata")) or \
+           not os.path.samefile(os.path.join(srcdir, "_servicedata"),
                                 os.path.join(outdir, "_servicedata")):
             shutil.copy(os.path.join(srcdir, "_servicedata"),
                         os.path.join(outdir, "_servicedata"))
@@ -572,10 +578,10 @@ def write_changes_revision(url, outdir, revision):
                 changerev_params[0].text = revision
                 changed = True
         else:  # not present, add changesrevision element
-            tree = ET.fromstring(
+            changesrevision = ET.fromstring(
                 "    <param name=\"changesrevision\">%s</param>\n"
                 % revision)
-            tar_scm_service.append(tree)
+            tar_scm_service.append(changesrevision)
             changed = True
         if changed:
             tree.write(os.path.join(outdir, "_servicedata"))
@@ -592,14 +598,14 @@ def write_changes(changes_filename, changes, version, author):
     logging.debug("Writing changes file %s", changes_filename)
 
     tmp_fp = tempfile.NamedTemporaryFile(delete=False)
-    tmp_fp.write('-' * 66 + '\n')
+    tmp_fp.write('-' * 67 + '\n')
     tmp_fp.write("%s - %s\n" % (
         datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y'),
         author))
     tmp_fp.write('\n')
     tmp_fp.write("- Update to version %s:\n" % version)
-    for line in changes.split(os.linesep):
-        tmp_fp.write(" + %s\n" % line)
+    for line in changes:
+        tmp_fp.write("  + %s\n" % line)
     tmp_fp.write('\n')
 
     old_fp = open(changes_filename, 'r')
@@ -608,7 +614,7 @@ def write_changes(changes_filename, changes, version, author):
 
     tmp_fp.close()
 
-    os.rename(tmp_fp.name, changes_filename)
+    shutil.move(tmp_fp.name, changes_filename)
 
 
 def detect_changes_commands_git(repodir, changes):
@@ -629,11 +635,12 @@ def detect_changes_commands_git(repodir, changes):
     logging.debug("Generating changes between %s and %s", last_rev,
                   current_rev)
 
-    lines = safe_run(['git', 'log', '--no-merges', '--pretty=tformat:%s',
+    lines = safe_run(['git', 'log',
+                      '--reverse', '--no-merges', '--pretty=format:%s',
                       "%s..%s" % (last_rev, current_rev)], repodir)[1]
 
     changes['revision'] = current_rev
-    changes['lines'] = '\n'.join(reversed(lines.split('\n')))
+    changes['lines'] = lines.split('\n')
     return changes
 
 
@@ -645,11 +652,32 @@ def detect_changes(scm, url, repodir, outdir):
     except Exception, e:
         sys.exit("_servicedata: Failed to parse (%s)" % e)
 
+    logging.debug("CHANGES: %s" % repr(changes))
+
     detect_changes_commands = {
         'git': detect_changes_commands_git,
     }
 
-    return detect_changes_commands[scm](repodir, changes)
+    if scm not in detect_changes_commands:
+        sys.exit("changesgenerate not supported with %s SCM" % scm)
+
+    changes = detect_changes_commands[scm](repodir, changes)
+    logging.debug("Detected changes:\n%s" % repr(changes))
+    return changes
+
+
+def get_changesauthor(args):
+    if args.changesauthor:
+        return args.changesauthor
+
+    config = ConfigParser.RawConfigParser({
+        'email': 'opensuse-packaging@opensuse.org',
+    })
+    config.read(os.path.expanduser('~/.oscrc'))
+    changesauthor = config.get('https://api.opensuse.org', 'email')
+
+    logging.debug("AUTHOR: %s", changesauthor)
+    return changesauthor
 
 
 def get_config_options():
@@ -687,14 +715,13 @@ def get_config_options():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Git Tarballs')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                        help='Enable verbose output')
     parser.add_argument('--scm', required=True,
-                        help='Used SCM')
+                        help='Specify SCM',
+                        choices=['git', 'hg', 'bzr', 'svn'])
     parser.add_argument('--url', required=True,
-                        help='upstream tarball URL to download')
-    parser.add_argument('--outdir', required=True,
-                        help='osc service parameter that does nothing')
-    parser.add_argument('--verbose', '-v', action='store_true', default=False,
-                        help='enable verbose output')
+                        help='Specify URL of upstream tarball to download')
     parser.add_argument('--version', default='_auto_',
                         help='Specify version to be used in tarball. '
                              'Defaults to automatically detected value '
@@ -705,44 +732,51 @@ if __name__ == '__main__':
                              'used if the \'version\' parameter is not '
                              'specified.')
     parser.add_argument('--versionprefix',
-                        help='specify a base version as prefix.')
+                        help='Specify a base version as prefix.')
+    parser.add_argument('--revision',
+                        help='Specify revision to package')
+    parser.add_argument('--filename',
+                        help='Name of package - used together with version '
+                             'to determine tarball name')
+    parser.add_argument('--extension', default='tar',
+                        help='suffix name of package - used together with '
+                             'filename to determine tarball name')
     parser.add_argument('--changesgenerate', choices=['enable', 'disable'],
                         default='disable',
-                        help='Whether or not to generate changes file entries '
-                             'from SCM commit log since a given parent '
-                             'revision (see changesrevision).')
+                        help='Specify whether to generate changes file '
+                             'entries from SCM commit log since a given '
+                             'parent revision (see changesrevision).')
     parser.add_argument('--changesauthor',
                         help='The author of the changes file entry to be '
                              'written, defaults to first email entry in '
                              '~/.oscrc or "opensuse-packaging@opensuse.org" '
                              'if there is no ~/.oscrc found.')
-    parser.add_argument('--filename',
-                        help='name of package - used together with version '
-                             'to determine tarball name')
-    parser.add_argument('--extension', default='tar',
-                        help='suffix name of package - used together with '
-                             'filename to determine tarball name')
-    parser.add_argument('--revision',
-                        help='revision to package')
     parser.add_argument('--subdir', default='',
-                        help='package just a sub directory')
+                        help='Package just a subdirectory of the sources')
+    parser.add_argument('--submodules', choices=['enable', 'disable'],
+                        default='enable',
+                        help='Whether or not to include git submodules '
+                             'from SCM commit log since a given parent '
+                             'revision (see changesrevision).')
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('--include', action='append', default=[],
-                       help='for specifying subset of files/subdirectories to '
-                            'pack in the tar ball')
-    group.add_argument('--exclude', action='append', default=[],
-                       help='for specifying excludes when creating the '
-                            'tar ball')
+    group.add_argument('--include', action='append',
+                       default=[], metavar='REGEXP',
+                       help='Specifies subset of files/subdirectories to '
+                            'pack in the tarball (can be repeated)')
+    group.add_argument('--exclude', action='append',
+                       default=[], metavar='REGEXP',
+                       help='Specifies excludes when creating the '
+                            'tarball (can be repeated)')
     parser.add_argument('--package-meta', choices=['yes', 'no'], default='no',
                         help='Package the meta data of SCM to allow the user '
                              'or OBS to update after un-tar')
+    parser.add_argument('--outdir', required=True,
+                        help='osc service parameter for internal use only '
+                             '(determines where generated files go before '
+                             'collection')
     parser.add_argument('--history-depth',
-                        help='osc service parameter that does nothing')
-    parser.add_argument('--submodules', choices=['enable', 'disable'],
-                        default='enable',
-                        help='Whether or not to include git submodules.'
-                             'from SCM commit log since a given parent '
-                             'revision (see changesrevision).')
+                        help='Obsolete osc service parameter that does '
+                             'nothing')
     args = parser.parse_args()
 
     # basic argument validation
@@ -839,18 +873,15 @@ if __name__ == '__main__':
                package_metadata=args.package_meta)
 
     if changes:
-        changesauthor = args.changesauthor
-        if changesauthor is None:
-            config = ConfigParser.RawConfigParser({
-                'email': 'opensuse-packaging@opensuse.org',
-            })
-            config.read(os.path.expanduser('~/.oscrc'))
-            changesauthor = config.get('https://api.opensuse.org', 'email')
+        changesauthor = get_changesauthor(args)
 
         logging.debug("AUTHOR: %s", changesauthor)
 
-        for filename in glob.glob(os.path.join(args.outdir, '*.changes')):
-            write_changes(filename, changes['lines'], version, changesauthor)
+        for filename in glob.glob('*.changes'):
+            new_changes_file = os.path.join(args.outdir, filename)
+            shutil.copy(filename, new_changes_file)
+            write_changes(new_changes_file, changes['lines'],
+                          version, changesauthor)
         write_changes_revision(changes['url'], args.outdir,
                                changes['revision'])
 

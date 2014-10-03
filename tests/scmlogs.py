@@ -3,6 +3,7 @@
 import glob
 import os
 
+
 class ScmInvocationLogs:
     """
     Provides log files which tracks invocations of SCM binaries.  The
@@ -57,7 +58,8 @@ class ScmInvocationLogs:
     def get_log_file(self, identifier):
         if identifier:
             identifier = '-' + identifier
-        return self.get_log_file_template() % ('%02d%s' % (self.counter, identifier))
+        return self.get_log_file_template() % \
+            ('%02d%s' % (self.counter, identifier))
 
     def get_log_path(self, identifier):
         return os.path.join(self.test_dir, self.get_log_file(identifier))
@@ -66,7 +68,7 @@ class ScmInvocationLogs:
         self.counter += 1
         self.current_log_path = self.get_log_path(identifier)
         if os.path.exists(self.current_log_path):
-            raise RuntimeError, "%s already existed?!" % self.current_log_path
+            raise RuntimeError("%s already existed?!" % self.current_log_path)
         os.putenv('SCM_INVOCATION_LOG', self.current_log_path)
 
     def annotate(self, msg):

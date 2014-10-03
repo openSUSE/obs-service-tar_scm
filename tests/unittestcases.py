@@ -3,8 +3,12 @@
 import unittest
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+
+here = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(here, '..'))
+
 from tar_scm import _calc_dir_to_clone_to
+
 
 class UnitTestCases(unittest.TestCase):
 
@@ -12,17 +16,14 @@ class UnitTestCases(unittest.TestCase):
         scm = 'git'
         outdir = '/out/'
 
-        clone_dir = _calc_dir_to_clone_to(scm, '/local/repo.git', outdir)
-        self.assertEqual(clone_dir, os.path.join(outdir, 'repo'))
+        clone_dirs = [
+            '/local/repo.git',
+            '/local/repo/.git',
+            '/local/repo/.git/',
+            'http://remote/repo.git;param?query#fragment',
+            'http://remote/repo/.git;param?query#fragment',
+        ]
 
-        clone_dir = _calc_dir_to_clone_to(scm, '/local/repo/.git', outdir)
-        self.assertEqual(clone_dir, os.path.join(outdir, 'repo'))
-
-        clone_dir = _calc_dir_to_clone_to(scm, '/local/repo/.git/', outdir)
-        self.assertEqual(clone_dir, os.path.join(outdir, 'repo'))
-
-        clone_dir = _calc_dir_to_clone_to(scm, 'http://remote/repo.git;param?query#fragment', outdir)
-        self.assertEqual(clone_dir, os.path.join(outdir, 'repo'))
-
-        clone_dir = _calc_dir_to_clone_to(scm, 'http://remote/repo/.git;param?query#fragment', outdir)
-        self.assertEqual(clone_dir, os.path.join(outdir, 'repo'))
+        for cd in clone_dirs:
+            clone_dir = _calc_dir_to_clone_to(scm, cd, outdir)
+            self.assertEqual(clone_dir, os.path.join(outdir, 'repo'))

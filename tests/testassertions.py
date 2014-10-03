@@ -8,6 +8,7 @@ import unittest
 
 line_start = '(^|\n)'
 
+
 class TestAssertions(unittest.TestCase):
 
     """Library of test assertions used by tar_scm unit tests.
@@ -24,7 +25,8 @@ class TestAssertions(unittest.TestCase):
             expected_regexp = re.compile(expected_regexp)
         if not expected_regexp.search(text):
             msg = msg or "Regexp didn't match"
-            msg = '%s: %r not found in %r' % (msg, expected_regexp.pattern, text)
+            msg = '%s: %r not found in %r' % \
+                  (msg, expected_regexp.pattern, text)
             raise self.failureException(msg)
 
     def assertNotRegexpMatches(self, text, unexpected_regexp, msg=None):
@@ -41,20 +43,23 @@ class TestAssertions(unittest.TestCase):
             raise self.failureException(msg)
     ######################################################################
 
-    def assertNumDirents(self, dir, expected, msg = ''):
+    def assertNumDirents(self, dir, expected, msg=''):
         dirents = os.listdir(dir)
         got = len(dirents)
-        if len(msg) > 0: msg += "\n"
-        msg += 'expected %d file(s), got %d: %s' % (expected, got, pformat(dirents))
+        if len(msg) > 0:
+            msg += "\n"
+        msg += 'expected %d file(s), got %d: %s' % \
+               (expected, got, pformat(dirents))
         self.assertEqual(expected, got, msg)
         return dirents
 
-    def assertNumTarEnts(self, tar, expected, msg = ''):
+    def assertNumTarEnts(self, tar, expected, msg=''):
         self.assertTrue(tarfile.is_tarfile(tar))
         th = tarfile.open(tar)
         tarents = th.getmembers()
         got = len(tarents)
-        if len(msg) > 0: msg += "\n"
+        if len(msg) > 0:
+            msg += "\n"
         msg += 'expected %s to have %d entries, got %d:\n%s' % \
             (tar, expected, got, pformat(tarents))
         self.assertEqual(expected, got, msg)
@@ -117,10 +122,12 @@ class TestAssertions(unittest.TestCase):
         self.assertEqual(contents, "\n".join(f.readlines()))
 
     def assertRanInitialClone(self, logpath, loglines):
-        self._find(logpath, loglines, self.initial_clone_command, self.update_cache_command)
+        self._find(logpath, loglines,
+                   self.initial_clone_command, self.update_cache_command)
 
     def assertRanUpdate(self, logpath, loglines):
-        self._find(logpath, loglines, self.update_cache_command, self.initial_clone_command)
+        self._find(logpath, loglines,
+                   self.update_cache_command, self.initial_clone_command)
 
     def _find(self, logpath, loglines, should_find, should_not_find):
         found = False

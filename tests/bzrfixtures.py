@@ -2,11 +2,11 @@
 
 import os
 
-from   fixtures  import Fixtures
-from   utils     import mkfreshdir, run_bzr
+from fixtures import Fixtures
+from utils    import mkfreshdir, run_bzr
+
 
 class BzrFixtures(Fixtures):
-
     """Methods to create and populate a bzr repository.
 
     bzr tests use this class in order to have something to test against.
