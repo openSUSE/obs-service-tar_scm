@@ -12,21 +12,21 @@
 # See http://www.gnu.org/licenses/gpl-2.0.html for full license text.
 
 import argparse
+import atexit
+import ConfigParser
 import datetime
-import os
-import shutil
-import re
 import fnmatch
+import glob
+import hashlib
+import logging
+import os
+import re
+import shutil
+import StringIO
+import subprocess
 import sys
 import tarfile
-import subprocess
-import atexit
-import hashlib
 import tempfile
-import logging
-import glob
-import ConfigParser
-import StringIO
 from urlparse import urlparse
 
 
