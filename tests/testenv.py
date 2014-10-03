@@ -50,6 +50,7 @@ class TestEnvironment:
                                self._testMethodName)
         self.test_dir  = os.path.join(self.tmp_dir,  self.scm, self.test_name)
         self.pkgdir    = os.path.join(self.test_dir, 'pkg')
+        self.homedir   = os.path.join(self.test_dir, 'home')
         self.outdir    = os.path.join(self.test_dir, 'out')
         self.cachedir  = os.path.join(self.test_dir, 'cache')
 
@@ -85,8 +86,13 @@ class TestEnvironment:
     def initDirs(self):
         # pkgdir persists between tests to simulate real world use
         # (although a test can choose to invoke mkfreshdir)
-        if not os.path.exists(self.pkgdir):
-            os.makedirs(self.pkgdir)
+        persistent_dirs = [self.pkgdir, self.homedir]
+        for d in persistent_dirs:
+            if not os.path.exists(d):
+                os.makedirs(d)
+
+        # Tests should not depend on the contents of $HOME
+        os.putenv('HOME', self.homedir)
 
         for subdir in ('repo', 'repourl', 'incoming'):
             mkfreshdir(os.path.join(self.cachedir, subdir))
