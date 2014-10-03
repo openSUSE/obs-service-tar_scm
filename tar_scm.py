@@ -614,7 +614,7 @@ def write_changes(changes_filename, changes, version, author):
 
     tmp_fp.close()
 
-    os.rename(tmp_fp.name, changes_filename)
+    shutil.move(tmp_fp.name, changes_filename)
 
 
 def detect_changes_commands_git(repodir, changes):
