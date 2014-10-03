@@ -13,6 +13,8 @@ class GitFixtures(Fixtures):
     """
 
     def init(self):
+        self.user_name  = 'test'
+        self.user_email = 'test@test.com'
         self.create_repo(self.repo_path)
         self.wd = self.repo_path
         self.submodules_path = self.container_dir + '/submodules'
@@ -32,8 +34,8 @@ class GitFixtures(Fixtures):
         os.makedirs(repo_path)
         os.chdir(repo_path)
         self.safe_run('init')
-        self.safe_run('config user.name test')
-        self.safe_run('config user.email test@test.com')
+        self.safe_run('config user.name  ' + self.user_name)
+        self.safe_run('config user.email ' + self.user_email)
         print "created repo", repo_path
 
     def get_metadata(self, formatstr):
