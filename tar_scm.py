@@ -650,6 +650,8 @@ def detect_changes(scm, url, repodir, outdir):
     except Exception, e:
         sys.exit("_servicedata: Failed to parse (%s)" % e)
 
+    logging.debug("CHANGES: %s" % repr(changes))
+
     detect_changes_commands = {
         'git': detect_changes_commands_git,
     }
@@ -657,7 +659,9 @@ def detect_changes(scm, url, repodir, outdir):
     if scm not in detect_changes_commands:
         sys.exit("changesgenerate not supported with %s SCM" % scm)
 
-    return detect_changes_commands[scm](repodir, changes)
+    changes = detect_changes_commands[scm](repodir, changes)
+    logging.debug("Detected changes:\n%s" % repr(changes))
+    return changes
 
 
 def get_config_options():
