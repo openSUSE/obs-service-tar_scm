@@ -19,7 +19,6 @@ class SvnFixtures(Fixtures):
         self.checkout_repo()
 
         self.added        = { }
-        self.timestamps   = { }
 
         self.create_commits(2)
 
