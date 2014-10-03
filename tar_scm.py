@@ -598,14 +598,14 @@ def write_changes(changes_filename, changes, version, author):
     logging.debug("Writing changes file %s", changes_filename)
 
     tmp_fp = tempfile.NamedTemporaryFile(delete=False)
-    tmp_fp.write('-' * 66 + '\n')
+    tmp_fp.write('-' * 67 + '\n')
     tmp_fp.write("%s - %s\n" % (
         datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y'),
         author))
     tmp_fp.write('\n')
     tmp_fp.write("- Update to version %s:\n" % version)
-    for line in changes.split(os.linesep):
-        tmp_fp.write(" + %s\n" % line)
+    for line in changes:
+        tmp_fp.write("  + %s\n" % line)
     tmp_fp.write('\n')
 
     old_fp = open(changes_filename, 'r')
@@ -635,11 +635,12 @@ def detect_changes_commands_git(repodir, changes):
     logging.debug("Generating changes between %s and %s", last_rev,
                   current_rev)
 
-    lines = safe_run(['git', 'log', '--no-merges', '--pretty=tformat:%s',
+    lines = safe_run(['git', 'log',
+                      '--reverse', '--no-merges', '--pretty=format:%s',
                       "%s..%s" % (last_rev, current_rev)], repodir)[1]
 
     changes['revision'] = current_rev
-    changes['lines'] = '\n'.join(reversed(lines.split('\n')))
+    changes['lines'] = lines.split('\n')
     return changes
 
 
