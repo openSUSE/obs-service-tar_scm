@@ -29,6 +29,8 @@ import tarfile
 import tempfile
 from urlparse import urlparse
 
+DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
+
 
 def safe_run(cmd, cwd, interactive=False):
     """Execute the command cmd in the working directory cwd and check return
@@ -671,7 +673,7 @@ def get_changesauthor(args):
         return args.changesauthor
 
     config = ConfigParser.RawConfigParser({
-        'email': 'opensuse-packaging@opensuse.org',
+        'email': DEFAULT_AUTHOR,
     })
     config.read(os.path.expanduser('~/.oscrc'))
     changesauthor = config.get('https://api.opensuse.org', 'email')
@@ -749,8 +751,9 @@ if __name__ == '__main__':
     parser.add_argument('--changesauthor',
                         help='The author of the changes file entry to be '
                              'written, defaults to first email entry in '
-                             '~/.oscrc or "opensuse-packaging@opensuse.org" '
-                             'if there is no ~/.oscrc found.')
+                             '~/.oscrc or "%s" '
+                             'if there is no ~/.oscrc found.' %
+                             DEFAULT_AUTHOR)
     parser.add_argument('--subdir', default='',
                         help='Package just a subdirectory of the sources')
     parser.add_argument('--submodules', choices=['enable', 'disable'],
