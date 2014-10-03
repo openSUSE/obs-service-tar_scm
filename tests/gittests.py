@@ -56,6 +56,9 @@ class GitTests(GitHgTests):
         f = self.fixtures
         return f.sha1s[f.repo_path][rev]
 
+    def abbrev_sha1s(self, rev):
+        return self.sha1s(rev)[0:7]
+
     # N.B. --versionformat gets tested thoroughly in githgtests.py
 
     def test_versionformat_parenttag(self):

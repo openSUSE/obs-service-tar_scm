@@ -51,7 +51,7 @@ class GitFixtures(Fixtures):
 
         self.revs[wd][rev_num]   = tag
         self.timestamps[wd][tag] = self.get_metadata('%ct')
-        self.sha1s[wd][tag]      = self.get_metadata('%h')
+        self.sha1s[wd][tag]      = self.get_metadata('%H')
         self.scmlogs.annotate(
             "Recorded rev %d: id %s, timestamp %s, SHA1 %s in %s" % \
                 (rev_num,

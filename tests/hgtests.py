@@ -27,6 +27,12 @@ class HgTests(GitHgTests):
     def default_version(self):
         return self.rev(2)
 
+    def sha1s(self, rev):
+        return self.fixtures.sha1s[rev]
+
+    def abbrev_sha1s(self, rev):
+        return self.fixtures.short_sha1s[rev]
+
     def version(self, rev):
         # Hyphens aren't allowed in version number.  This substitution
         # mirrors the use of sed "s@-@@g" in tar_scm.

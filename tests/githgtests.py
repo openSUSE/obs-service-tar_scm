@@ -13,7 +13,7 @@ class GitHgTests(CommonTests):
 
     def test_versionformat_abbrevhash(self):
         self.tar_scm_std('--versionformat', self.abbrev_hash_format)
-        self.assertTarOnly(self.basename(version = self.sha1s(self.rev(2))))
+        self.assertTarOnly(self.basename(version = self.abbrev_sha1s(self.rev(2))))
 
     def test_versionformat_timestamp(self):
         self.tar_scm_std('--versionformat', self.timestamp_format)
@@ -32,7 +32,7 @@ class GitHgTests(CommonTests):
 
     def _mixed_version(self, rev):
         return self.mixed_version_template % \
-            (self.version(rev), self.sha1s(self.rev(rev)))
+            (self.version(rev), self.abbrev_sha1s(self.rev(rev)))
 
     def test_versionformat_mixed(self):
         self.tar_scm_std('--versionformat', self._mixed_version_format())
@@ -45,6 +45,6 @@ class GitHgTests(CommonTests):
     def test_versionformat_revision(self):
         self.fixtures.create_commits(4)
         self.tar_scm_std('--versionformat', self.abbrev_hash_format, '--revision', self.rev(2))
-        basename = self.basename(version = self.sha1s(self.rev(2)))
+        basename = self.basename(version = self.abbrev_sha1s(self.rev(2)))
         th = self.assertTarOnly(basename)
         self.assertTarMemberContains(th, basename + '/a', '2')

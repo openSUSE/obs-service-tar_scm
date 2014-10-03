@@ -17,6 +17,7 @@ class HgFixtures(Fixtures):
 
         self.timestamps   = { }
         self.sha1s        = { }
+        self.short_sha1s  = { }
 
         self.create_commits(2)
 
@@ -41,7 +42,8 @@ class HgFixtures(Fixtures):
         self.revs[rev_num]   = tag
         epoch_secs, tz_delta_to_utc = self.get_metadata('{date|hgdate}').split()
         self.timestamps[tag] = (float(epoch_secs), int(tz_delta_to_utc))
-        self.sha1s[tag]      = self.get_metadata('{node|short}')
+        self.sha1s[tag]        = self.get_metadata('{node}')
+        self.short_sha1s[tag]  = self.get_metadata('{node|short}')
         self.scmlogs.annotate(
             "Recorded rev %d: id %s, timestamp %s, SHA1 %s" % \
                 (rev_num,

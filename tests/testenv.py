@@ -170,6 +170,3 @@ class TestEnvironment:
     def timestamps(self, rev):
         return self.fixtures.timestamps[rev]
 
-    def sha1s(self, rev):
-        return self.fixtures.sha1s[rev]
-
