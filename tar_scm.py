@@ -869,8 +869,11 @@ if __name__ == '__main__':
 
         logging.debug("AUTHOR: %s", changesauthor)
 
-        for filename in glob.glob(os.path.join(args.outdir, '*.changes')):
-            write_changes(filename, changes['lines'], version, changesauthor)
+        for filename in glob.glob('*.changes'):
+            new_changes_file = os.path.join(args.outdir, filename)
+            shutil.copy(filename, new_changes_file)
+            write_changes(new_changes_file, changes['lines'],
+                          version, changesauthor)
         write_changes_revision(changes['url'], args.outdir,
                                changes['revision'])
 
