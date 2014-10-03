@@ -56,6 +56,8 @@ class GitTests(GitHgTests):
         f = self.fixtures
         return f.sha1s[f.repo_path][rev]
 
+    # N.B. --versionformat gets tested thoroughly in githgtests.py
+
     def test_versionformat_parenttag(self):
         self.tar_scm_std('--versionformat', "@PARENT_TAG@")
         self.assertTarOnly(self.basename(version = self.rev(2)))
