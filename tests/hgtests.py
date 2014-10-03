@@ -2,9 +2,10 @@
 
 import datetime
 
-from   githgtests  import GitHgTests
-from   hgfixtures  import HgFixtures
-from   utils       import run_hg
+from githgtests import GitHgTests
+from hgfixtures import HgFixtures
+from utils      import run_hg
+
 
 class HgTests(GitHgTests):
 

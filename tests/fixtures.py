@@ -3,6 +3,7 @@
 import os
 import shutil
 
+
 class Fixtures:
 
     """Base class for all fixture classes."""
@@ -14,7 +15,7 @@ class Fixtures:
     subdir = 'subdir'
     subdir1 = 'subdir1'
     subdir2 = 'subdir2'
-    _next_commit_revs = { }
+    _next_commit_revs = {}
 
     def __init__(self, container_dir, scmlogs):
         self.container_dir = container_dir
@@ -24,12 +25,12 @@ class Fixtures:
 
         # Keys are stringified integers representing commit sequence numbers;
         # values can be passed to --revision
-        self.revs = { }
+        self.revs = {}
 
     def safe_run(self, cmd):
         stdout, stderr, exitcode = self.run(cmd)
         if exitcode != 0:
-            raise RuntimeError, "Command failed; aborting."
+            raise RuntimeError("Command failed; aborting.")
         return stdout, stderr, exitcode
 
     def setup(self):
@@ -42,8 +43,8 @@ class Fixtures:
             shutil.rmtree(self.repo_path)
 
     def init(self):
-        raise NotImplementedError, \
-            self.__class__.__name__ + " didn't implement init()"
+        raise NotImplementedError(
+            self.__class__.__name__ + " didn't implement init()")
 
     def create_commits(self, num_commits, wd=None):
         self.scmlogs.annotate("Creating %d commits ..." % num_commits)
@@ -59,7 +60,8 @@ class Fixtures:
             new_rev = self.create_commit(wd)
         self.record_rev(wd, new_rev)
 
-        self.scmlogs.annotate("Created %d commits; now at %s" % (num_commits, new_rev))
+        self.scmlogs.annotate("Created %d commits; now at %s" %
+                              (num_commits, new_rev))
         os.chdir(wd)
 
     def next_commit_rev(self, wd):
@@ -85,7 +87,7 @@ class Fixtures:
         Returns list of newly created files.
         """
         self.scmlogs.annotate("cwd is %s" % os.getcwd())
-        newly_created = [ ]
+        newly_created = []
 
         if not os.path.exists('a'):
             newly_created.append('a')
