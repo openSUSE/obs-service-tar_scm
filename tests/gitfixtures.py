@@ -2,8 +2,9 @@
 
 import os
 
-from   fixtures  import Fixtures
-from   utils     import mkfreshdir, run_git
+from fixtures import Fixtures
+from utils    import mkfreshdir, run_git
+
 
 class GitFixtures(Fixtures):
 
@@ -22,8 +23,8 @@ class GitFixtures(Fixtures):
         # These will be two-level dicts; top level keys are
         # repo paths (this allows us to track the main repo
         # *and* submodules).
-        self.timestamps   = { }
-        self.sha1s        = { }
+        self.timestamps = {}
+        self.sha1s      = {}
 
         self.create_commits(2)
 
@@ -47,18 +48,18 @@ class GitFixtures(Fixtures):
 
         for d in (self.revs, self.timestamps, self.sha1s):
             if wd not in d:
-                d[wd] = { }
+                d[wd] = {}
 
         self.revs[wd][rev_num]   = tag
         self.timestamps[wd][tag] = self.get_metadata('%ct')
         self.sha1s[wd][tag]      = self.get_metadata('%H')
         self.scmlogs.annotate(
-            "Recorded rev %d: id %s, timestamp %s, SHA1 %s in %s" % \
-                (rev_num,
-                 tag,
-                 self.timestamps[wd][tag],
-                 self.sha1s[wd][tag],
-                 wd)
+            "Recorded rev %d: id %s, timestamp %s, SHA1 %s in %s" %
+            (rev_num,
+             tag,
+             self.timestamps[wd][tag],
+             self.sha1s[wd][tag],
+             wd)
         )
 
     def submodule_path(self, submodule_name):
@@ -66,5 +67,5 @@ class GitFixtures(Fixtures):
 
     def create_submodule(self, submodule_name):
         path = self.submodule_path(submodule_name)
-        #self.scmlogs.annotate("Creating repo in %s" % path)
+        # self.scmlogs.annotate("Creating repo in %s" % path)
         self.create_repo(path)

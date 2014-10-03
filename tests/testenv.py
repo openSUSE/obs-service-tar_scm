@@ -3,8 +3,10 @@
 import datetime
 import os
 import shutil
-from utils     import mkfreshdir, run_cmd
-from scmlogs   import ScmInvocationLogs
+
+from utils   import mkfreshdir, run_cmd
+from scmlogs import ScmInvocationLogs
+
 
 class TestEnvironment:
 
@@ -17,7 +19,7 @@ class TestEnvironment:
       - running tar_scm inside that environment.
     """
 
-    tests_dir   = os.path.abspath(os.path.dirname(__file__)) # os.getcwd()
+    tests_dir   = os.path.abspath(os.path.dirname(__file__))  # os.getcwd()
     tmp_dir     = os.path.join(tests_dir, 'tmp')
     is_setup    = False
 
@@ -25,7 +27,8 @@ class TestEnvironment:
     def tar_scm_bin(cls):
         tar_scm = os.path.join(cls.tests_dir, '..', 'tar_scm.py')
         if not os.path.isfile(tar_scm):
-            raise RuntimeError, "Failed to find tar_scm executable at " + tar_scm
+            raise RuntimeError("Failed to find tar_scm executable at " +
+                               tar_scm)
         return tar_scm
 
     @classmethod
@@ -43,7 +46,8 @@ class TestEnvironment:
 
     def calcPaths(self):
         if not self._testMethodName.startswith('test_'):
-            raise RuntimeError, "unexpected test method name: " + self._testMethodName
+            raise RuntimeError("unexpected test method name: " +
+                               self._testMethodName)
         self.test_dir  = os.path.join(self.tmp_dir,  self.scm, self.test_name)
         self.pkgdir    = os.path.join(self.test_dir, 'pkg')
         self.outdir    = os.path.join(self.test_dir, 'out')
@@ -98,7 +102,7 @@ class TestEnvironment:
         print
 
     def postRun(self):
-        self.service = { 'mode' : 'disabled' }
+        self.service = {'mode': 'disabled'}
         if os.path.exists(self.outdir):
             self.simulate_osc_postrun()
 
@@ -114,14 +118,23 @@ class TestEnvironment:
         dir = self.pkgdir
         service = self.service
 
-        # This code copied straight out of osc/core.py Serviceinfo.execute():
-
-        if service['mode'] == "disabled" or service['mode'] == "trylocal" or service['mode'] == "localonly" or callmode == "local" or callmode == "trylocal":
+        # This code was copied straight out of osc/core.py's
+        # Serviceinfo.execute() (and then line-wrapped for PEP8):
+        # --------- 8< --------- 8< --------- 8< --------- 8< ---------
+        if service['mode'] == "disabled"  or \
+           service['mode'] == "trylocal"  or \
+           service['mode'] == "localonly" or \
+           callmode == "local"            or \
+           callmode == "trylocal":
             for filename in os.listdir(temp_dir):
-                shutil.move( os.path.join(temp_dir, filename), os.path.join(dir, filename) )
+                shutil.move(os.path.join(temp_dir, filename),
+                            os.path.join(dir, filename))
         else:
             for filename in os.listdir(temp_dir):
-                shutil.move( os.path.join(temp_dir, filename), os.path.join(dir, "_service:"+name+":"+filename) )
+                shutil.move(os.path.join(temp_dir, filename),
+                            os.path.join(dir,
+                                         "_service:" + name + ":" + filename))
+        # --------- 8< --------- 8< --------- 8< --------- 8< ---------
 
     def tar_scm_std(self, *args, **kwargs):
         return self.tar_scm(self.stdargs(*args), **kwargs)
@@ -130,7 +143,10 @@ class TestEnvironment:
         return self.tar_scm(self.stdargs(*args), should_succeed=False)
 
     def stdargs(self, *args):
-        return [ '--url', self.fixtures.repo_url, '--scm', self.scm ] + list(args)
+        return [
+            '--url', self.fixtures.repo_url,
+            '--scm', self.scm
+        ] + list(args)
 
     def tar_scm(self, args, should_succeed=True):
         # simulate new temporary outdir for each tar_scm invocation
@@ -141,9 +157,10 @@ class TestEnvironment:
         print("chdir to pkgdir: %s" % self.pkgdir)
         os.chdir(self.pkgdir)
 
-        cmdargs = args + [ '--outdir', self.outdir ]
-        quotedargs = [ "'%s'" % arg for arg in cmdargs ]
-        cmdstr = 'python %s %s 2>&1' % (self.tar_scm_bin(), " ".join(quotedargs))
+        cmdargs = args + ['--outdir', self.outdir]
+        quotedargs = ["'%s'" % arg for arg in cmdargs]
+        cmdstr = 'python %s %s 2>&1' % \
+                 (self.tar_scm_bin(), " ".join(quotedargs))
         print
         print ">>>>>>>>>>>"
         print "Running", cmdstr
@@ -169,4 +186,3 @@ class TestEnvironment:
 
     def timestamps(self, rev):
         return self.fixtures.timestamps[rev]
-

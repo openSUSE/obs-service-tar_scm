@@ -2,8 +2,9 @@
 
 import os
 
-from   fixtures  import Fixtures
-from   utils     import mkfreshdir, run_hg
+from fixtures import Fixtures
+from utils    import mkfreshdir, run_hg
+
 
 class HgFixtures(Fixtures):
 
@@ -15,9 +16,9 @@ class HgFixtures(Fixtures):
     def init(self):
         self.create_repo()
 
-        self.timestamps   = { }
-        self.sha1s        = { }
-        self.short_sha1s  = { }
+        self.timestamps  = {}
+        self.sha1s       = {}
+        self.short_sha1s = {}
 
         self.create_commits(2)
 
@@ -38,16 +39,17 @@ class HgFixtures(Fixtures):
         return self.safe_run('log -l1 --template "%s"' % formatstr)[0]
 
     def record_rev(self, wd, rev_num):
-        tag = str(rev_num - 1) # hg starts counting changesets at 0
-        self.revs[rev_num]   = tag
-        epoch_secs, tz_delta_to_utc = self.get_metadata('{date|hgdate}').split()
+        tag = str(rev_num - 1)  # hg starts counting changesets at 0
+        self.revs[rev_num] = tag
+        epoch_secs, tz_delta_to_utc = \
+            self.get_metadata('{date|hgdate}').split()
         self.timestamps[tag] = (float(epoch_secs), int(tz_delta_to_utc))
-        self.sha1s[tag]        = self.get_metadata('{node}')
-        self.short_sha1s[tag]  = self.get_metadata('{node|short}')
+        self.sha1s[tag] = self.get_metadata('{node}')
+        self.short_sha1s[tag] = self.get_metadata('{node|short}')
         self.scmlogs.annotate(
-            "Recorded rev %d: id %s, timestamp %s, SHA1 %s" % \
-                (rev_num,
-                 tag,
-                 self.timestamps[tag],
-                 self.sha1s[tag])
+            "Recorded rev %d: id %s, timestamp %s, SHA1 %s" %
+            (rev_num,
+             tag,
+             self.timestamps[tag],
+             self.sha1s[tag])
         )

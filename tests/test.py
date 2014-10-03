@@ -30,7 +30,8 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 1:
         for testclass in testclasses:
-            suite.addTests(unittest.TestLoader().loadTestsFromTestCase(testclass))
+            all_tests = unittest.TestLoader().loadTestsFromTestCase(testclass)
+            suite.addTests(all_tests)
     else:
         # By default this uses the CLI args as string or regexp
         # matches for names of git tests, but you can tweak this to run
@@ -58,13 +59,13 @@ if __name__ == '__main__':
             suite.addTest(test_class(t))
 
     runner_args = {
-        #'verbosity' : 2,
+        # 'verbosity' : 2,
     }
     major, minor, micro, releaselevel, serial = sys.version_info
     if major > 2 or (major == 2 and minor >= 7):
         # New in 2.7
         runner_args['buffer'] = True
-        #runner_args['failfast'] = True
+        # runner_args['failfast'] = True
 
     runner = unittest.TextTestRunner(**runner_args)
     result = runner.run(suite)

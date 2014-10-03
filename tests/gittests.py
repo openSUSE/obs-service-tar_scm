@@ -6,9 +6,10 @@ import re
 import tarfile
 import textwrap
 
-from   githgtests  import GitHgTests
-from   gitfixtures import GitFixtures
-from   utils       import run_git
+from githgtests  import GitHgTests
+from gitfixtures import GitFixtures
+from utils       import run_git
+
 
 class GitTests(GitHgTests):
 
@@ -65,7 +66,7 @@ class GitTests(GitHgTests):
 
     def test_versionformat_parenttag(self):
         self.tar_scm_std('--versionformat', "@PARENT_TAG@")
-        self.assertTarOnly(self.basename(version = self.rev(2)))
+        self.assertTarOnly(self.basename(version=self.rev(2)))
 
     def _submodule_fixture(self, submod_name):
         fix = self.fixtures
@@ -82,13 +83,13 @@ class GitTests(GitHgTests):
         os.chdir(repo_path)
         fix.safe_run('submodule add file://%s' % submod_path)
         new_rev = fix.next_commit_rev(repo_path)
-        fix.do_commit(repo_path, new_rev, [ '.gitmodules', submod_name ])
+        fix.do_commit(repo_path, new_rev, ['.gitmodules', submod_name])
         fix.record_rev(repo_path, new_rev)
-        os.chdir(os.path.join(repo_path,submod_name))
+        os.chdir(os.path.join(repo_path, submod_name))
         fix.safe_run('checkout tag3')
         os.chdir(repo_path)
         new_rev = fix.next_commit_rev(repo_path)
-        fix.do_commit(repo_path, new_rev, [ '.gitmodules', submod_name ])
+        fix.do_commit(repo_path, new_rev, ['.gitmodules', submod_name])
         fix.record_rev(repo_path, new_rev)
 
     def test_submodule_update(self):
@@ -96,9 +97,15 @@ class GitTests(GitHgTests):
 
         self._submodule_fixture(submod_name)
 
-        self.tar_scm_std('--submodules', 'enable','--revision', 'tag3','--version', 'tag3')
-        th = tarfile.open(os.path.join(self.outdir , self.basename(version = 'tag3')+'.tar'))
-        self.assertTarMemberContains(th ,os.path.join(self.basename(version = 'tag3'),submod_name,'a'),'5')
+        self.tar_scm_std('--submodules', 'enable',
+                         '--revision', 'tag3',
+                         '--version', 'tag3')
+        tar_path = os.path.join(self.outdir,
+                                self.basename(version='tag3') + '.tar')
+        th = tarfile.open(tar_path)
+        submod_path = os.path.join(self.basename(version='tag3'),
+                                   submod_name, 'a')
+        self.assertTarMemberContains(th, submod_path, '5')
 
     def test_submodule_disabled_update(self):
         submod_name = 'submod1'
@@ -107,10 +114,11 @@ class GitTests(GitHgTests):
 
         self.tar_scm_std('--submodules', 'disable', '--revision', 'tag3',
                          '--version', 'tag3')
-        th = tarfile.open(os.path.join(self.outdir,
-                                       self.basename(version = 'tag3')+'.tar'))
+        tar_path = os.path.join(self.outdir,
+                                self.basename(version='tag3') + '.tar')
+        th = tarfile.open(tar_path)
         self.assertRaises(KeyError, th.getmember, os.path.join(
-            self.basename(version = 'tag3'), submod_name, 'a'))
+            self.basename(version='tag3'), submod_name, 'a'))
 
     def _check_servicedata(self, expected_dirents=2, revision=2):
         expected_sha1 = self.sha1s('tag%d' % revision)

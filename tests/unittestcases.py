@@ -3,8 +3,12 @@
 import unittest
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
+
+here = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(here, '..'))
+
 from tar_scm import _calc_dir_to_clone_to
+
 
 class UnitTestCases(unittest.TestCase):
 

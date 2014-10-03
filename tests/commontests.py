@@ -8,6 +8,7 @@ from testassertions import TestAssertions
 from testenv        import TestEnvironment
 from utils          import mkfreshdir
 
+
 class CommonTests(TestEnvironment, TestAssertions):
 
     """Unit tests common to all version control systems.
@@ -37,12 +38,14 @@ class CommonTests(TestEnvironment, TestAssertions):
         (stdout, stderr, ret) = self.tar_scm_std('--history-depth', '1')
         self.assertRegexpMatches(stdout, 'obsolete')
         # self.assertTarOnly(self.basename())
-        # self.assertRegexpMatches(self.scmlogs.read()[0], '^%s clone --depth=1')
+        # self.assertRegexpMatches(self.scmlogs.read()[0],
+        #                          '^%s clone --depth=1')
 
     # def test_history_depth_full(self):
     #     self.tar_scm_std('--history-depth', 'full')
     #     self.assertTarOnly(self.basename())
-    #     self.assertRegexpMatches(self.scmlogs.read()[0], '^git clone --depth=999999+')
+    #     self.assertRegexpMatches(self.scmlogs.read()[0],
+    #                              '^git clone --depth=999999+')
 
     def test_filename(self):
         name = 'myfilename'
@@ -93,7 +96,7 @@ class CommonTests(TestEnvironment, TestAssertions):
             '--revision', self.rev(2),
         ]
         if use_subdir:
-            args_tag2 += [ '--subdir', self.fixtures.subdir ]
+            args_tag2 += ['--subdir', self.fixtures.subdir]
         self._sequential_calls_with_revision(
             version,
             [
@@ -130,9 +133,9 @@ class CommonTests(TestEnvironment, TestAssertions):
             '--version', version,
         ]
         if use_subdir:
-            args_head += [ '--subdir', self.fixtures.subdir ]
+            args_head += ['--subdir', self.fixtures.subdir]
 
-        args_tag2 = args_head + [ '--revision', self.rev(2) ]
+        args_tag2 = args_head + ['--revision', self.rev(2)]
         self._sequential_calls_with_revision(
             version,
             [
@@ -154,7 +157,7 @@ class CommonTests(TestEnvironment, TestAssertions):
         contains the right revision after each invocation.
         """
         mkfreshdir(self.pkgdir)
-        basename = self.basename(version = version)
+        basename = self.basename(version=version)
 
         if not use_cache:
             self.disableCache()
@@ -165,11 +168,12 @@ class CommonTests(TestEnvironment, TestAssertions):
             new_commits, args, expected, expect_cache_hit = calls.pop(0)
             if new_commits > 0:
                 self.fixtures.create_commits(new_commits)
-            self.scmlogs.annotate("step #%s: about to run tar_scm with args: %s" %
-                                  (step_number, pformat(args)))
+            self.scmlogs.annotate(
+                "step #%s: about to run tar_scm with args: %s" %
+                (step_number, pformat(args)))
             self.scmlogs.annotate("expecting tar to contain: " + expected)
             self.tar_scm_std(*args)
-            logpath  = self.scmlogs.current_log_path
+            logpath = self.scmlogs.current_log_path
             loglines = self.scmlogs.read()
             if expect_cache_hit:
                 self.assertRanUpdate(logpath, loglines)
@@ -177,7 +181,8 @@ class CommonTests(TestEnvironment, TestAssertions):
                 self.assertRanInitialClone(logpath, loglines)
 
             if self.fixtures.subdir in args:
-                th = self.assertTarOnly(basename, tarchecker=self.assertSubdirTar)
+                th = self.assertTarOnly(basename,
+                                        tarchecker=self.assertSubdirTar)
                 tarent = 'b'
             else:
                 th = self.assertTarOnly(basename)
@@ -198,9 +203,9 @@ class CommonTests(TestEnvironment, TestAssertions):
         args = [
             '--version', version,
         ]
-        args_subdir = args+ [ '--subdir', self.fixtures.subdir ]
+        args_subdir = args + ['--subdir', self.fixtures.subdir]
 
-        args_tag2 = args + [ '--revision', self.rev(2) ]
+        args_tag2 = args + ['--revision', self.rev(2)]
         self._sequential_calls_with_revision(
             version,
             [

@@ -2,8 +2,9 @@
 
 import os
 
-from   fixtures  import Fixtures
-from   utils     import mkfreshdir, quietrun, run_svn
+from fixtures import Fixtures
+from utils    import mkfreshdir, quietrun, run_svn
+
 
 class SvnFixtures(Fixtures):
 
@@ -18,7 +19,7 @@ class SvnFixtures(Fixtures):
         self.create_repo()
         self.checkout_repo()
 
-        self.added        = { }
+        self.added = {}
 
         self.create_commits(2)
 
@@ -36,7 +37,7 @@ class SvnFixtures(Fixtures):
 
     def do_commit(self, wd, new_rev, newly_created):
         for new in newly_created:
-            if not new in self.added:
+            if new not in self.added:
                 self.safe_run('add ' + new)
                 self.added[new] = True
         self.safe_run('commit -m%d' % new_rev)
