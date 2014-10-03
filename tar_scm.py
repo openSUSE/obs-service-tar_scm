@@ -489,14 +489,52 @@ def read_changes_revision(url, srcdir, outdir):
         'url': url,
     }
 
+    """
+    There are some differences depending on the Python and XML parser
+    implementation being used:
+
+    | Python    | 2.6            | 2.6         | 2.7            | 2.7         |
+    |-----------+----------------+-------------+----------------+-------------|
+    | module    | lxml.etree     | xml.etree   | lxml.etree     | xml.etree   |
+    |-----------+----------------+-------------+----------------+-------------|
+    | empty     | XMLSyntaxError | ExpatError  | XMLSyntaxError | ParseError  |
+    | doc       | "Document is   | "no element | "Document is   | "no element |
+    |           | empty"         | found"      | empty          | found"      |
+    |-----------+----------------+-------------+----------------+-------------|
+    | syntax    | XMLSyntaxError | ExpatError  | XMLSyntaxError | ParseError  |
+    | error     | "invalid       | "not well-  | "invalid       | "not well-  |
+    |           | element name"  | formed"     | element name"  | formed"     |
+    |-----------+----------------+-------------+----------------+-------------|
+    | e.message | deprecated     | deprecated  | yes            | yes         |
+    |-----------+----------------+-------------+----------------+-------------|
+    | str()     | yes            | yes         | yes            | yes         |
+    |-----------+----------------+-------------+----------------+-------------|
+    | @attr     | yes            | no          | yes            | yes         |
+    | selection |                |             |                |             |
+    """
+
     try:
         # If lxml is available, we can use a parser that doesn't
         # destroy comments
         import lxml.etree as ET
         xml_parser = ET.XMLParser(remove_comments=False)
+        parse_error_class = ET.XMLSyntaxError
     except ImportError:
+        major, minor, micro, releaselevel, serial = sys.version_info
+        if major == 2 and minor <= 6:
+            raise RuntimeError(
+                "Couldn't load an XML parser supporting attribute selection. "
+                "Try installing lxml.")
         import xml.etree.ElementTree as ET
         xml_parser = None
+        if hasattr(ET, 'ParseError'):
+            parse_error_class = getattr(ET, 'ParseError')
+        else:
+            try:
+                import xml.parsers.expat
+                parse_error_class = xml.parsers.expat.ExpatError
+            except:
+                raise RuntimeError("Couldn't load XML parser error class")
 
     create_servicedata, tar_scm_service = False, None
     tar_scm_xmlstring = """  <service name=\"tar_scm\">
@@ -528,14 +566,15 @@ def read_changes_revision(url, srcdir, outdir):
         root = ET.fromstring("<servicedata>\n%s</servicedata>\n" %
                              tar_scm_xmlstring)
         create_servicedata = True
-    except ET.ParseError as e:
-        if e.message.startswith("Document is empty"):
+    except parse_error_class as e:
+        if str(e).startswith("Document is empty") or \
+           str(e).startswith("no element found"):
             # File is empty
             root = ET.fromstring("<servicedata>\n%s</servicedata>\n" %
                                  tar_scm_xmlstring)
             create_servicedata = True
         else:
-            # File is corrupt
+            # File is corrupt or unparseable
             raise
 
     if create_servicedata:
