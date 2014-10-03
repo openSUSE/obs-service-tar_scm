@@ -695,17 +695,13 @@ def get_config_options():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Git Tarballs')
+    parser.add_argument('-v', '--verbose', action='store_true', default=False,
+                        help='Enable verbose output')
     parser.add_argument('--scm', required=True,
                         help='Specify SCM',
                         choices=['git', 'hg', 'bzr', 'svn'])
     parser.add_argument('--url', required=True,
                         help='Specify URL of upstream tarball to download')
-    parser.add_argument('--outdir', required=True,
-                        help='osc service parameter for internal use only '
-                             '(determines where generated files go before '
-                             'collection')
-    parser.add_argument('--verbose', '-v', action='store_true', default=False,
-                        help='Enable verbose output')
     parser.add_argument('--version', default='_auto_',
                         help='Specify version to be used in tarball. '
                              'Defaults to automatically detected value '
@@ -717,6 +713,14 @@ if __name__ == '__main__':
                              'specified.')
     parser.add_argument('--versionprefix',
                         help='Specify a base version as prefix.')
+    parser.add_argument('--revision',
+                        help='Specify revision to package')
+    parser.add_argument('--filename',
+                        help='Name of package - used together with version '
+                             'to determine tarball name')
+    parser.add_argument('--extension', default='tar',
+                        help='suffix name of package - used together with '
+                             'filename to determine tarball name')
     parser.add_argument('--changesgenerate', choices=['enable', 'disable'],
                         default='disable',
                         help='Specify whether to generate changes file '
@@ -727,16 +731,13 @@ if __name__ == '__main__':
                              'written, defaults to first email entry in '
                              '~/.oscrc or "opensuse-packaging@opensuse.org" '
                              'if there is no ~/.oscrc found.')
-    parser.add_argument('--filename',
-                        help='Name of package - used together with version '
-                             'to determine tarball name')
-    parser.add_argument('--extension', default='tar',
-                        help='suffix name of package - used together with '
-                             'filename to determine tarball name')
-    parser.add_argument('--revision',
-                        help='Specify revision to package')
     parser.add_argument('--subdir', default='',
                         help='Package just a subdirectory of the sources')
+    parser.add_argument('--submodules', choices=['enable', 'disable'],
+                        default='enable',
+                        help='Whether or not to include git submodules '
+                             'from SCM commit log since a given parent '
+                             'revision (see changesrevision).')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--include', action='append',
                        default=[], metavar='REGEXP',
@@ -749,14 +750,13 @@ if __name__ == '__main__':
     parser.add_argument('--package-meta', choices=['yes', 'no'], default='no',
                         help='Package the meta data of SCM to allow the user '
                              'or OBS to update after un-tar')
+    parser.add_argument('--outdir', required=True,
+                        help='osc service parameter for internal use only '
+                             '(determines where generated files go before '
+                             'collection')
     parser.add_argument('--history-depth',
                         help='Obsolete osc service parameter that does '
                              'nothing')
-    parser.add_argument('--submodules', choices=['enable', 'disable'],
-                        default='enable',
-                        help='Whether or not to include git submodules '
-                             'from SCM commit log since a given parent '
-                             'revision (see changesrevision).')
     args = parser.parse_args()
 
     # basic argument validation
