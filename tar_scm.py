@@ -666,6 +666,20 @@ def detect_changes(scm, url, repodir, outdir):
     return changes
 
 
+def get_changesauthor(args):
+    if args.changesauthor:
+        return args.changesauthor
+
+    config = ConfigParser.RawConfigParser({
+        'email': 'opensuse-packaging@opensuse.org',
+    })
+    config.read(os.path.expanduser('~/.oscrc'))
+    changesauthor = config.get('https://api.opensuse.org', 'email')
+
+    logging.debug("AUTHOR: %s", changesauthor)
+    return changesauthor
+
+
 def get_config_options():
     '''Read user-specific and system-wide service configuration files, if not
     in test-mode. This function returns an instance of ConfigParser.'''
@@ -859,13 +873,7 @@ if __name__ == '__main__':
                package_metadata=args.package_meta)
 
     if changes:
-        changesauthor = args.changesauthor
-        if changesauthor is None:
-            config = ConfigParser.RawConfigParser({
-                'email': 'opensuse-packaging@opensuse.org',
-            })
-            config.read(os.path.expanduser('~/.oscrc'))
-            changesauthor = config.get('https://api.opensuse.org', 'email')
+        changesauthor = get_changesauthor(args)
 
         logging.debug("AUTHOR: %s", changesauthor)
 
