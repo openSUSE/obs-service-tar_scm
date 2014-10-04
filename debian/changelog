@@ -1,3 +1,27 @@
+obs-service-tar-scm (0.4.2) unstable; urgency=medium
+
+  * Retrieve tags for a cached git repo
+  * Add PEP8 checking everywhere
+  * Significantly improved tests
+  * Fixed checkout of a hg url that ends with a trailing slash
+  * Fix Debian build dependencies for python
+  * Change Debian package format to 3.0 (native)
+  * Install into /usr on Debian
+  * Honor submodules=disable as before (fixes #38)
+  * Fix directory name of repository clone
+  * Fix handling of symbolic links
+  * Fix crash when changesrevision <param> is missing
+  * Improved usage text
+  * Store git and hg hashes in full
+  * Fix crash during copy of _servicedata
+  * Fix format of new changes to match old shell tar_scm
+  * Fix bug when temp file is on a different filesystem
+  * Fix change generation bug introduced by Python rewrite
+  * Fix retrieval of email address from ~/.oscrc
+  * Refactor changesgenerate code
+
+ -- Adam Spiers <opensuse@adamspiers.org>  Sun, 05 Oct 2014 00:55:56 +0100
+
 obs-service-tar-scm (0.4.0) unstable; urgency=low
 
   * Python rewrite of tar_scm
