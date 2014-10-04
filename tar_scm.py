@@ -34,8 +34,8 @@ DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
 
 def safe_run(cmd, cwd, interactive=False):
     """Execute the command cmd in the working directory cwd and check return
-    value. If the command returns non-zero raise a SystemExit exception."""
-
+    value. If the command returns non-zero raise a SystemExit exception.
+    """
     logging.debug("COMMAND: %s", cmd)
 
     # Ensure we get predictable results when parsing the output of commands
@@ -69,8 +69,7 @@ def safe_run(cmd, cwd, interactive=False):
 
 
 def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
-    """fetch sources from GIT"""
-
+    """Fetch sources via git."""
     safe_run(['git', 'clone', url, clone_dir], cwd=cwd,
              interactive=sys.stdout.isatty())
     if 'submodules' in kwargs and kwargs['submodules']:
@@ -79,8 +78,7 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
 
 
 def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
-    """fetch sources from SVN"""
-
+    """Fetch sources via svn."""
     command = ['svn', 'checkout', '--non-interactive', url, clone_dir]
     if revision:
         command.insert(4, '-r%s' % revision)
@@ -88,15 +86,13 @@ def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
 
 
 def fetch_upstream_hg(url, clone_dir, revision, cwd, kwargs):
-    """fetch sources from HG"""
-
+    """Fetch sources via hg."""
     safe_run(['hg', 'clone', url, clone_dir], cwd,
              interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_bzr(url, clone_dir, revision, cwd, kwargs):
-    """fetch sources from BZR"""
-
+    """Fetch sources from bzr."""
     command = ['bzr', 'checkout', url, clone_dir]
     if revision:
         command.insert(3, '-r')
@@ -113,8 +109,7 @@ FETCH_UPSTREAM_COMMANDS = {
 
 
 def update_cache_git(url, clone_dir, revision):
-    """update sources from GIT"""
-
+    """Update sources via git."""
     safe_run(['git', 'fetch', '--tags'],
              cwd=clone_dir, interactive=sys.stdout.isatty())
     safe_run(['git', 'fetch'],
@@ -122,8 +117,7 @@ def update_cache_git(url, clone_dir, revision):
 
 
 def update_cache_svn(url, clone_dir, revision):
-    """update sources from SVN"""
-
+    """Update sources via svn."""
     command = ['svn', 'update']
     if revision:
         command.insert(3, "-r%s" % revision)
@@ -131,8 +125,7 @@ def update_cache_svn(url, clone_dir, revision):
 
 
 def update_cache_hg(url, clone_dir, revision):
-    """update sources from HG"""
-
+    """Update sources via hg."""
     try:
         safe_run(['hg', 'pull'], cwd=clone_dir,
                  interactive=sys.stdout.isatty())
@@ -145,8 +138,7 @@ def update_cache_hg(url, clone_dir, revision):
 
 
 def update_cache_bzr(url, clone_dir, revision):
-    """update sources from BZR"""
-
+    """Update sources via bzr."""
     command = ['bzr', 'update']
     if revision:
         command.insert(3, '-r')
@@ -163,8 +155,9 @@ UPDATE_CACHE_COMMANDS = {
 
 
 def switch_revision_git(clone_dir, revision):
-    """Switch sources to revision. The GIT revision may refer to any of the
+    """Switch sources to revision. The git revision may refer to any of the
     following:
+
     - explicit SHA1: a1b2c3d4....
     - the SHA1 must be reachable from a default clone/fetch (generally, must be
       reachable from some branch or tag on the remote).
@@ -172,7 +165,6 @@ def switch_revision_git(clone_dir, revision):
     - explicit ref: refs/heads/master, refs/tags/v1.2.3,
       refs/changes/49/11249/1
     """
-
     if revision is None:
         revision = 'master'
 
@@ -197,7 +189,6 @@ def switch_revision_git(clone_dir, revision):
 
 def switch_revision_hg(clone_dir, revision):
     """Switch sources to revision."""
-
     if revision is None:
         revision = 'tip'
 
@@ -210,8 +201,8 @@ def switch_revision_hg(clone_dir, revision):
 
 def switch_revision_none(clone_dir, revision):
     """Switch sources to revision. Dummy implementation for version control
-    systems that change revision during fetch/update."""
-
+    systems that change revision during fetch/update.
+    """
     return
 
 
@@ -240,7 +231,6 @@ def _calc_dir_to_clone_to(scm, url, out_dir):
 
 def fetch_upstream(scm, url, revision, out_dir, **kwargs):
     """Fetch sources from repository and checkout given revision."""
-
     clone_dir = _calc_dir_to_clone_to(scm, url, out_dir)
 
     if not os.path.isdir(clone_dir):
@@ -262,8 +252,8 @@ def fetch_upstream(scm, url, revision, out_dir, **kwargs):
 
 def prep_tree_for_tar(repodir, subdir, outdir, dstname):
     """Prepare directory tree for creation of the tarball by copying the
-    requested sub-directory to the top-level destination directory."""
-
+    requested sub-directory to the top-level destination directory.
+    """
     src = os.path.join(repodir, subdir)
     if not os.path.exists(src):
         sys.exit("%s: No such file or directory" % src)
@@ -282,7 +272,6 @@ def prep_tree_for_tar(repodir, subdir, outdir, dstname):
 def create_tar(repodir, outdir, dstname, extension='tar',
                exclude=[], include=[], package_metadata=False):
     """Create a tarball of repodir in destination directory."""
-
     (workdir, topdir) = os.path.split(repodir)
 
     incl_patterns = []
@@ -302,8 +291,7 @@ def create_tar(repodir, outdir, dstname, extension='tar',
         excl_patterns.append(re.compile(fnmatch.translate(e)))
 
     def tar_exclude(filename):
-        '''Exclude (return True) or add (return False) file to tar achive'''
-
+        """Exclude (return True) or add (return False) file to tar achive."""
         if incl_patterns:
             for pat in incl_patterns:
                 if pat.match(filename):
@@ -316,8 +304,7 @@ def create_tar(repodir, outdir, dstname, extension='tar',
         return False
 
     def tar_filter(tarinfo):
-        '''Python 2.7 only: reset uid/gid to 0/0 (root)'''
-
+        """Python 2.7 only: reset uid/gid to 0/0 (root)."""
         tarinfo.uid = tarinfo.gid = 0
         tarinfo.uname = tarinfo.gname = "root"
 
@@ -344,8 +331,7 @@ CLEANUP_DIRS = []
 
 
 def cleanup(dirs):
-    '''Cleaning temporary directories.'''
-
+    """Cleaning temporary directories."""
     logging.info("Cleaning: %s", ' '.join(dirs))
 
     for d in dirs:
@@ -355,8 +341,7 @@ def cleanup(dirs):
 
 
 def version_iso_cleanup(version):
-    '''Reformat timestamp value.'''
-
+    """Reformat timestamp value."""
     version = re.sub(r'([0-9]{4})-([0-9]{2})-([0-9]{2}) +'
                      r'([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?'
                      r'( +[-+][0-9]{3,4})', r'\1\2\3T\4\6\8', version)
@@ -365,8 +350,7 @@ def version_iso_cleanup(version):
 
 
 def detect_version_git(repodir, versionformat):
-    '''Automatic detection of version number for checked-out GIT repository.'''
-
+    """Automatic detection of version number for checked-out GIT repository."""
     if versionformat is None:
         versionformat = '%ct'
 
@@ -385,8 +369,7 @@ def detect_version_git(repodir, versionformat):
 
 
 def detect_version_svn(repodir, versionformat):
-    '''Automatic detection of version number for checked-out SVN repository.'''
-
+    """Automatic detection of version number for checked-out SVN repository."""
     if versionformat is None:
         versionformat = '%r'
 
@@ -400,8 +383,7 @@ def detect_version_svn(repodir, versionformat):
 
 
 def detect_version_hg(repodir, versionformat):
-    '''Automatic detection of version number for checked-out HG repository.'''
-
+    """Automatic detection of version number for checked-out HG repository."""
     if versionformat is None:
         versionformat = '{rev}'
 
@@ -439,8 +421,7 @@ def detect_version_hg(repodir, versionformat):
 
 
 def detect_version_bzr(repodir, versionformat):
-    '''Automatic detection of version number for checked-out BZR repository.'''
-
+    """Automatic detection of version number for checked-out BZR repository."""
     if versionformat is None:
         versionformat = '%r'
 
@@ -449,8 +430,7 @@ def detect_version_bzr(repodir, versionformat):
 
 
 def detect_version(scm, repodir, versionformat=None):
-    '''Automatic detection of version number for checked-out repository.'''
-
+    """Automatic detection of version number for checked-out repository."""
     detect_version_commands = {
         'git': detect_version_git,
         'svn': detect_version_svn,
@@ -464,8 +444,7 @@ def detect_version(scm, repodir, versionformat=None):
 
 
 def get_repocache_hash(scm, url, subdir):
-    '''Calculate hash fingerprint for repository cache.'''
-
+    """Calculate hash fingerprint for repository cache."""
     digest = hashlib.new('sha256')
     digest.update(url)
     if scm == 'svn':
@@ -499,7 +478,6 @@ def import_xml_parser():
     | @attr     | yes            | no          | yes            | yes         |
     | selection |                |             |                |             |
     """
-
     global ET
 
     try:
@@ -543,11 +521,9 @@ def parse_servicedata_xml(srcdir):
 
 
 def extract_tar_scm_service(root, url):
-
     """Returns an object representing the <service name="tar_scm">
     element referencing the given URL.
     """
-
     try:
         tar_scm_services = root.findall("service[@name='tar_scm']")
     except SyntaxError:
@@ -617,8 +593,7 @@ def read_changes_revision(url, srcdir, outdir):
 
 
 def write_changes_revision(url, outdir, new_revision):
-    '''Updates the changesrevision in the _servicedata file. '''
-
+    """Updates the changesrevision in the _servicedata file."""
     logging.debug("Updating %s", os.path.join(outdir, '_servicedata'))
 
     xml_tree = parse_servicedata_xml(outdir)
@@ -644,8 +619,7 @@ def write_changes_revision(url, outdir, new_revision):
 
 
 def write_changes(changes_filename, changes, version, author):
-    '''Add changes to given *.changes file.'''
-
+    """Add changes to given *.changes file."""
     if changes is None:
         return
 
@@ -672,8 +646,7 @@ def write_changes(changes_filename, changes, version, author):
 
 
 def detect_changes_commands_git(repodir, changes):
-    '''Detect changes between GIT revisions.'''
-
+    """Detect changes between GIT revisions."""
     last_rev = changes['revision']
 
     if last_rev is None:
@@ -699,8 +672,7 @@ def detect_changes_commands_git(repodir, changes):
 
 
 def detect_changes(scm, url, repodir, outdir):
-    '''Detect changes between revisions.'''
-
+    """Detect changes between revisions."""
     changes = read_changes_revision(url, os.getcwd(), outdir)
 
     logging.debug("CHANGES: %s" % repr(changes))
@@ -733,9 +705,9 @@ def get_changesauthor(args):
 
 
 def get_config_options():
-    '''Read user-specific and system-wide service configuration files, if not
-    in test-mode. This function returns an instance of ConfigParser.'''
-
+    """Read user-specific and system-wide service configuration files, if not
+    in test-mode. This function returns an instance of ConfigParser.
+    """
     config = ConfigParser.RawConfigParser()
     config.optionxform = str
 
