@@ -363,7 +363,7 @@ def get_version(args, clone_dir):
 def detect_version_git(repodir, versionformat):
     """Automatic detection of version number for checked-out GIT repository."""
     if versionformat is None:
-        versionformat = '%ct'
+        versionformat = '%ct.%h'
 
     if re.match('.*@PARENT_TAG@.*', versionformat):
         try:

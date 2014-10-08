@@ -30,7 +30,8 @@ class GitTests(GitHgTests):
     yyyymmddhhmmss_format = '%ci'
 
     def default_version(self):
-        return self.timestamps(self.rev(2))
+        return "%s.%s" % (self.timestamps(self.rev(2)),
+                          self.abbrev_sha1s(self.rev(2)))
 
     def version(self, rev):
         # Hyphens aren't allowed in version number.  This substitution
