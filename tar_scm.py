@@ -349,6 +349,17 @@ def version_iso_cleanup(version):
     return version
 
 
+def get_version(args, clone_dir):
+    version = args.version
+    if version == '_auto_' or args.versionformat:
+        version = detect_version(args.scm, clone_dir, args.versionformat)
+    if args.versionprefix:
+        version = "%s.%s" % (args.versionprefix, version)
+
+    logging.debug("VERSION(auto): %s", version)
+    return version
+
+
 def detect_version_git(repodir, versionformat):
     """Automatic detection of version number for checked-out GIT repository."""
     if versionformat is None:
@@ -874,13 +885,9 @@ if __name__ == '__main__':
     else:
         dstname = os.path.basename(clone_dir)
 
-    version = args.version
-    if version == '_auto_' or args.versionformat:
-        version = detect_version(args.scm, clone_dir, args.versionformat)
-    if args.versionprefix:
-        version = "%s.%s" % (args.versionprefix, version)
+    version = get_version(args, clone_dir)
     if version:
-        dstname = dstname + '-' + version
+        dstname += '-' + version
 
     logging.debug("DST: %s", dstname)
 
