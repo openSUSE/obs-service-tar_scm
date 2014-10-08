@@ -236,19 +236,24 @@ class GitTests(GitHgTests):
         self._check_servicedata(revision=5, expected_dirents=3)
 
         expected_author = author or 'opensuse-packaging@opensuse.org'
+        expected_changes_regexp = self._new_change_entry_regexp(
+            expected_author,
+            textwrap.dedent("""\
+              - Update to version 0.6.%s:
+                \+ 3
+                \+ 4
+                \+ 5
+              """) % self.abbrev_sha1s('tag5')
+        )
+        self._check_changes(orig_changes, expected_changes_regexp)
 
-        expected_changes_regexp = textwrap.dedent("""\
+    def _new_change_entry_regexp(self, author, changes):
+        return textwrap.dedent("""\
           ^-------------------------------------------------------------------
           \w{3} \w{3} [ \d]\d \d\d:\d\d:\d\d [A-Z]{3} 20\d\d - %s
 
-          - Update to version 0.6.%s:
-            \+ 3
-            \+ 4
-            \+ 5
-
-          (.+)""" % (expected_author, self.abbrev_sha1s('tag5')))
-
-        self._check_changes(orig_changes, expected_changes_regexp)
+          %s
+          """) % (author, changes)
 
     def _check_changes(self, orig_changes, expected_changes_regexp):
         new_changes_file = os.path.join(self.outdir, 'pkg.changes')
@@ -257,6 +262,7 @@ class GitTests(GitHgTests):
             new_changes = f.read()
             self.assertNotEqual(orig_changes, new_changes)
             print new_changes
+            expected_changes_regexp += "(.+)"
             self.assertRegexpMatches(new_changes, expected_changes_regexp)
             m = re.match(expected_changes_regexp, new_changes, re.DOTALL)
             self.assertEqual(m.group(1), orig_changes)
