@@ -845,6 +845,22 @@ def parse_args():
     return args
 
 
+def get_repocachedir():
+    # check for enabled caches (1. environment, 2. user config, 3. system wide)
+    repocachedir = os.getenv('CACHEDIRECTORY')
+    if repocachedir is None:
+        config = get_config_options()
+        try:
+            repocachedir = config.get('tar_scm', 'CACHEDIRECTORY')
+        except ConfigParser.Error:
+            pass
+
+    if repocachedir:
+        logging.debug("REPOCACHE: %s", repocachedir)
+
+    return repocachedir
+
+
 def main():
     args = parse_args()
 
@@ -856,17 +872,7 @@ def main():
     # force cleaning of our workspace on exit
     atexit.register(cleanup, CLEANUP_DIRS)
 
-    # check for enabled caches (1. environment, 2. user confog, 3. system wide)
-    repocachedir = os.getenv('CACHEDIRECTORY')
-    if repocachedir is None:
-        config = get_config_options()
-        try:
-            repocachedir = config.get('tar_scm', 'CACHEDIRECTORY')
-        except ConfigParser.Error:
-            pass
-
-    if repocachedir:
-        logging.debug("REPOCACHE: %s", repocachedir)
+    repocachedir = get_repocachedir()
 
     # construct repodir (the parent directory of the checkout)
     repodir = None
