@@ -32,6 +32,27 @@ for which its functionality is being tested, through modification of
 `$PATH` it actually invokes `scm-wrapper`, which logs the VCS
 invocation before continuing.
 
+### Persistence between test runs
+
+The test fixtures create working directories for each test
+representing a (fake) check-out of a build service package, and each
+test invokes `tar_scm` on this working directory.  The directory
+persists between tests to simulate real world use.
+
+Similarly, a fake `$HOME` directory is created, in which source
+repositories may be cached upon cloning from the (fake) upstream
+repository, and again, this `$HOME` directory is persisted between
+tests in order to simulate real world use.
+
+All these directories can be found under `tests/tmp/`.
+
+Upon a successful test run, these persisted directories are cleaned
+up.  However, if the run fails, they are left behind for debugging.
+In this case, you may need to `rm -rf tests/tmp` prior to the next
+test run, otherwise you may get errors like `Invalid revision range`
+when a brand new repository history is constructed which conflicts
+with the previous run.
+
 ## PEP8 checking
 
 There's also a `pep8` rule for checking

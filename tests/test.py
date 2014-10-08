@@ -77,4 +77,5 @@ if __name__ == '__main__':
         sys.exit(0)
     else:
         print("Left temporary files in %s" % TestEnvironment.tmp_dir)
+        print("You should remove these prior to the next test run.")
         sys.exit(1)
