@@ -1,3 +1,13 @@
+obs-service-tar-scm (0.5.0) unstable; urgency=low
+
+  + change default git versionformat to %ct.%h
+  + fix changes generation when version is blank
+  + lots of refactoring
+  + add info and caveats about data persisting between tests
+  + gittests: give default author test a unique name
+
+ -- Adam Spiers <opensuse@adamspiers.org>  Wed, 08 Oct 2014 12:45:56 +0100
+
 obs-service-tar-scm (0.4.2) unstable; urgency=medium
 
   * Retrieve tags for a cached git repo
