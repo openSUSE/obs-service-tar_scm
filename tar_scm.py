@@ -898,6 +898,7 @@ def main():
         dstname = os.path.basename(clone_dir)
 
     version = get_version(args, clone_dir)
+    changesversion = version
     if version:
         dstname += '-' + version
 
@@ -921,11 +922,15 @@ def main():
 
         logging.debug("AUTHOR: %s", changesauthor)
 
+        if not version:
+            args.version = "_auto_"
+            changesversion = get_version(args, clone_dir)
+
         for filename in glob.glob('*.changes'):
             new_changes_file = os.path.join(args.outdir, filename)
             shutil.copy(filename, new_changes_file)
             write_changes(new_changes_file, changes['lines'],
-                          version, changesauthor)
+                          changesversion, changesauthor)
         write_changes_revision(args.url, args.outdir,
                                changes['revision'])
 

@@ -248,6 +248,32 @@ class GitTests(GitHgTests):
         )
         self._check_changes(orig_changes, expected_changes_regexp)
 
+    def test_changesgenerate_new_commit_and_changes_file_no_version(self):
+        self._write_servicedata(2)
+        orig_changes = self._write_changes_file()
+        self.fixtures.create_commits(3)
+
+        tar_scm_args = [
+            '--changesgenerate', 'enable',
+            '--version', '',
+            '--changesauthor', self.fixtures.user_email
+        ]
+        self.tar_scm_std(*tar_scm_args)
+
+        self._check_servicedata(revision=5, expected_dirents=3)
+
+        expected_author = self.fixtures.user_email
+        expected_changes_regexp = self._new_change_entry_regexp(
+            expected_author,
+            textwrap.dedent("""\
+              - Update to version \d{10}.%s:
+                \+ 3
+                \+ 4
+                \+ 5
+              """) % self.abbrev_sha1s('tag5')
+        )
+        self._check_changes(orig_changes, expected_changes_regexp)
+
     def _new_change_entry_regexp(self, author, changes):
         return textwrap.dedent("""\
           ^-------------------------------------------------------------------
