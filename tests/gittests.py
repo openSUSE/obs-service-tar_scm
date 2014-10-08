@@ -271,5 +271,5 @@ class GitTests(GitHgTests):
         self._test_changesgenerate_new_commit_and_changes_file(
             self.fixtures.user_email)
 
-    def test_changesgenerate_new_commit_and_changes_file(self):
+    def test_changesgenerate_new_commit_and_changes_file_default_author(self):
         self._test_changesgenerate_new_commit_and_changes_file()
