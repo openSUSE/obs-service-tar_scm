@@ -748,7 +748,7 @@ def get_config_options():
     return config
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Git Tarballs')
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help='Enable verbose output')
@@ -925,3 +925,6 @@ if __name__ == '__main__':
             os.rename(repodir, repodir2)
         elif not os.path.samefile(repodir, repodir2):
             CLEANUP_DIRS.append(repodir)
+
+if __name__ == '__main__':
+    main()
