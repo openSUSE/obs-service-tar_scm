@@ -748,7 +748,7 @@ def get_config_options():
     return config
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser(description='Git Tarballs')
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help='Enable verbose output')
@@ -841,6 +841,12 @@ def main():
     # force verbose mode in test-mode
     if os.getenv('DEBUG_TAR_SCM'):
         args.verbose = True
+
+    return args
+
+
+def main():
+    args = parse_args()
 
     FORMAT = "%(message)s"
     logging.basicConfig(format=FORMAT, stream=sys.stderr, level=logging.INFO)
