@@ -235,7 +235,6 @@ class GitTests(GitHgTests):
 
         self._check_servicedata(revision=5, expected_dirents=3)
 
-        new_changes_file = os.path.join(self.outdir, 'pkg.changes')
         expected_author = author or 'opensuse-packaging@opensuse.org'
 
         expected_changes_regexp = textwrap.dedent("""\
@@ -248,6 +247,11 @@ class GitTests(GitHgTests):
             \+ 5
 
           (.+)""" % (expected_author, self.abbrev_sha1s('tag5')))
+
+        self._check_changes(orig_changes, expected_changes_regexp)
+
+    def _check_changes(self, orig_changes, expected_changes_regexp):
+        new_changes_file = os.path.join(self.outdir, 'pkg.changes')
         self.assertTrue(os.path.exists(new_changes_file))
         with open(new_changes_file) as f:
             new_changes = f.read()
