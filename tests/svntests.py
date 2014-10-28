@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 from commontests import CommonTests
 from svnfixtures import SvnFixtures

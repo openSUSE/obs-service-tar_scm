@@ -4,7 +4,7 @@
 
 Run the unit test suite via:
 
-    python tests/test.py
+    python2 tests/test.py
 
 The output may become easier to understand if you uncomment the
 'failfast' option in `test.py`.  This requires Python 2.7, however.
@@ -17,10 +17,10 @@ If you want to narrow the tests being run, to speed up testing during
 development, you can provide command-line arguments:
 
     # only run the 'plain' and 'subdir' git tests
-    python tests/test.py test_plain test_subdir
+    python2 tests/test.py test_plain test_subdir
 
     # run all git tests matching the regexp /subdir/
-    python tests/test.py /subdir/
+    python2 tests/test.py /subdir/
 
 Currently this filtering only applies to the git tests, but you can
 easily tweak `test.py` to change that.
