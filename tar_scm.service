@@ -30,18 +30,20 @@
       remove some unhelpful characters.  Here are some useful examples of
       strings which are expanded, see the git-log documentation for more.
 
-      %ct             Commit time as a UNIX timestamp, e.g. 1384855776.
-                      This is the default.
+      %ct               Commit time as a UNIX timestamp, e.g. 1384855776.
+                        This is the default.
 
-      %at             Author time as a UNIX timestamp, e.g. 1384855776.
+      %at               Author time as a UNIX timestamp, e.g. 1384855776.
 
-      %cd             Commit date in YYYYMMDD format, e.g. 20131119
+      %cd               Commit date in YYYYMMDD format, e.g. 20131119
 
-      %ad             Author date in YYYYMMDD format, e.g. 20131119
+      %ad               Author date in YYYYMMDD format, e.g. 20131119
 
-      %h              Abbreviated hash, e.g. cc62c54
+      %h                Abbreviated hash, e.g. cc62c54
 
-      @PARENT_TAG@    the first tag that is reachable, e.g. v0.2.3
+      @PARENT_TAG@      The first tag that is reachable, e.g. v0.2.3
+
+      @TAG_OFFSET@      The commit count since @PARENT_TAG@, e.g. 9
 
       For hg, the value is passed to hg log --template=....  See the
       hg documentation for more information.  The default is '{rev}'
