@@ -43,6 +43,9 @@
 
       @PARENT_TAG@    the first tag that is reachable, e.g. v0.2.3
 
+      @TAG_OFFSET@    the commit count since @PARENT_TAG@, if there is no
+                      @PARENT_TAG@, will count since first commit, e.g. 18
+
       For hg, the value is passed to hg log --template=....  See the
       hg documentation for more information.  The default is '{rev}'
 
