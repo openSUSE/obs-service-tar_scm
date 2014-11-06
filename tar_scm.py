@@ -369,7 +369,7 @@ def detect_version_git(repodir, versionformat):
     if re.match('.*@PARENT_TAG@.*', versionformat):
         try:
             parent_tag = safe_run(['git', 'describe', '--tags', '--abbrev=0'],
-                            repodir)[1].strip()
+                                  repodir)[1].strip()
             versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
         except SystemExit:
             sys.exit(r'\e[0;31mThe git repository has no tags,'
@@ -379,8 +379,8 @@ def detect_version_git(repodir, versionformat):
         try:
             tag_offset = ""
             if parent_tag:
-                tag_offset = safe_run(['git', 'rev-list', '--count', parent_tag + '..HEAD'],
-                                      repodir)[1]
+                tag_offset = safe_run(['git', 'rev-list', '--count',
+                                       parent_tag + '..HEAD'], repodir)[1]
             else:
                 tag_offset = safe_run(['git', 'rev-list', '--count', 'HEAD'],
                                       repodir)[1]

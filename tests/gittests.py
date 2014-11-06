@@ -73,7 +73,7 @@ class GitTests(GitHgTests):
         self.tar_scm_std('--versionformat', "@TAG_OFFSET@")
         self.assertTarOnly(self.basename(version="2"))
         self.tar_scm_std('--versionformat', "@PARENT_TAG@.@TAG_OFFSET@")
-        self.assertTarOnly(self.basename(version=self.rev(2)+".0"))
+        self.assertTarOnly(self.basename(version=self.rev(2) + ".0"))
 
     def _submodule_fixture(self, submod_name):
         fix = self.fixtures
