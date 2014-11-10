@@ -66,8 +66,9 @@ class GitTests(GitHgTests):
     # N.B. --versionformat gets tested thoroughly in githgtests.py
 
     def test_versionformat_parenttag(self):
-        self.tar_scm_std('--versionformat', "@PARENT_TAG@")
-        self.assertTarOnly(self.basename(version=self.rev(2)))
+        # the .1 to catch newlines at the end of PARENT_TAG
+        self.tar_scm_std('--versionformat', "@PARENT_TAG@.1")
+        self.assertTarOnly(self.basename(version=self.rev(2)) + '.1')
 
     def _submodule_fixture(self, submod_name):
         fix = self.fixtures

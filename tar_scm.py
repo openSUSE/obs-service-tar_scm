@@ -367,8 +367,9 @@ def detect_version_git(repodir, versionformat):
 
     if re.match('.*@PARENT_TAG@.*', versionformat):
         try:
+            # strip to remove newlines
             text = safe_run(['git', 'describe', '--tags', '--abbrev=0'],
-                            repodir)[1]
+                            repodir)[1].strip()
             versionformat = re.sub('@PARENT_TAG@', text, versionformat)
         except SystemExit:
             sys.exit(r'\e[0;31mThe git repository has no tags,'
