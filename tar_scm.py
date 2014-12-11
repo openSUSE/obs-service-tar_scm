@@ -282,7 +282,12 @@ def create_tar(repodir, outdir, dstname, extension='tar',
     excl_patterns = []
 
     for i in include:
-        incl_patterns.append(re.compile(fnmatch.translate(i)))
+        # for backward compatibility add a trailing '*' if i isn't a pattern
+        if fnmatch.translate(i) == i + fnmatch.translate(r''):
+            i += r'*'
+
+        pat = fnmatch.translate(os.path.join(topdir, i))
+        incl_patterns.append(re.compile(pat))
 
     for e in exclude:
         excl_patterns.append(re.compile(fnmatch.translate(e)))
@@ -320,10 +325,16 @@ def create_tar(repodir, outdir, dstname, extension='tar',
 
     tar = tarfile.open(os.path.join(outdir, dstname + '.' + extension), "w")
     try:
-        tar.add(topdir, filter=tar_filter)
+        tar.add(topdir, recursive=False, filter=reset)
     except TypeError:
         # Python 2.6 compatibility
-        tar.add(topdir, exclude=tar_exclude)
+        tar.add(topdir, recursive=False)
+    for entry in map(lambda x: os.path.join(topdir, x), os.listdir(topdir)):
+        try:
+            tar.add(entry, filter=tar_filter)
+        except TypeError:
+            # Python 2.6 compatibility
+            tar.add(entry, exclude=tar_exclude)
     tar.close()
 
     os.chdir(cwd)

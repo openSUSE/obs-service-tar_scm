@@ -54,6 +54,11 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.tar_scm_std('--exclude', '.' + self.scm)
         self.assertTarOnly(self.basename())
 
+    def test_include(self):
+        self.tar_scm_std('--include', self.fixtures.subdir)
+        self.assertTarOnly(self.basename(),
+                           tarchecker=self.assertIncludeSubdirTar)
+
     def test_subdir(self):
         self.tar_scm_std('--subdir', self.fixtures.subdir)
         self.assertTarOnly(self.basename(), tarchecker=self.assertSubdirTar)

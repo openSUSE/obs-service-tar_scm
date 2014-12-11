@@ -82,6 +82,14 @@ class TestAssertions(unittest.TestCase):
         self.assertEqual(entries[1].name, top + '/b')
         return th
 
+    def assertIncludeSubdirTar(self, tar, top):
+        th, entries = self.assertNumTarEnts(tar, 3)
+        entries.sort(lambda x, y: cmp(x.name, y.name))
+        self.assertEqual(entries[0].name, top)
+        self.assertEqual(entries[1].name, top + '/subdir')
+        self.assertEqual(entries[2].name, top + '/subdir/b')
+        return th
+
     def checkTar(self, tar, tarbasename, toptardir=None, tarchecker=None):
         if not toptardir:
             toptardir = tarbasename
