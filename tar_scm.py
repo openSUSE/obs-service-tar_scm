@@ -290,7 +290,8 @@ def create_tar(repodir, outdir, dstname, extension='tar',
         incl_patterns.append(re.compile(pat))
 
     for e in exclude:
-        excl_patterns.append(re.compile(fnmatch.translate(e)))
+        pat = fnmatch.translate(os.path.join(topdir, e))
+        excl_patterns.append(re.compile(pat))
 
     def tar_exclude(filename):
         """Exclude (return True) or add (return False) file to tar achive."""
