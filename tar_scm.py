@@ -303,15 +303,17 @@ def create_tar(repodir, outdir, dstname, extension='tar',
                 return True
         return False
 
-    def tar_filter(tarinfo):
+    def reset(tarinfo):
         """Python 2.7 only: reset uid/gid to 0/0 (root)."""
         tarinfo.uid = tarinfo.gid = 0
         tarinfo.uname = tarinfo.gname = "root"
+        return tarinfo
 
+    def tar_filter(tarinfo):
         if tar_exclude(tarinfo.name):
             return None
 
-        return tarinfo
+        return reset(tarinfo)
 
     cwd = os.getcwd()
     os.chdir(workdir)
