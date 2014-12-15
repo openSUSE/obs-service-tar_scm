@@ -53,3 +53,6 @@ class HgFixtures(Fixtures):
              self.timestamps[tag],
              self.sha1s[tag])
         )
+
+    def get_committer_date(self):
+        return '--date="%s"' % (str(self.COMMITTER_DATE) + " 0")

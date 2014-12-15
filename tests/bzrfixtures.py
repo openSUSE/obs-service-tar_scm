@@ -30,3 +30,8 @@ class BzrFixtures(Fixtures):
     def record_rev(self, wd, rev_num):
         self.revs[rev_num] = str(rev_num)
         self.scmlogs.annotate("Recorded rev %d" % rev_num)
+
+    def get_committer_date(self):
+        '''There seems to be no way to create a commit with a given timestamp
+        set for Bazar.'''
+        return ''

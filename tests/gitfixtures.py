@@ -26,6 +26,9 @@ class GitFixtures(Fixtures):
         self.timestamps = {}
         self.sha1s      = {}
 
+        # Force the committer timestamp to our well known default
+        os.environ["GIT_COMMITTER_DATE"] = self.get_committer_date()
+
         self.create_commits(2)
 
     def run(self, cmd):
