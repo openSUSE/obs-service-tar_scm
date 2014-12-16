@@ -269,6 +269,10 @@ def prep_tree_for_tar(repodir, subdir, outdir, dstname):
     return dst
 
 
+# skip vcs files base on this pattern
+METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn).*')
+
+
 def create_tar(repodir, outdir, dstname, extension='tar',
                exclude=[], include=[], package_metadata=False):
     """Create a tarball of repodir in destination directory."""
@@ -280,18 +284,14 @@ def create_tar(repodir, outdir, dstname, extension='tar',
     for i in include:
         incl_patterns.append(re.compile(fnmatch.translate(i)))
 
-    # skip vcs files base on this pattern
-    if not package_metadata:
-        excl_patterns.append(re.compile(r".*/\.bzr.*"))
-        excl_patterns.append(re.compile(r".*/\.git.*"))
-        excl_patterns.append(re.compile(r".*/\.hg.*"))
-        excl_patterns.append(re.compile(r".*/\.svn.*"))
-
     for e in exclude:
         excl_patterns.append(re.compile(fnmatch.translate(e)))
 
     def tar_exclude(filename):
         """Exclude (return True) or add (return False) file to tar achive."""
+        if not package_metadata and METADATA_PATTERN.match(filename):
+            return True
+
         if incl_patterns:
             for pat in incl_patterns:
                 if pat.match(filename):
