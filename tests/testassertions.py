@@ -65,21 +65,30 @@ class TestAssertions(unittest.TestCase):
         self.assertEqual(expected, got, msg)
         return th, tarents
 
+    def assertSubdirDirents(self, entries, top):
+        self.assertEqual(entries[0].name, top)
+        self.assertEqual(entries[1].name, top + '/b')
+
     def assertStandardTar(self, tar, top):
         th, entries = self.assertNumTarEnts(tar, 5)
         entries.sort(lambda x, y: cmp(x.name, y.name))
         self.assertEqual(entries[0].name, top)
         self.assertEqual(entries[1].name, top + '/a')
         self.assertEqual(entries[2].name, top + '/c')
-        self.assertEqual(entries[3].name, top + '/subdir')
-        self.assertEqual(entries[4].name, top + '/subdir/b')
+        self.assertSubdirDirents(entries[3:], top + '/subdir')
         return th
 
     def assertSubdirTar(self, tar, top):
         th, entries = self.assertNumTarEnts(tar, 2)
         entries.sort(lambda x, y: cmp(x.name, y.name))
+        self.assertSubdirDirents(entries, top)
+        return th
+
+    def assertIncludeSubdirTar(self, tar, top):
+        th, entries = self.assertNumTarEnts(tar, 3)
+        entries.sort(lambda x, y: cmp(x.name, y.name))
         self.assertEqual(entries[0].name, top)
-        self.assertEqual(entries[1].name, top + '/b')
+        self.assertSubdirDirents(entries[1:], top + '/subdir')
         return th
 
     def checkTar(self, tar, tarbasename, toptardir=None, tarchecker=None):
