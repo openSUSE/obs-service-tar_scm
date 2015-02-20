@@ -16,7 +16,7 @@ pep8: tar_scm.py
 		echo "pep8 not installed!  Cannot check PEP8 compliance; aborting." >&2; \
 		exit 1; \
 	fi
-	find -name \*.py | xargs pep8 --ignore=E221,E272,E241 $<
+	find -name \*.py | xargs pep8 --ignore=E221,E272,E241,E731 $<
 
 .PHONY: test
 test:
