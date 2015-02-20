@@ -21,7 +21,7 @@ pep8: tar_scm.py
 .PHONY: test
 test:
 	: Running the test suite.  Please be patient - this takes a few minutes ...
-	python2 tests/test.py
+	PYTHONPATH=. python2 tests/test.py
 
 .PHONY: install
 install:
