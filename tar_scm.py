@@ -379,15 +379,30 @@ def detect_version_git(repodir, versionformat):
     if versionformat is None:
         versionformat = '%ct.%h'
 
+    parent_tag = None
     if re.match('.*@PARENT_TAG@.*', versionformat):
         try:
             # strip to remove newlines
-            text = safe_run(['git', 'describe', '--tags', '--abbrev=0'],
-                            repodir)[1].strip()
-            versionformat = re.sub('@PARENT_TAG@', text, versionformat)
+            parent_tag = safe_run(['git', 'describe', '--tags', '--abbrev=0'],
+                                  repodir)[1].strip()
+            versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
         except SystemExit:
             sys.exit(r'\e[0;31mThe git repository has no tags,'
                      r' thus @PARENT_TAG@ can not be expanded\e[0m')
+
+    if re.match('.*@TAG_OFFSET@.*', versionformat):
+        try:
+            if parent_tag:
+                tag_offset = safe_run(['git', 'rev-list', '--count',
+                                       parent_tag + '..HEAD'],
+                                      repodir)[1].strip()
+                versionformat = re.sub('@TAG_OFFSET@', tag_offset,
+                                       versionformat)
+            else:
+                sys.exit(r'\e[0;31m@TAG_OFFSET@ can not be expanded, '
+                         r'@PARENT_TAG@ is required\e[0m')
+        except SystemExit:
+            sys.exit(r'\e[0;31m@TAG_OFFSET@ can not be expanded\e[0m')
 
     version = safe_run(['git', 'log', '-n1', '--date=short',
                         "--pretty=format:%s" % versionformat], repodir)[1]
