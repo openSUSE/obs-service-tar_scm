@@ -1,5 +1,5 @@
 <service name="tar_scm">
-  <summary>Create a tar ball from SCM repository</summary>
+  <summary>Create a tarball from SCM repository</summary>
   <description>This service uses a SCM client to checkout or update from a given repository. Supported are svn, git, hg and bzr.</description>
   <param name="scm">
     <description>Used SCM</description>
@@ -14,7 +14,7 @@
     <required/>
   </param>
   <param name="subdir">
-    <description>Package just a sub directory.</description>
+    <description>Package just a subdirectory.</description>
   </param>
   <param name="version">
     <description>Specify version to be used in tarball. Defaults to automatically detected value formatted by versionformat parameter.</description>
@@ -52,7 +52,7 @@
     </description>
   </param>
   <param name="versionprefix">
-    <description>specify a base version as prefix.</description>
+    <description>Specify a base version as prefix.</description>
   </param>
   <param name="revision">
     <description>
@@ -75,13 +75,13 @@
     </description>
   </param>
   <param name="filename">
-    <description>name of package - used together with version to determine tarball name.</description>
+    <description>Name of package - used together with version to determine tarball name.</description>
   </param>
   <param name="exclude">
-    <description>for specifying excludes when creating the tarball.</description>
+    <description>Specify excludes when creating the tarball.</description>
   </param>
   <param name="include">
-    <description>for specifying subset of files/subdirectories to pack in the tarball.</description>
+    <description>Specify subset of files/subdirectories to pack in the tarball.</description>
   </param>
   <param name="package-meta">
     <description>Package the meta data of SCM to allow the user or OBS to update after un-tar.</description>
