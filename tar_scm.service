@@ -1,6 +1,6 @@
 <service name="tar_scm">
-  <summary>Create a tar ball from SCM repository</summary>
-  <description>This service uses a scm client to checkout or update from a given repository. Supported are svn, git, hg and bzr.</description>
+  <summary>Create a tarball from SCM repository</summary>
+  <description>This service uses a SCM client to checkout or update from a given repository. Supported are svn, git, hg and bzr.</description>
   <param name="scm">
     <description>Used SCM</description>
     <allowedvalue>svn</allowedvalue>
@@ -10,11 +10,11 @@
     <required/>
   </param>
   <param name="url">
-    <description>Checkout url</description>
+    <description>Checkout URL</description>
     <required/>
   </param>
   <param name="subdir">
-    <description>package just a sub directory</description>
+    <description>Package just a subdirectory.</description>
   </param>
   <param name="version">
     <description>Specify version to be used in tarball. Defaults to automatically detected value formatted by versionformat parameter.</description>
@@ -22,12 +22,12 @@
   <param name="versionformat">
     <description>
       Auto-generate version from checked out source using this format
-      string.  This parameter is used if the 'version' parameter is not
+      string. This parameter is used if the 'version' parameter is not
       specified.
 
       For git, the value is passed to git log --date=short --pretty=format:...
       for the topmost commit, and the output from git is cleaned up to
-      remove some unhelpful characters.  Here are some useful examples of
+      remove some unhelpful characters. Here are some useful examples of
       strings which are expanded, see the git-log documentation for more.
 
       %ct               Commit time as a UNIX timestamp, e.g. 1384855776.
@@ -46,13 +46,13 @@
       @TAG_OFFSET@      The commit count since @PARENT_TAG@, e.g. 9
 
       For hg, the value is passed to hg log --template=....  See the
-      hg documentation for more information.  The default is '{rev}'
+      hg documentation for more information. The default is '{rev}'.
 
       For bzr and svn, '%r' is expanded to the revision, and is the default.
     </description>
   </param>
   <param name="versionprefix">
-    <description>specify a base version as prefix.</description>
+    <description>Specify a base version as prefix.</description>
   </param>
   <param name="revision">
     <description>
@@ -75,28 +75,28 @@
     </description>
   </param>
   <param name="filename">
-    <description>name of package - used together with version to determine tarball name</description>
+    <description>Name of package - used together with version to determine tarball name.</description>
   </param>
   <param name="exclude">
-    <description>for specifying excludes when creating the tar ball</description>
+    <description>Specify excludes when creating the tarball.</description>
   </param>
   <param name="include">
-    <description>for specifying subset of files/subdirectories to pack in the tar ball</description>
+    <description>Specify subset of files/subdirectories to pack in the tarball.</description>
   </param>
   <param name="package-meta">
-    <description>Package the meta data of SCM to allow the user or OBS to update after un-tar</description>
+    <description>Package the meta data of SCM to allow the user or OBS to update after un-tar.</description>
     <allowedvalue>yes</allowedvalue>
   </param>
   <param name="history-depth">
     <description>Stored history depth. Special value "full" clones/pulls full history. Only valid if SCM git is used.</description>
   </param>
   <param name="submodules">
-    <description>Whether or not to include git submodules.  Default is 'enable'</description>
+    <description>Whether or not to include git submodules. Default is 'enable'.</description>
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </param>
   <param name="changesgenerate">
-    <description>Whether or not to generate changes file entries from SCM commit log since a given parent revision (see changesrevision).  Default is 'disable'.</description>
+    <description>Whether or not to generate changes file entries from SCM commit log since a given parent revision (see changesrevision). Default is 'disable'.</description>
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </param>
