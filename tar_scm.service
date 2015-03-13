@@ -1,8 +1,8 @@
 <service name="tar_scm">
-  <summary>Create a tar ball from SCM repository</summary>
-  <description>This service uses a scm client to checkout or update from a given repository. Supported are svn, git, hg and bzr.</description>
+  <summary>Create a tarball from SCM repository</summary>
+  <description>This service uses a SCM client to checkout or update from a given repository.  Supported are svn, git, hg and bzr.</description>
   <param name="scm">
-    <description>Used SCM</description>
+    <description>Specify SCM to use.</description>
     <allowedvalue>svn</allowedvalue>
     <allowedvalue>git</allowedvalue>
     <allowedvalue>hg</allowedvalue>
@@ -10,14 +10,14 @@
     <required/>
   </param>
   <param name="url">
-    <description>Checkout url</description>
+    <description>Specify URL to checkout.</description>
     <required/>
   </param>
   <param name="subdir">
-    <description>package just a sub directory</description>
+    <description>Package just a subdirectory.</description>
   </param>
   <param name="version">
-    <description>Specify version to be used in tarball. Defaults to automatically detected value formatted by versionformat parameter.</description>
+    <description>Specify version to be used in tarball.  Defaults to automatically detected value formatted by versionformat parameter.</description>
   </param>
   <param name="versionformat">
     <description>
@@ -52,10 +52,12 @@
     </description>
   </param>
   <param name="versionprefix">
-    <description>specify a base version as prefix.</description>
+    <description>Specify a base version as prefix.</description>
   </param>
   <param name="revision">
     <description>
+       Specify revision of source to check out.
+
        When using git, revision may refer to any of the following:
 
        * explicit SHA1: a1b2c3d4....
@@ -75,32 +77,32 @@
     </description>
   </param>
   <param name="filename">
-    <description>name of package - used together with version to determine tarball name</description>
+    <description>Specify name of package, which is used together with version to determine tarball name.</description>
   </param>
   <param name="exclude">
-    <description>for specifying excludes when creating the tar ball</description>
+    <description>Specify regexp to exclude when creating the tarball.</description>
   </param>
   <param name="include">
-    <description>for specifying subset of files/subdirectories to pack in the tar ball</description>
+    <description>Specify subset of files/subdirectories to pack in the tarball.</description>
   </param>
   <param name="package-meta">
-    <description>Package the meta data of SCM to allow the user or OBS to update after un-tar</description>
+    <description>Package the metadata of SCM to allow the user or OBS to update after un-tar.</description>
     <allowedvalue>yes</allowedvalue>
   </param>
   <param name="history-depth">
-    <description>Stored history depth. Special value "full" clones/pulls full history. Only valid if SCM git is used.</description>
+    <description>Obsolete parameter which will be ignored.</description>
   </param>
   <param name="submodules">
-    <description>Whether or not to include git submodules.  Default is 'enable'</description>
+    <description>Specify whether to include git submodules.  Default is 'enable'.</description>
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </param>
   <param name="changesgenerate">
-    <description>Whether or not to generate changes file entries from SCM commit log since a given parent revision (see changesrevision).  Default is 'disable'.</description>
+    <description>Specify whether to generate changes file entries from SCM commit log since a given parent revision (see changesrevision).  Default is 'disable'.</description>
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </param>
   <param name="changesauthor">
-    <description>The author of the changes file entry to be written, defaults to first email entry in ~/.oscrc or "opensuse-packaging@opensuse.org" if there is no .oscrc found.</description>
+    <description>Specify author of the changes file entry to be written.  Defaults to first email entry in ~/.oscrc, or "opensuse-packaging@opensuse.org" if there is no .oscrc found.</description>
   </param>
 </service>
