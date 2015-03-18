@@ -1,25 +1,25 @@
 <service name="tar_scm">
   <summary>Create a tarball from SCM repository</summary>
   <description>This service uses a SCM client to checkout or update from a given repository.  Supported are svn, git, hg and bzr.</description>
-  <param name="scm">
+  <parameter name="scm">
     <description>Specify SCM to use.</description>
     <allowedvalue>svn</allowedvalue>
     <allowedvalue>git</allowedvalue>
     <allowedvalue>hg</allowedvalue>
     <allowedvalue>bzr</allowedvalue>
     <required/>
-  </param>
-  <param name="url">
+  </parameter>
+  <parameter name="url">
     <description>Specify URL to checkout.</description>
     <required/>
-  </param>
-  <param name="subdir">
+  </parameter>
+  <parameter name="subdir">
     <description>Package just a subdirectory.</description>
-  </param>
-  <param name="version">
+  </parameter>
+  <parameter name="version">
     <description>Specify version to be used in tarball.  Defaults to automatically detected value formatted by versionformat parameter.</description>
-  </param>
-  <param name="versionformat">
+  </parameter>
+  <parameter name="versionformat">
     <description>
       Auto-generate version from checked out source using this format
       string.  This parameter is used if the 'version' parameter is not
@@ -50,11 +50,11 @@
 
       For bzr and svn, '%r' is expanded to the revision, and is the default.
     </description>
-  </param>
-  <param name="versionprefix">
+  </parameter>
+  <parameter name="versionprefix">
     <description>Specify a base version as prefix.</description>
-  </param>
-  <param name="revision">
+  </parameter>
+  <parameter name="revision">
     <description>
        Specify revision of source to check out.
 
@@ -75,34 +75,34 @@
          - set by: git fetch ${url} ${revision}:${revision}
                    git checkout ${revision}
     </description>
-  </param>
-  <param name="filename">
+  </parameter>
+  <parameter name="filename">
     <description>Specify name of package, which is used together with version to determine tarball name.</description>
-  </param>
-  <param name="exclude">
+  </parameter>
+  <parameter name="exclude">
     <description>Specify regexp to exclude when creating the tarball.</description>
-  </param>
-  <param name="include">
+  </parameter>
+  <parameter name="include">
     <description>Specify subset of files/subdirectories to pack in the tarball.</description>
-  </param>
-  <param name="package-meta">
+  </parameter>
+  <parameter name="package-meta">
     <description>Package the metadata of SCM to allow the user or OBS to update after un-tar.</description>
     <allowedvalue>yes</allowedvalue>
-  </param>
-  <param name="history-depth">
+  </parameter>
+  <parameter name="history-depth">
     <description>Obsolete parameter which will be ignored.</description>
-  </param>
-  <param name="submodules">
+  </parameter>
+  <parameter name="submodules">
     <description>Specify whether to include git submodules.  Default is 'enable'.</description>
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
-  </param>
-  <param name="changesgenerate">
+  </parameter>
+  <parameter name="changesgenerate">
     <description>Specify whether to generate changes file entries from SCM commit log since a given parent revision (see changesrevision).  Default is 'disable'.</description>
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
-  </param>
-  <param name="changesauthor">
+  </parameter>
+  <parameter name="changesauthor">
     <description>Specify author of the changes file entry to be written.  Defaults to first email entry in ~/.oscrc, or "opensuse-packaging@opensuse.org" if there is no .oscrc found.</description>
-  </param>
+  </parameter>
 </service>
