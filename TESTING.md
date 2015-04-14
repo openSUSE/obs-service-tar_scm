@@ -4,6 +4,7 @@
 
 Run the unit test suite via:
 
+    export PYTHONPATH=.    # or absolute path to repo
     python2 tests/test.py
 
 The output may become easier to understand if you uncomment the
