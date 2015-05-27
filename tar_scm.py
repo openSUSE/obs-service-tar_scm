@@ -72,9 +72,13 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via git."""
     safe_run(['git', 'clone', url, clone_dir], cwd=cwd,
              interactive=sys.stdout.isatty())
+
+
+def fetch_upstream_git_submodules(clone_dir, kwargs):
+    """Recursively initialize git submodules."""
     if 'submodules' in kwargs and kwargs['submodules']:
         safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
-                 clone_dir)
+                 cwd=clone_dir)
 
 
 def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
@@ -246,6 +250,12 @@ def fetch_upstream(scm, url, revision, out_dir, **kwargs):
 
     # switch_to_revision
     SWITCH_REVISION_COMMANDS[scm](clone_dir, revision)
+
+    # git specific: after switching to desired revision its necessary to update
+    # submodules since they depend on the actual version of the selected
+    # revision
+    if scm == 'git':
+        fetch_upstream_git_submodules(clone_dir, kwargs)
 
     return clone_dir
 

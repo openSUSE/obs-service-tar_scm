@@ -98,6 +98,14 @@ class GitTests(GitHgTests):
         fix.do_commit(repo_path, new_rev, ['.gitmodules', submod_name])
         fix.record_rev(repo_path, new_rev)
 
+    def _submodule_fixture_prepare_branch(self, branch):
+        fix = self.fixtures
+        repo_path = fix.repo_path
+        self.scmlogs.next('prepare-branch')
+        os.chdir(repo_path)
+        fix.safe_run('checkout -b %s' % branch)
+        fix.create_commits(3)
+
     def test_submodule_update(self):
         submod_name = 'submod1'
 
@@ -125,6 +133,23 @@ class GitTests(GitHgTests):
         th = tarfile.open(tar_path)
         self.assertRaises(KeyError, th.getmember, os.path.join(
             self.basename(version='tag3'), submod_name, 'a'))
+
+    def test_submodule_in_different_branch(self):
+        submod_name = 'submod1'
+
+        rev = 'build'
+        self._submodule_fixture_prepare_branch(rev)
+        self._submodule_fixture(submod_name)
+
+        self.tar_scm_std('--submodules', 'enable',
+                         '--revision', rev,
+                         '--version', rev)
+        tar_path = os.path.join(self.outdir,
+                                self.basename(version=rev) + '.tar')
+        th = tarfile.open(tar_path)
+        submod_path = os.path.join(self.basename(version=rev),
+                                   submod_name, 'a')
+        self.assertTarMemberContains(th, submod_path, '3')
 
     def _check_servicedata(self, expected_dirents=2, revision=2):
         expected_sha1 = self.sha1s('tag%d' % revision)
