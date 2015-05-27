@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #
 # A simple script to checkout or update a svn or git repo as source service
 #

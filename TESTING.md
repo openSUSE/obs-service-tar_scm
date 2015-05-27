@@ -7,6 +7,9 @@ Run the unit test suite via:
     export PYTHONPATH=.    # or absolute path to repo
     python2 tests/test.py
 
+(If your distribution does not have `python2` in your `$PATH` then
+adjust the executable name accordingly.)
+
 The output may become easier to understand if you uncomment the
 'failfast' option in `test.py`.  This requires Python 2.7, however.
 You may also find that the buffered `STDOUT` from test failures gets
