@@ -165,7 +165,7 @@ class TestEnvironment:
 
         cmdargs = args + ['--outdir', self.outdir]
         quotedargs = ["'%s'" % arg for arg in cmdargs]
-        cmdstr = 'python2 %s %s 2>&1' % \
+        cmdstr = 'python2 %s %s' % \
                  (self.tar_scm_bin(), " ".join(quotedargs))
         print
         print ">>>>>>>>>>>"

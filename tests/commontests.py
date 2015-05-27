@@ -60,6 +60,19 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.assertTarOnly(self.basename(),
                            tarchecker=self.assertIncludeSubdirTar)
 
+    def test_absolute_subdir(self):
+        (stdout, stderr, ret) = \
+            self.tar_scm_std_fail('--subdir', '/')
+        self.assertRegexpMatches(
+            stderr, "Absolute path '/' is not allowed for --subdir")
+
+    def test_subdir_parent(self):
+        for path in ('..', '../', '../foo', 'foo/../../bar'):
+            (stdout, stderr, ret) = \
+                self.tar_scm_std_fail('--subdir', path)
+            self.assertRegexpMatches(
+                stderr, "--subdir path '%s' must stay within repo" % path)
+
     def test_subdir(self):
         self.tar_scm_std('--subdir', self.fixtures.subdir)
         self.assertTarOnly(self.basename(), tarchecker=self.assertSubdirTar)

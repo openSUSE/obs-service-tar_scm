@@ -849,6 +849,14 @@ def parse_args():
     if not os.path.isdir(args.outdir):
         sys.exit("%s: No such directory" % args.outdir)
 
+    orig_subdir = args.subdir
+    args.subdir = os.path.normpath(orig_subdir)
+    if args.subdir.startswith('/'):
+        sys.exit("Absolute path '%s' is not allowed for --subdir" %
+                 orig_subdir)
+    if args.subdir == '..' or args.subdir.startswith('../'):
+        sys.exit("--subdir path '%s' must stay within repo" % orig_subdir)
+
     if args.history_depth:
         print "history-depth parameter is obsolete and will be ignored"
 
