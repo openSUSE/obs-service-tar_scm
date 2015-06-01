@@ -3,6 +3,7 @@
 import datetime
 import os
 import shutil
+import sys
 
 from utils   import mkfreshdir, run_cmd
 from scmlogs import ScmInvocationLogs
@@ -165,8 +166,7 @@ class TestEnvironment:
 
         cmdargs = args + ['--outdir', self.outdir]
         quotedargs = ["'%s'" % arg for arg in cmdargs]
-        cmdstr = 'python2 %s %s' % \
-                 (self.tar_scm_bin(), " ".join(quotedargs))
+        cmdstr = " ".join([sys.executable, self.tar_scm_bin()] + quotedargs)
         print
         print ">>>>>>>>>>>"
         print "Running", cmdstr
