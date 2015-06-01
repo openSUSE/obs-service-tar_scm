@@ -1,3 +1,4 @@
+tar_scm
 *.pyc
 .*.sw?
 tmp/
