@@ -79,6 +79,9 @@
   <parameter name="filename">
     <description>Specify name of package, which is used together with version to determine tarball name.</description>
   </parameter>
+  <parameter name="extension">
+    <description>Specify suffix name of package, which is used together with filename to determine tarball name.</description>
+  </parameter>
   <parameter name="exclude">
     <description>Specify regexp to exclude when creating the tarball.</description>
   </parameter>
