@@ -5,7 +5,7 @@ export DH_VERBOSE=1
 DESTDIR=debian/obs-service-tar-scm
 
 %:
-	dh $@ 
+	dh $@ --with python2
 
 override_dh_auto_build: ;
 
