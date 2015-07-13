@@ -100,6 +100,11 @@
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </parameter>
+  <parameter name="sslverify">
+    <description>Specify Whether or not to check server certificate against installed CAs.  Default is 'enable'.</description>
+    <allowedvalue>enable</allowedvalue>
+    <allowedvalue>disable</allowedvalue>
+  </parameter>
   <parameter name="changesgenerate">
     <description>Specify whether to generate changes file entries from SCM commit log since a given parent revision (see changesrevision).  Default is 'disable'.</description>
     <allowedvalue>enable</allowedvalue>

@@ -68,10 +68,18 @@ def safe_run(cmd, cwd, interactive=False):
     return (proc.returncode, output)
 
 
+def is_sslverify_enabled(kwargs):
+    """Returns ``True`` if the ``sslverify`` option has been enabled or
+    not been set (default enabled) ``False`` otherwise."""
+    return 'sslverify' not in kwargs or kwargs['sslverify']
+
+
 def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via git."""
-    safe_run(['git', 'clone', url, clone_dir], cwd=cwd,
-             interactive=sys.stdout.isatty())
+    command = ['git', 'clone', url, clone_dir]
+    if not is_sslverify_enabled(kwargs):
+        command += ['--config', 'http.sslverify=false']
+    safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_git_submodules(clone_dir, kwargs):
@@ -86,12 +94,17 @@ def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
     command = ['svn', 'checkout', '--non-interactive', url, clone_dir]
     if revision:
         command.insert(4, '-r%s' % revision)
+    if not is_sslverify_enabled(kwargs):
+        command.insert(3, '--trust-server-cert')
     safe_run(command, cwd, interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_hg(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via hg."""
-    safe_run(['hg', 'clone', url, clone_dir], cwd,
+    command = ['hg', 'clone', url, clone_dir]
+    if not is_sslverify_enabled(kwargs):
+        command += ['--insecure']
+    safe_run(command, cwd,
              interactive=sys.stdout.isatty())
 
 
@@ -101,6 +114,8 @@ def fetch_upstream_bzr(url, clone_dir, revision, cwd, kwargs):
     if revision:
         command.insert(3, '-r')
         command.insert(4, revision)
+    if not is_sslverify_enabled(kwargs):
+        command.insert(2, '-Ossl.cert_reqs=None')
     safe_run(command, cwd, interactive=sys.stdout.isatty())
 
 
@@ -834,6 +849,10 @@ def parse_args():
                         help='Whether or not to include git submodules '
                              'from SCM commit log since a given parent '
                              'revision (see changesrevision).')
+    parser.add_argument('--sslverify', choices=['enable', 'disable'],
+                        default='enable',
+                        help='Whether or not to check server certificate '
+                             'against installed CAs.')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--include', action='append',
                        default=[], metavar='REGEXP',
@@ -885,6 +904,7 @@ def parse_args():
         args.submodules = True
     else:
         args.submodules = False
+    args.sslverify = False if args.sslverify == 'disable' else True
 
     # force verbose mode in test-mode
     if os.getenv('DEBUG_TAR_SCM'):

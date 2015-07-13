@@ -22,6 +22,7 @@ class GitTests(GitHgTests):
     scm = 'git'
     initial_clone_command = 'git clone'
     update_cache_command  = 'git fetch'
+    sslverify_false_args  = '--config http.sslverify=false'
     fixtures_class = GitFixtures
 
     abbrev_hash_format = '%h'

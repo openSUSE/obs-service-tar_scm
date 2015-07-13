@@ -18,6 +18,7 @@ class HgTests(GitHgTests):
     scm = 'hg'
     initial_clone_command = 'hg clone'
     update_cache_command  = 'hg pull'
+    sslverify_false_args  = '--insecure'
     fixtures_class = HgFixtures
 
     abbrev_hash_format = '{node|short}'

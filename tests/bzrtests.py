@@ -16,6 +16,7 @@ class BzrTests(CommonTests):
     scm = 'bzr'
     initial_clone_command = 'bzr checkout'
     update_cache_command  = 'bzr update'
+    sslverify_false_args  = '-Ossl.cert_reqs=None'
     fixtures_class = BzrFixtures
 
     def default_version(self):
