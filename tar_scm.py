@@ -80,6 +80,15 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     if not is_sslverify_enabled(kwargs):
         command += ['--config', 'http.sslverify=false']
     safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
+    if revision:
+        # check if the reference already exists.
+        try:
+            safe_run(['git', 'rev-parse', '--verify', '--quiet', revision],
+                     cwd=clone_dir, interactive=sys.stdout.isatty())
+        except SystemExit:
+            # fetch reference from url and create locally
+            safe_run(['git', 'fetch', url, revision + ':' + revision],
+                     cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_git_submodules(clone_dir, kwargs):
