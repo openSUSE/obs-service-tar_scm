@@ -262,3 +262,16 @@ class CommonTests(TestEnvironment, TestAssertions):
             ],
             use_cache
         )
+
+    def test_sslverify_disabled(self):
+        self.tar_scm_std('--sslverify', 'disable')
+        logpath = self.scmlogs.current_log_path
+        loglines = self.scmlogs.read()
+        self.assertRanInitialClone(logpath, loglines)
+        self.assertSSLVerifyFalse(logpath, loglines)
+
+    def test_sslverify_enabled(self):
+        self.tar_scm_std('--sslverify', 'enable')
+        logpath = self.scmlogs.current_log_path
+        loglines = self.scmlogs.read()
+        self.assertRanInitialClone(logpath, loglines)

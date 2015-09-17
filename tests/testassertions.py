@@ -135,6 +135,12 @@ class TestAssertions(unittest.TestCase):
         self._find(logpath, loglines,
                    self.initial_clone_command, self.update_cache_command)
 
+    def assertSSLVerifyFalse(self, logpath, loglines):
+        self._find(logpath, loglines,
+                   self.initial_clone_command +
+                   '.*' + self.sslverify_false_args,
+                   self.sslverify_false_args + 'true')
+
     def assertRanUpdate(self, logpath, loglines):
         self._find(logpath, loglines,
                    self.update_cache_command, self.initial_clone_command)

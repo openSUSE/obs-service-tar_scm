@@ -16,6 +16,7 @@ class SvnTests(CommonTests):
     scm = 'svn'
     initial_clone_command = 'svn (co|checkout) '
     update_cache_command  = 'svn up(date)?'
+    sslverify_false_args  = '--trust-server-cert'
     fixtures_class = SvnFixtures
 
     def default_version(self):
