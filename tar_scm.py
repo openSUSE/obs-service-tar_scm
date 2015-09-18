@@ -32,9 +32,11 @@ from urlparse import urlparse
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
 
 
-def safe_run(cmd, cwd, interactive=False):
+def run_cmd(cmd, cwd, interactive=False, raisesysexit=False):
     """Execute the command cmd in the working directory cwd and check return
-    value. If the command returns non-zero raise a SystemExit exception.
+    value. If the command returns non-zero and raisesysexit is True raise a
+    SystemExit exception otherwise return a tuple of return code and command
+    output.
     """
     logging.debug("COMMAND: %s", cmd)
 
@@ -60,12 +62,19 @@ def safe_run(cmd, cwd, interactive=False):
     else:
         output = proc.communicate()[0]
 
-    if proc.returncode:
+    if proc.returncode and raisesysexit:
         logging.info("ERROR(%d): %s", proc.returncode, repr(output))
         sys.exit("Command failed(%d): %s" % (proc.returncode, repr(output)))
     else:
         logging.debug("RESULT(%d): %s", proc.returncode, repr(output))
     return (proc.returncode, output)
+
+
+def safe_run(cmd, cwd, interactive=False):
+    """Execute the command cmd in the working directory cwd and check return
+    value. If the command returns non-zero raise a SystemExit exception.
+    """
+    return run_cmd(cmd, cwd, interactive, raisesysexit=True)
 
 
 def is_sslverify_enabled(kwargs):
@@ -220,10 +229,9 @@ def switch_revision_hg(clone_dir, revision):
     if revision is None:
         revision = 'tip'
 
-    try:
-        safe_run(['hg', 'update', revision], cwd=clone_dir,
-                 interactive=sys.stdout.isatty())
-    except SystemExit:
+    rc, _  = run_cmd(['hg', 'update', revision], cwd=clone_dir,
+                     interactive=sys.stdout.isatty())
+    if rc:
         sys.exit('%s: No such revision' % revision)
 
 
@@ -415,28 +423,29 @@ def detect_version_git(repodir, versionformat):
 
     parent_tag = None
     if re.match('.*@PARENT_TAG@.*', versionformat):
-        try:
+        rc, output = run_cmd(['git', 'describe', '--tags', '--abbrev=0'],
+                             repodir)
+        if not rc:
             # strip to remove newlines
-            parent_tag = safe_run(['git', 'describe', '--tags', '--abbrev=0'],
-                                  repodir)[1].strip()
+            parent_tag = output.strip()
             versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
-        except SystemExit:
+        else:
             sys.exit(r'\e[0;31mThe git repository has no tags,'
                      r' thus @PARENT_TAG@ can not be expanded\e[0m')
 
     if re.match('.*@TAG_OFFSET@.*', versionformat):
-        try:
-            if parent_tag:
-                tag_offset = safe_run(['git', 'rev-list', '--count',
-                                       parent_tag + '..HEAD'],
-                                      repodir)[1].strip()
+        if parent_tag:
+            rc, output = run_cmd(['git', 'rev-list', '--count',
+                                  parent_tag + '..HEAD'], repodir)
+            if not rc:
+                tag_offset = output.strip()
                 versionformat = re.sub('@TAG_OFFSET@', tag_offset,
                                        versionformat)
             else:
-                sys.exit(r'\e[0;31m@TAG_OFFSET@ can not be expanded, '
-                         r'@PARENT_TAG@ is required\e[0m')
-        except SystemExit:
-            sys.exit(r'\e[0;31m@TAG_OFFSET@ can not be expanded\e[0m')
+                sys.exit(r'\e[0;31m@TAG_OFFSET@ can not be expanded\e[0m')
+        else:
+            sys.exit(r'\e[0;31m@TAG_OFFSET@ can not be expanded, '
+                     r'@PARENT_TAG@ is required\e[0m')
 
     version = safe_run(['git', 'log', '-n1', '--date=short',
                         "--pretty=format:%s" % versionformat], repodir)[1]
