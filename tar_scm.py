@@ -83,21 +83,23 @@ def is_sslverify_enabled(kwargs):
     return 'sslverify' not in kwargs or kwargs['sslverify']
 
 
+def git_ref_exists(clone_dir, revision):
+    rc, _ = run_cmd(['git', 'rev-parse', '--verify', '--quiet', revision],
+                    cwd=clone_dir, interactive=sys.stdout.isatty())
+    return (rc == 0)
+
+
 def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via git."""
     command = ['git', 'clone', url, clone_dir]
     if not is_sslverify_enabled(kwargs):
         command += ['--config', 'http.sslverify=false']
     safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
-    if revision:
-        # check if the reference already exists.
-        try:
-            safe_run(['git', 'rev-parse', '--verify', '--quiet', revision],
-                     cwd=clone_dir, interactive=sys.stdout.isatty())
-        except SystemExit:
-            # fetch reference from url and create locally
-            safe_run(['git', 'fetch', url, revision + ':' + revision],
-                     cwd=clone_dir, interactive=sys.stdout.isatty())
+    # if the reference does not exist.
+    if revision and not git_ref_exists(clone_dir, revision):
+        # fetch reference from url and create locally
+        safe_run(['git', 'fetch', url, revision + ':' + revision],
+                 cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_git_submodules(clone_dir, kwargs):
@@ -207,14 +209,10 @@ def switch_revision_git(clone_dir, revision):
 
     revs = [x + revision for x in ['origin/', '']]
     for rev in revs:
-        try:
-            safe_run(['git', 'rev-parse', '--verify', '--quiet', rev],
-                     cwd=clone_dir)
+        if git_ref_exists(clone_dir, rev):
             text = safe_run(['git', 'reset', '--hard', rev], cwd=clone_dir)[1]
             print text.rstrip()
             break
-        except SystemExit:
-            continue
     else:
         sys.exit('%s: No such revision' % revision)
 
