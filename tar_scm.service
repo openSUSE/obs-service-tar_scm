@@ -54,6 +54,12 @@
   <parameter name="versionprefix">
     <description>Specify a base version as prefix.</description>
   </parameter>
+  <parameter name="parent-tag">
+    <description>
+      This parameter allows overriding the tag that is being used for
+      computing @TAG_OFFSET@.
+    </description>
+  </parameter>
   <parameter name="revision">
     <description>
        Specify revision of source to check out.

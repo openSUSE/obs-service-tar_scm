@@ -406,7 +406,8 @@ def version_iso_cleanup(version):
 def get_version(args, clone_dir):
     version = args.version
     if version == '_auto_' or args.versionformat:
-        version = detect_version(args.scm, clone_dir, args.versionformat)
+        version = detect_version(args.scm, clone_dir, args.versionformat,
+                                 args.parent_tag)
     if args.versionprefix:
         version = "%s.%s" % (args.versionprefix, version)
 
@@ -414,18 +415,19 @@ def get_version(args, clone_dir):
     return version
 
 
-def detect_version_git(repodir, versionformat):
+def detect_version_git(repodir, versionformat, parent_tag):
     """Automatic detection of version number for checked-out GIT repository."""
     if versionformat is None:
         versionformat = '%ct.%h'
 
-    parent_tag = None
-    if re.match('.*@PARENT_TAG@.*', versionformat):
+    if not parent_tag:
         rc, output = run_cmd(['git', 'describe', '--tags', '--abbrev=0'],
                              repodir)
-        if not rc:
+        if rc == 0:
             # strip to remove newlines
             parent_tag = output.strip()
+    if re.match('.*@PARENT_TAG@.*', versionformat):
+        if parent_tag:
             versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
         else:
             sys.exit("\033[31mNo parent tag present for the checked out "
@@ -440,17 +442,18 @@ def detect_version_git(repodir, versionformat):
                 versionformat = re.sub('@TAG_OFFSET@', tag_offset,
                                        versionformat)
             else:
-                sys.exit(r'@TAG_OFFSET@ can not be expanded')
+                sys.exit("\033[31m@TAG_OFFSET@ can not be expanded: " +
+                         output + "\033[0m")
         else:
             sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
-                     "@PARENT_TAG@ is required.\033[0m")
+                     "as no parent tag was discovered.\033[0m")
 
     version = safe_run(['git', 'log', '-n1', '--date=short',
                         "--pretty=format:%s" % versionformat], repodir)[1]
     return version_iso_cleanup(version)
 
 
-def detect_version_svn(repodir, versionformat):
+def detect_version_svn(repodir, versionformat, _parent_tag):
     """Automatic detection of version number for checked-out SVN repository."""
     if versionformat is None:
         versionformat = '%r'
@@ -464,7 +467,7 @@ def detect_version_svn(repodir, versionformat):
     return re.sub('%r', version, versionformat)
 
 
-def detect_version_hg(repodir, versionformat):
+def detect_version_hg(repodir, versionformat, _parent_tag):
     """Automatic detection of version number for checked-out HG repository."""
     if versionformat is None:
         versionformat = '{rev}'
@@ -502,7 +505,7 @@ def detect_version_hg(repodir, versionformat):
     return version_iso_cleanup(version)
 
 
-def detect_version_bzr(repodir, versionformat):
+def detect_version_bzr(repodir, versionformat, _parent_tag):
     """Automatic detection of version number for checked-out BZR repository."""
     if versionformat is None:
         versionformat = '%r'
@@ -511,7 +514,7 @@ def detect_version_bzr(repodir, versionformat):
     return re.sub('%r', version.strip(), versionformat)
 
 
-def detect_version(scm, repodir, versionformat=None):
+def detect_version(scm, repodir, versionformat=None, parent_tag=None):
     """Automatic detection of version number for checked-out repository."""
     detect_version_commands = {
         'git': detect_version_git,
@@ -520,7 +523,8 @@ def detect_version(scm, repodir, versionformat=None):
         'bzr': detect_version_bzr,
     }
 
-    version = detect_version_commands[scm](repodir, versionformat).strip()
+    version = detect_version_commands[scm](repodir, versionformat,
+                                           parent_tag).strip()
     logging.debug("VERSION(auto): %s", version)
     return version
 
@@ -839,6 +843,8 @@ def parse_args():
                              'specified.')
     parser.add_argument('--versionprefix',
                         help='Specify a base version as prefix.')
+    parser.add_argument('--parent-tag',
+                        help='Override base commit for @TAG_OFFSET@')
     parser.add_argument('--revision',
                         help='Specify revision to package')
     parser.add_argument('--filename',
