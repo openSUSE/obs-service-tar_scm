@@ -428,8 +428,8 @@ def detect_version_git(repodir, versionformat):
             parent_tag = output.strip()
             versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
         else:
-            sys.exit("\033[31mThe git repository has no tags,"
-                     " thus @PARENT_TAG@ cannot be expanded.\033[0m")
+            sys.exit("\033[31mNo parent tag present for the checked out "
+                     "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
 
     if re.match('.*@TAG_OFFSET@.*', versionformat):
         if parent_tag:
