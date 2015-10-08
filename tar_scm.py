@@ -27,6 +27,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 from urlparse import urlparse
 
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
@@ -414,10 +415,36 @@ def get_version(args, clone_dir):
     return version
 
 
+def git_datesub_1(match):
+    """Requesting %ad from git will yield something like
+       "Thu Jun 11 15:48:35 2015 +0200", which is not quite suitable for a
+       version string. (Same for %cd).
+       Change the %ad to %at so as to request the timestamp which we can then
+       format to our liking, and mark it somehow so we can find it later
+       by regex."""
+    tag = match.group(1)
+    if tag == "%ad":
+        return "<ad<%at>>"
+    if tag == "%cd":
+        return "<cd<%ct>>"
+    return tag
+
+
+def git_datesub_2(match):
+    """Transform <tag<value>> to our special date format."""
+    tag = match.group(1)
+    value = match.group(2)
+    if tag == "ad" or tag == "cd":
+        return time.strftime("%Y%m%dT%H%M%S", time.gmtime(float(value)))
+    return ""
+
+
 def detect_version_git(repodir, versionformat):
     """Automatic detection of version number for checked-out GIT repository."""
     if versionformat is None:
         versionformat = '%ct.%h'
+    # Capturing %% too, so that we do not get mislead by instances of "%%cd".
+    versionformat = re.sub(r'(%%|%\w\w?)', git_datesub_1, versionformat)
 
     parent_tag = None
     if re.match('.*@PARENT_TAG@.*', versionformat):
@@ -445,9 +472,9 @@ def detect_version_git(repodir, versionformat):
             sys.exit(r'\e[0;31m@TAG_OFFSET@ can not be expanded, '
                      r'@PARENT_TAG@ is required\e[0m')
 
-    version = safe_run(['git', 'log', '-n1', '--date=short',
+    version = safe_run(['git', 'log', '-n1',
                         "--pretty=format:%s" % versionformat], repodir)[1]
-    return version_iso_cleanup(version)
+    return re.sub(r'<(\w+)<(.*?)>>', git_datesub_2, version)
 
 
 def detect_version_svn(repodir, versionformat):
