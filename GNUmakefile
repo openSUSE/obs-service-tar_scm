@@ -15,7 +15,12 @@ endef
 # will switch to the same at various points.  So until we support
 # Python 3, we need to do our best to ensure we have Python 2.
 PYTHONS = python2.7 python-2.7 python2.6 python-2.6 python
+PYTHON_MAJOR := $(shell python -c "import sys; print sys.version[:1]" 2>/dev/null)
+ifeq ($(PYTHON_MAJOR), 2)
+PYTHON := $(shell which python)
+else
 PYTHON = $(call first_in_path,$(PYTHONS))
+endif
 
 mylibdir = $(PREFIX)/lib/obs/service
 mycfgdir = $(SYSCFG)/obs/services
