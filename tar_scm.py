@@ -893,6 +893,8 @@ def parse_args():
     # basic argument validation
     if not os.path.isdir(args.outdir):
         sys.exit("%s: No such directory" % args.outdir)
+    elif not os.path.isabs(args.outdir):
+        args.outdir = os.path.abspath(args.outdir)
 
     orig_subdir = args.subdir
     args.subdir = os.path.normpath(orig_subdir)
