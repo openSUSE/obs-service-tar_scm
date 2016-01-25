@@ -52,8 +52,12 @@ install: tar_scm
 	mkdir -p $(DESTDIR)$(mylibdir)
 	mkdir -p $(DESTDIR)$(mycfgdir)
 	install -m 0755 tar_scm $(DESTDIR)$(mylibdir)/tar_scm
-	install -m 0644 tar_scm.service $(DESTDIR)$(mylibdir)
 	install -m 0644 tar_scm.rc $(DESTDIR)$(mycfgdir)/tar_scm
+	ln -s tar_scm $(DESTDIR)$(mylibdir)/obs_scm
+	ln -s tar_scm $(DESTDIR)$(mylibdir)/tar
+	install -m 0644 tar.service $(DESTDIR)$(mylibdir)/tar.service
+	sed -e '/^===OBS_ONLY/,/^===/d' -e '/^===/d' tar_scm.service.in > $(DESTDIR)$(mylibdir)/tar_scm.service
+	sed -e '/^===TAR_ONLY/,/^===/d' -e '/^===/d' tar_scm.service.in > $(DESTDIR)$(mylibdir)/obs_scm.service
 
 show-python:
 	@echo "$(PYTHON)"
