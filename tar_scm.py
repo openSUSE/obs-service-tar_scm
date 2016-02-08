@@ -364,7 +364,15 @@ def create_tar(repodir, outdir, dstname, extension='tar',
     cwd = os.getcwd()
     os.chdir(workdir)
 
-    tar = tarfile.open(os.path.join(outdir, dstname + '.' + extension), "w")
+    mode = 'w'
+    if extension == 'tar.gz':
+        mode = 'w:gz'
+    if extension == 'tgz':
+        mode = 'w:gz'
+    if extension == 'bz2':
+        mode = 'w:bz2'
+    
+    tar = tarfile.open(os.path.join(outdir, dstname + '.' + extension), mode)
     try:
         tar.add(topdir, recursive=False, filter=reset)
     except TypeError:
