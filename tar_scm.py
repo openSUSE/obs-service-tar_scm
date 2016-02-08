@@ -371,7 +371,7 @@ def create_tar(repodir, outdir, dstname, extension='tar',
         mode = 'w:gz'
     if extension == 'bz2':
         mode = 'w:bz2'
-    
+
     tar = tarfile.open(os.path.join(outdir, dstname + '.' + extension), mode)
     try:
         tar.add(topdir, recursive=False, filter=reset)
