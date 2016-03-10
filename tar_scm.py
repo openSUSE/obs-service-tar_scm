@@ -295,6 +295,21 @@ def fetch_upstream(scm, url, revision, out_dir, **kwargs):
     return clone_dir
 
 
+def extract_from_archive(repodir, files, outdir):
+    """Extract all files directly outside of the archive.
+    """
+    if files is None:
+        return
+
+    for filename in files:
+        src = os.path.join(repodir, filename)
+        if not os.path.exists(src):
+            sys.exit("%s: No such file or directory" % src)
+
+        if shutil.copy(src, outdir):
+            sys.exit("%s: Failed to copy file" % src)
+
+
 def prep_tree_for_archive(repodir, subdir, outdir, dstname):
     """Prepare directory tree for creation of the archive by copying the
     requested sub-directory to the top-level destination directory.
@@ -330,7 +345,7 @@ def create_cpio(repodir, basename, dstname, version, commit, args):
     os.chdir(workdir)
 
     archivefilename = os.path.join(args.outdir, dstname + '.' + extension)
-    archivefile = open(archivefilename)
+    archivefile = open(archivefilename, "w")
     proc = subprocess.Popen(['cpio', '--create', '--format=newc'],
                             shell=False,
                             stdin=subprocess.PIPE,
@@ -914,6 +929,9 @@ def parse_args():
                         help='Specify a base version as prefix.')
     parser.add_argument('--revision',
                         help='Specify revision to package')
+    parser.add_argument('--extract', action='append',
+                        help='Extract a file directly. Useful for build'
+                             'descriptions')
     parser.add_argument('--filename',
                         help='Name of package - used together with version '
                              'to determine tarball name')
@@ -1076,6 +1094,8 @@ def main():
     tar_dir = prep_tree_for_archive(clone_dir, args.subdir, args.outdir,
                                     dstname=dstname)
     CLEANUP_DIRS.append(tar_dir)
+
+    extract_from_archive(tar_dir, args.extract, args.outdir)
 
     if sys.argv[0].endswith("obs_scm"):
         commit = None
