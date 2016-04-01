@@ -215,7 +215,16 @@ def switch_revision_git(clone_dir, revision):
     revs = [x + revision for x in ['origin/', '']]
     for rev in revs:
         if git_ref_exists(clone_dir, rev):
-            text = safe_run(['git', 'reset', '--hard', rev], cwd=clone_dir)[1]
+            if os.getenv('OSC_VERSION'):
+                stash_text = safe_run(['git', 'stash'], cwd=clone_dir)[1]
+                text = safe_run(['git', 'reset', '--hard', rev],
+                                cwd=clone_dir)[1]
+                if stash_text != "No local changes to save\n":
+                    text += safe_run(['git', 'stash', 'pop'],
+                                     cwd=clone_dir)[1]
+            else:
+                text = safe_run(['git', 'reset', '--hard', rev],
+                                cwd=clone_dir)[1]
             print text.rstrip()
             break
     else:
@@ -1068,10 +1077,18 @@ def main():
         repodir = tempfile.mkdtemp(dir=args.outdir)
         CLEANUP_DIRS.append(repodir)
 
+    # special case when using osc and creating an obscpio, use current work
+    # directory to allow the developer to work inside of the git repo and fetch
+    # local changes
+    if sys.argv[0].endswith("obs_scm") and os.getenv('OSC_VERSION'):
+        repodir = os.getcwd()
+
     if args.scm == "tar":
         basename = clone_dir = read_from_obsinfo(args.obsinfo, "name")
         clone_dir += "-" + read_from_obsinfo(args.obsinfo, "version")
-        os.rename(basename, clone_dir)
+        if not os.path.exists(clone_dir):
+            # not need in case of local osc build
+            os.rename(basename, clone_dir)
     else:
         clone_dir = fetch_upstream(out_dir=repodir, **args.__dict__)
 
@@ -1082,7 +1099,7 @@ def main():
 
     version = get_version(args, clone_dir)
     changesversion = version
-    if version and not sys.argv[0].endswith("obs_scm"):
+    if version and not sys.argv[0].endswith("/tar"):
         dstname += '-' + version
 
     logging.debug("DST: %s", dstname)
