@@ -715,7 +715,7 @@ def write_changes(changes_filename, changes, version, author):
     tmp_fp.write('\n')
     tmp_fp.write("- Update to version %s:\n" % version)
     for line in changes:
-        tmp_fp.write("  + %s\n" % line)
+        tmp_fp.write("  * %s\n" % line)
     tmp_fp.write('\n')
 
     old_fp = open(changes_filename, 'r')

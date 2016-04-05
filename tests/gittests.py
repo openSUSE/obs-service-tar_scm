@@ -272,9 +272,9 @@ class GitTests(GitHgTests):
             expected_author,
             textwrap.dedent("""\
               - Update to version 0.6.%s:
-                \+ 3
-                \+ 4
-                \+ 5
+                \* 3
+                \* 4
+                \* 5
               """) % self.abbrev_sha1s('tag5')
         )
         self._check_changes(orig_changes, expected_changes_regexp)
@@ -298,9 +298,9 @@ class GitTests(GitHgTests):
             expected_author,
             textwrap.dedent("""\
               - Update to version \d{10}.%s:
-                \+ 3
-                \+ 4
-                \+ 5
+                \* 3
+                \* 4
+                \* 5
               """) % self.abbrev_sha1s('tag5')
         )
         self._check_changes(orig_changes, expected_changes_regexp)
@@ -320,7 +320,7 @@ class GitTests(GitHgTests):
             new_changes = f.read()
             self.assertNotEqual(orig_changes, new_changes)
             print new_changes
-            expected_changes_regexp += "(.+)"
+            expected_changes_regexp += "(.*)"
             self.assertRegexpMatches(new_changes, expected_changes_regexp)
             m = re.match(expected_changes_regexp, new_changes, re.DOTALL)
             self.assertEqual(m.group(1), orig_changes)
