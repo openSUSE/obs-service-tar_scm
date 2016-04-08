@@ -1084,6 +1084,13 @@ def main():
         repodir = os.getcwd()
 
     if args.scm == "tar":
+        if args.obsinfo == None:
+            files = glob.glob('*.obsinfo')
+            if len(files) > 0:
+                # or we refactor and loop about all on future
+                args.obsinfo = files[0]
+        if args.obsinfo == None:
+            sys.exit("ERROR: no .obsinfo file found")
         basename = clone_dir = read_from_obsinfo(args.obsinfo, "name")
         clone_dir += "-" + read_from_obsinfo(args.obsinfo, "version")
         if not os.path.exists(clone_dir):

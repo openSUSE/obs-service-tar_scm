@@ -3,7 +3,6 @@
   <description>This service is packaging a directory structure into a tar ball. The directory gets created via the obs_scm service usually. This service reads the .obsinfo file to learn how to create the tar ball.</description>
   <parameter name="obsinfo">
     <description>Specify version to be used in tarball.  Defaults to automatically detected value formatted by versionformat parameter.</description>
-    <required/>
   </parameter>
   <parameter name="version">
     <description>Specify version to be used in tarball.  Defaults to automatically detected value formatted by versionformat parameter.</description>
