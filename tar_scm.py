@@ -346,9 +346,8 @@ def create_cpio(repodir, basename, dstname, version, commit, args):
     """Create an OBS cpio archive of repodir in destination directory.
     """
     (workdir, topdir) = os.path.split(repodir)
-    exclude = args.exclude
-    include = args.include
     extension = 'obscpio'
+    excludes = args.exclude
 
     cwd = os.getcwd()
     os.chdir(workdir)
@@ -358,22 +357,35 @@ def create_cpio(repodir, basename, dstname, version, commit, args):
     proc = subprocess.Popen(['cpio', '--create', '--format=newc'],
                             shell=False,
                             stdin=subprocess.PIPE,
-                            stdout=archivefile,
-                            stderr=subprocess.STDOUT)
+                            stdout=archivefile)
+
+    # transform glob patterns to regular expressions
+    includes = r'|'.join([fnmatch.translate(x) for x in args.include])
+    excludes = r'|'.join([fnmatch.translate(x) for x in excludes]) or r'$.'
 
     # add topdir without filtering for now
     for root, dirs, files in os.walk(topdir, topdown=False):
-        # FIXME: add filtering support
+        # excludes
+        dirs[:] = [os.path.join(root, d) for d in dirs]
+        dirs[:] = [d for d in dirs if not re.match(excludes, d)]
+
+        # exclude/include files
+        files = [os.path.join(root, f) for f in files]
+        files = [f for f in files if not re.match(excludes, f)]
+        files = [f for f in files if re.match(includes, f)]
+
         for name in dirs:
-            proc.stdin.write(os.path.join(root, name))
+            proc.stdin.write(name)
             proc.stdin.write("\n")
         for name in files:
             if not METADATA_PATTERN.match(name):
-                proc.stdin.write(os.path.join(root, name))
+                proc.stdin.write(name)
                 proc.stdin.write("\n")
 
     proc.stdin.close()
     ret_code = proc.wait()
+    if ret_code != 0:
+        sys.exit("creating the cpio archive failed!")
     archivefile.flush()
 
     # write meta data
@@ -1084,12 +1096,12 @@ def main():
         repodir = os.getcwd()
 
     if args.scm == "tar":
-        if args.obsinfo == None:
+        if args.obsinfo is None:
             files = glob.glob('*.obsinfo')
             if len(files) > 0:
                 # or we refactor and loop about all on future
                 args.obsinfo = files[0]
-        if args.obsinfo == None:
+        if args.obsinfo is None:
             sys.exit("ERROR: no .obsinfo file found")
         basename = clone_dir = read_from_obsinfo(args.obsinfo, "name")
         clone_dir += "-" + read_from_obsinfo(args.obsinfo, "version")
