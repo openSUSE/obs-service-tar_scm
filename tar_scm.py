@@ -447,7 +447,7 @@ def detect_version_git(repodir, versionformat):
 
     version = safe_run(['git', 'log', '-n1', '--date=short',
                         "--pretty=format:%s" % versionformat], repodir)[1]
-    return version_iso_cleanup(version)
+    return version_iso_cleanup(version.lstrip("v"))
 
 
 def detect_version_svn(repodir, versionformat):
