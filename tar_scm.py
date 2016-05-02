@@ -472,7 +472,7 @@ CLEANUP_DIRS = []
 
 def cleanup(dirs):
     """Cleaning temporary directories."""
-    logging.info("Cleaning: %s", ' '.join(dirs))
+    logging.debug("Cleaning: %s", ' '.join(dirs))
 
     for d in dirs:
         if not os.path.exists(d):
