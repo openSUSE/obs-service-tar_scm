@@ -331,3 +331,32 @@ class GitTests(GitHgTests):
 
     def test_changesgenerate_new_commit_and_changes_file_default_author(self):
         self._test_changesgenerate_new_commit_and_changes_file()
+
+    def test_changesgenerate_new_commit_and_changes_file_with_subdir(self):
+        self._write_servicedata(2)
+        orig_changes = self._write_changes_file()
+        self.fixtures.create_commits(3)
+        self.fixtures.create_commits(3, subdir='another_subdir')
+
+        tar_scm_args = [
+            '--changesgenerate', 'enable',
+            '--versionformat', '0.6.%h',
+            '--subdir', 'another_subdir',
+            '--changesauthor', self.fixtures.user_email,
+        ]
+
+        self.tar_scm_std(*tar_scm_args)
+
+        self._check_servicedata(revision=8, expected_dirents=3)
+
+        expected_author = self.fixtures.user_email
+        expected_changes_regexp = self._new_change_entry_regexp(
+            expected_author,
+            textwrap.dedent("""\
+              - Update to version 0.6.%s:
+                \+ 6
+                \+ 7
+                \+ 8
+              """) % self.abbrev_sha1s('tag8')
+        )
+        self._check_changes(orig_changes, expected_changes_regexp)

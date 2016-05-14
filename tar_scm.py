@@ -727,33 +727,41 @@ def write_changes(changes_filename, changes, version, author):
     shutil.move(tmp_fp.name, changes_filename)
 
 
-def detect_changes_commands_git(repodir, changes):
+def detect_changes_commands_git(repodir, subdir, changes):
     """Detect changes between GIT revisions."""
     last_rev = changes['revision']
 
     if last_rev is None:
-        last_rev = safe_run(['git', 'log', '-n1', '--pretty=format:%H',
-                             '--skip=10'], cwd=repodir)[1]
-    current_rev = safe_run(['git', 'log', '-n1', '--pretty=format:%H'],
-                           cwd=repodir)[1]
+        last_cmd = ['git', 'log', '-n1', '--pretty=format:%H', '--skip=10']
+        if subdir:
+            last_cmd += ['--', subdir]
+        last_rev = safe_run(last_cmd, cwd=repodir)[1]
+    current_cmd = ['git', 'log', '-n1', '--pretty=format:%H']
+    if subdir:
+        current_cmd += ['--', subdir]
+    current_rev = safe_run(current_cmd, cwd=repodir)[1]
 
     if last_rev == current_rev:
         logging.debug("No new commits, skipping changes file generation")
         return
 
-    logging.debug("Generating changes between %s and %s", last_rev,
-                  current_rev)
+    dbg_msg = "Generating changes between %s and %s" % (last_rev, current_rev)
+    if subdir:
+        dbg_msg += " (for subdir: %s)" % (subdir)
+    logging.debug(dbg_msg)
 
-    lines = safe_run(['git', 'log',
-                      '--reverse', '--no-merges', '--pretty=format:%s',
-                      "%s..%s" % (last_rev, current_rev)], repodir)[1]
+    cmd = ['git', 'log', '--reverse', '--no-merges', '--pretty=format:%s',
+           "%s..%s" % (last_rev, current_rev)]
+    if subdir:
+        cmd += ['--', subdir]
+    lines = safe_run(cmd, repodir)[1]
 
     changes['revision'] = current_rev
     changes['lines'] = lines.split('\n')
     return changes
 
 
-def detect_changes(scm, url, repodir, outdir):
+def detect_changes(scm, url, repodir, outdir, subdir):
     """Detect changes between revisions."""
     changes = read_changes_revision(url, os.getcwd(), outdir)
 
@@ -766,7 +774,7 @@ def detect_changes(scm, url, repodir, outdir):
     if scm not in detect_changes_commands:
         sys.exit("changesgenerate not supported with %s SCM" % scm)
 
-    changes = detect_changes_commands[scm](repodir, changes)
+    changes = detect_changes_commands[scm](repodir, subdir, changes)
     logging.debug("Detected changes:\n%s" % repr(changes))
     return changes
 
@@ -990,7 +998,8 @@ def main():
 
     changes = None
     if args.changesgenerate:
-        changes = detect_changes(args.scm, args.url, clone_dir, args.outdir)
+        changes = detect_changes(args.scm, args.url, clone_dir, args.outdir,
+                                 args.subdir)
 
     tar_dir = prep_tree_for_tar(clone_dir, args.subdir, args.outdir,
                                 dstname=dstname)
