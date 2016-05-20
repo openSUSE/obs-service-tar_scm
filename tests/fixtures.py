@@ -46,7 +46,7 @@ class Fixtures:
         raise NotImplementedError(
             self.__class__.__name__ + " didn't implement init()")
 
-    def create_commits(self, num_commits, wd=None):
+    def create_commits(self, num_commits, wd=None, subdir=None):
         self.scmlogs.annotate("Creating %d commits ..." % num_commits)
         if num_commits == 0:
             return
@@ -57,7 +57,7 @@ class Fixtures:
         os.chdir(wd)
 
         for i in xrange(0, num_commits):
-            new_rev = self.create_commit(wd)
+            new_rev = self.create_commit(wd, subdir=subdir)
         self.record_rev(wd, new_rev)
 
         self.scmlogs.annotate("Created %d commits; now at %s" %
@@ -71,9 +71,9 @@ class Fixtures:
         self._next_commit_revs[wd] += 1
         return new_rev
 
-    def create_commit(self, wd):
+    def create_commit(self, wd, subdir=None):
         new_rev = self.next_commit_rev(wd)
-        newly_created = self.prep_commit(new_rev)
+        newly_created = self.prep_commit(new_rev, subdir=subdir)
         self.do_commit(wd, new_rev, newly_created)
         return new_rev
 
@@ -81,23 +81,25 @@ class Fixtures:
         self.safe_run('add .')
         self.safe_run('commit -m%d' % new_rev)
 
-    def prep_commit(self, new_rev):
+    def prep_commit(self, new_rev, subdir=None):
         """
         Caller should ensure correct cwd.
         Returns list of newly created files.
         """
+        if not subdir:
+            subdir = self.subdir
         self.scmlogs.annotate("cwd is %s" % os.getcwd())
         newly_created = []
 
         if not os.path.exists('a'):
             newly_created.append('a')
 
-        if not os.path.exists(self.subdir):
-            os.mkdir(self.subdir)
+        if not os.path.exists(subdir):
+            os.mkdir(subdir)
             # This will take care of adding subdir/b too
-            newly_created.append(self.subdir)
+            newly_created.append(subdir)
 
-        for fn in ('a', self.subdir + '/b'):
+        for fn in ('a', subdir + '/b'):
             f = open(fn, 'w')
             f.write(str(new_rev))
             f.close()
