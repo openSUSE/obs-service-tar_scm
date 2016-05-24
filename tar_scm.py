@@ -312,10 +312,64 @@ def prep_tree_for_tar(repodir, subdir, outdir, dstname):
 # skip vcs files base on this pattern
 METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn).*')
 
-
-def create_tar(repodir, outdir, dstname, extension='tar',
-               exclude=[], include=[], package_metadata=False):
+def _process_repodir_create_tar(repodir, outdir, dstname, exclude_filter_func,
+                                extension='tar', incl_patterns=[],
+                                excl_patterns=[]):
     """Create a tarball of repodir in destination directory."""
+    (workdir, topdir) = os.path.split(repodir)
+
+    def reset(tarinfo):
+        """Python 2.7 only: reset uid/gid to 0/0 (root)."""
+        tarinfo.uid = tarinfo.gid = 0
+        tarinfo.uname = tarinfo.gname = "root"
+        return tarinfo
+
+    def tar_filter(tarinfo):
+        if exclude_filter_func(tarinfo.name):
+            return None
+
+        return reset(tarinfo)
+
+    cwd = os.getcwd()
+    os.chdir(workdir)
+
+    # create the usual tarfile
+    tar = tarfile.open(os.path.join(outdir, dstname + '.' + extension), "w")
+    try:
+        tar.add(topdir, recursive=False, filter=reset)
+    except TypeError:
+        # Python 2.6 compatibility
+        tar.add(topdir, recursive=False)
+    for entry in map(lambda x: os.path.join(topdir, x), os.listdir(topdir)):
+        try:
+            tar.add(entry, filter=tar_filter)
+        except TypeError:
+            # Python 2.6 compatibility
+            tar.add(entry, exclude=exclude_filter_func)
+    tar.close()
+
+    os.chdir(cwd)
+
+
+def _process_repodir_copy_files(repodir, exclude_filter_func,
+                                incl_patterns=[], excl_patterns=[]):
+    """Just copy files from repodir to destination directory."""
+    (workdir, topdir) = os.path.split(repodir)
+
+    cwd = os.getcwd()
+    os.chdir(workdir)
+
+    for entry in map(lambda x: os.path.join(topdir, x), os.listdir(topdir)):
+        if not exclude_filter_func(entry):
+            shutil.copy(entry, '.')
+
+    os.chdir(cwd)
+
+
+def process_repodir(repodir, outdir, dstname, extension='tar',
+                    exclude=[], include=[], package_metadata=False):
+    """ create a tarball if an 'extension' is given, otherwise copy
+    the files (respecting "include" and "exclude" from repodir"""
     (workdir, topdir) = os.path.split(repodir)
 
     incl_patterns = []
@@ -333,7 +387,7 @@ def create_tar(repodir, outdir, dstname, extension='tar',
         pat = fnmatch.translate(os.path.join(topdir, e))
         excl_patterns.append(re.compile(pat))
 
-    def tar_exclude(filename):
+    def exclude_filter_func(filename):
         """Exclude (return True) or add (return False) file to tar achive."""
         if not package_metadata and METADATA_PATTERN.match(filename):
             return True
@@ -349,36 +403,18 @@ def create_tar(repodir, outdir, dstname, extension='tar',
                 return True
         return False
 
-    def reset(tarinfo):
-        """Python 2.7 only: reset uid/gid to 0/0 (root)."""
-        tarinfo.uid = tarinfo.gid = 0
-        tarinfo.uname = tarinfo.gname = "root"
-        return tarinfo
-
-    def tar_filter(tarinfo):
-        if tar_exclude(tarinfo.name):
-            return None
-
-        return reset(tarinfo)
-
-    cwd = os.getcwd()
-    os.chdir(workdir)
-
-    tar = tarfile.open(os.path.join(outdir, dstname + '.' + extension), "w")
-    try:
-        tar.add(topdir, recursive=False, filter=reset)
-    except TypeError:
-        # Python 2.6 compatibility
-        tar.add(topdir, recursive=False)
-    for entry in map(lambda x: os.path.join(topdir, x), os.listdir(topdir)):
-        try:
-            tar.add(entry, filter=tar_filter)
-        except TypeError:
-            # Python 2.6 compatibility
-            tar.add(entry, exclude=tar_exclude)
-    tar.close()
-
-    os.chdir(cwd)
+    # process
+    if extension:
+        # create a tarball
+        _process_repodir_create_tar(repodir, outdir, dstname,
+                                    exclude_filter_func, extension=extension,
+                                    incl_patterns=incl_patterns,
+                                    excl_patterns=excl_patterns)
+    else:
+        # copy files
+        _process_repodir_copy_files(repodir, exclude_filter_func,
+                                    incl_patterns=incl_patterns,
+                                    excl_patterns=excl_patterns)
 
 
 CLEANUP_DIRS = []
@@ -1005,10 +1041,10 @@ def main():
                                 dstname=dstname)
     CLEANUP_DIRS.append(tar_dir)
 
-    create_tar(tar_dir, args.outdir,
-               dstname=dstname, extension=args.extension,
-               exclude=args.exclude, include=args.include,
-               package_metadata=args.package_meta)
+    process_repodir(tar_dir, args.outdir,
+                    dstname=dstname, extension=args.extension,
+                    exclude=args.exclude, include=args.include,
+                    package_metadata=args.package_meta)
 
     if changes:
         changesauthor = get_changesauthor(args)
