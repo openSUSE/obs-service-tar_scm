@@ -212,9 +212,11 @@ def switch_revision_git(clone_dir, revision):
     if revision is None:
         revision = 'master'
 
+    found_revision = None
     revs = [x + revision for x in ['origin/', '']]
     for rev in revs:
         if git_ref_exists(clone_dir, rev):
+            found_revision = True
             if os.getenv('OSC_VERSION'):
                 stash_text = safe_run(['git', 'stash'], cwd=clone_dir)[1]
                 text = safe_run(['git', 'reset', '--hard', rev],
@@ -227,7 +229,8 @@ def switch_revision_git(clone_dir, revision):
                                 cwd=clone_dir)[1]
             print text.rstrip()
             break
-    else:
+
+    if found_revision == None:
         sys.exit('%s: No such revision' % revision)
 
     # only update submodules if they have been enabled
