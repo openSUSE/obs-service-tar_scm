@@ -105,7 +105,7 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
 def fetch_upstream_git_submodules(clone_dir, kwargs):
     """Recursively initialize git submodules."""
     if 'submodules' in kwargs and kwargs['submodules']:
-        safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
+        safe_run(['git', 'submodule', 'update', '--init', '--recursive', '--remote'],
                  cwd=clone_dir)
 
 
@@ -219,7 +219,7 @@ def switch_revision_git(clone_dir, revision):
     # only update submodules if they have been enabled
     if os.path.exists(
             os.path.join(clone_dir, os.path.join('.git', 'modules'))):
-        safe_run(['git', 'submodule', 'update', '--recursive'], cwd=clone_dir)
+        safe_run(['git', 'submodule', 'update', '--recursive', '--remote'], cwd=clone_dir)
 
 
 def switch_revision_hg(clone_dir, revision):
