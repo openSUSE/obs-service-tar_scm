@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
-import datetime
+from datetime import datetime
+import time
 
 from githgtests import GitHgTests
 from hgfixtures import HgFixtures
@@ -41,12 +42,25 @@ class HgTests(GitHgTests):
         version = "%s%s" % self.timestamps(self.rev(rev))
         return version.replace('-', '')
 
+    def current_utc_offset(self):
+        now = time.time()
+        offset = (datetime.fromtimestamp(now) -
+                  datetime.utcfromtimestamp(now))
+        # since total_seconds() isn't available in python 2.6 ...
+        return ((((offset.days * 24 * 3600) + offset.seconds) * 10 ** 6) +
+                offset.microseconds + 0.0) / 10 ** 6
+
     def dateYYYYMMDD(self, rev):
-        dateobj = datetime.date.fromtimestamp(self.timestamps(rev)[0])
+        # mercurial has a bug in the localdate filter that makes it apply
+        # the current offset from UTC to historic timestamps for timezones
+        # that have daylight savings enabled
+        dateobj = datetime.utcfromtimestamp(self.timestamps(rev)[0] +
+                                            self.current_utc_offset())
         return dateobj.strftime("%4Y%02m%02d")
 
     def dateYYYYMMDDHHMMSS(self, rev):
-        dateobj = datetime.datetime.fromtimestamp(self.timestamps(rev)[0])
+        dateobj = datetime.utcfromtimestamp(self.timestamps(rev)[0] +
+                                            self.current_utc_offset())
         return dateobj.strftime("%4Y%02m%02dT%02H%02M%02S")
 
     def test_fetch_upstream(self):
