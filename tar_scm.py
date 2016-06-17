@@ -817,6 +817,63 @@ def detect_changes_commands_git(repodir, subdir, changes):
     return changes
 
 
+def detect_changes_commands_svn(repodir, subdir, changes):
+    """Detect changes between GIT revisions."""
+    last_rev = changes['revision']
+    first_run = False
+    if subdir:
+        repodir = os.path.join(repodir, subdir)
+
+    if last_rev is None:
+        last_rev = get_svn_rev(repodir, 10)
+        logging.debug("First run get log for initial release")
+        first_run = True
+
+    current_rev = get_svn_rev(repodir, 1)
+
+    if last_rev == current_rev:
+        logging.debug("No new commits, skipping changes file generation")
+        return
+
+    if not first_run:
+        # Increase last_rev by 1 so we dont get duplication of log messages
+        last_rev = int(last_rev) + 1
+
+    logging.debug("Generating changes between %s and %s", last_rev,
+                  current_rev)
+    lines = get_svn_log(repodir, last_rev, current_rev)
+
+    changes['revision'] = current_rev
+    changes['lines'] = lines
+    return changes
+
+
+def get_svn_log(repodir, revision1, revision2):
+    new_lines = []
+
+    xml_lines = safe_run(['svn', 'log', '-r%s:%s' % (revision1,
+                         revision2), '--xml'], repodir)[1]
+    lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
+
+    for line in lines:
+        line = line.replace("<msg>", "").replace("</msg>", "")
+        new_lines = new_lines + line.split("\n")
+
+    return new_lines
+
+
+def get_svn_rev(repodir, num_commits):
+    revisions = safe_run(['svn', 'log', '-l%d' % num_commits, '-q',
+                         '--incremental'], cwd=repodir)[1].split('\n')
+    # remove blank entry on end
+    revisions.pop()
+    # return last entry
+    revision = revisions[-1]
+    # retrieve the revision number and remove r
+    revision = re.search(r'^r[0-9]*', revision, re.M).group().replace("r", "")
+    return revision
+
+
 def detect_changes(scm, url, repodir, outdir, subdir):
     """Detect changes between revisions."""
     changes = read_changes_revision(url, os.getcwd(), outdir)
@@ -825,6 +882,7 @@ def detect_changes(scm, url, repodir, outdir, subdir):
 
     detect_changes_commands = {
         'git': detect_changes_commands_git,
+        'svn': detect_changes_commands_svn,
     }
 
     if scm not in detect_changes_commands:
