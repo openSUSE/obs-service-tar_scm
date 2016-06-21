@@ -3,6 +3,7 @@
 import os
 from pprint import pprint, pformat
 import re
+import sys
 import tarfile
 import unittest
 
@@ -65,16 +66,29 @@ class TestAssertions(unittest.TestCase):
         self.assertEqual(expected, got, msg)
         return th, tarents
 
+    def assertDirentsMtime(self, entries):
+        '''This test is disabled on Python 2.6 because tarfile is not able to
+        directly change the mtime for an entry in the tarball.'''
+        if sys.hexversion < 0x02070000:
+            return
+        for i in range(0, len(entries)):
+            self.assertEqual(entries[i].mtime, 1234567890)
+
+    def assertDirents(self, entries, top):
+        self.assertEqual(entries[0].name, top)
+        self.assertEqual(entries[1].name, top + '/a')
+        self.assertEqual(entries[2].name, top + '/c')
+        self.assertDirentsMtime(entries)
+
     def assertSubdirDirents(self, entries, top):
         self.assertEqual(entries[0].name, top)
         self.assertEqual(entries[1].name, top + '/b')
+        self.assertDirentsMtime(entries)
 
     def assertStandardTar(self, tar, top):
         th, entries = self.assertNumTarEnts(tar, 5)
         entries.sort(lambda x, y: cmp(x.name, y.name))
-        self.assertEqual(entries[0].name, top)
-        self.assertEqual(entries[1].name, top + '/a')
-        self.assertEqual(entries[2].name, top + '/c')
+        self.assertDirents(entries[:3], top)
         self.assertSubdirDirents(entries[3:], top + '/subdir')
         return th
 

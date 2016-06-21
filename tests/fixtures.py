@@ -17,6 +17,9 @@ class Fixtures:
     subdir2 = 'subdir2'
     _next_commit_revs = {}
 
+    # the timestamp (in seconds since epoch ) that should be used for commits
+    COMMITTER_DATE = int(1234567890)
+
     def __init__(self, container_dir, scmlogs):
         self.container_dir = container_dir
         self.scmlogs       = scmlogs
@@ -79,7 +82,11 @@ class Fixtures:
 
     def do_commit(self, wd, new_rev, newly_created):
         self.safe_run('add .')
-        self.safe_run('commit -m%d' % new_rev)
+        date = self.get_committer_date()
+        self.safe_run('commit -m%d %s' % (new_rev, date))
+
+    def get_committer_date(self):
+        return '--date="%s"' % str(self.COMMITTER_DATE)
 
     def prep_commit(self, new_rev, subdir=None):
         """

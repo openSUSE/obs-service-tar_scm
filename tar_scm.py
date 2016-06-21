@@ -27,6 +27,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import dateutil.parser
 from urlparse import urlparse
 
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
@@ -314,7 +315,7 @@ METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn).*')
 
 
 def create_tar(repodir, outdir, dstname, extension='tar',
-               exclude=[], include=[], package_metadata=False):
+               exclude=[], include=[], package_metadata=False, timestamp=0):
     """Create a tarball of repodir in destination directory."""
     (workdir, topdir) = os.path.split(repodir)
 
@@ -353,6 +354,7 @@ def create_tar(repodir, outdir, dstname, extension='tar',
         """Python 2.7 only: reset uid/gid to 0/0 (root)."""
         tarinfo.uid = tarinfo.gid = 0
         tarinfo.uname = tarinfo.gname = "root"
+        tarinfo.mtime = timestamp
         return tarinfo
 
     def tar_filter(tarinfo):
@@ -527,6 +529,51 @@ def detect_version(scm, repodir, versionformat=None, parent_tag=None):
                                            parent_tag).strip()
     logging.debug("VERSION(auto): %s", version)
     return version
+
+
+def get_timestamp_bzr(repodir):
+    log = safe_run(['bzr', 'log', '--limit=1', '--log-format=long'],
+                   repodir)[1]
+    match = re.search(r'timestamp:(.*)', log, re.MULTILINE)
+    if not match:
+        return 0
+    timestamp = dateutil.parser.parse(match.group(1).strip()).strftime("%s")
+    return int(timestamp)
+
+
+def get_timestamp_hg(repodir):
+    timestamp = detect_version_hg(repodir, versionformat="{date}")
+    timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
+    return int(timestamp)
+
+
+def get_timestamp_svn(repodir):
+    svn_info = safe_run(['svn', 'info', '-rHEAD'], repodir)[1]
+
+    match = re.search('Last Changed Date: (.*)', svn_info, re.MULTILINE)
+    if not match:
+        return 0
+
+    timestamp = match.group(1).strip()
+    timestamp = re.sub('\(.*\)', '', timestamp)
+    timestamp = dateutil.parser.parse(timestamp).strftime("%s")
+    return int(timestamp)
+
+
+def get_timestamp(args, clone_dir):
+    """Returns the commit timestamp for checked-out repository."""
+    get_timestamp_commands = {
+        'git': lambda x: int(detect_version_git(x, versionformat="%ct")),
+        'svn': get_timestamp_svn,
+        'hg':  get_timestamp_hg,
+        'bzr': get_timestamp_bzr
+    }
+
+    timestamp = get_timestamp_commands[args.scm](clone_dir)
+    logging.debug("COMMIT TIMESTAMP: %s (%s)", timestamp,
+                  datetime.datetime.fromtimestamp(timestamp).strftime(
+                      '%Y-%m-%d %H:%M:%S'))
+    return timestamp
 
 
 def get_repocache_hash(scm, url, subdir):
@@ -1014,7 +1061,8 @@ def main():
     create_tar(tar_dir, args.outdir,
                dstname=dstname, extension=args.extension,
                exclude=args.exclude, include=args.include,
-               package_metadata=args.package_meta)
+               package_metadata=args.package_meta,
+               timestamp=get_timestamp(args, clone_dir))
 
     if changes:
         changesauthor = get_changesauthor(args)
