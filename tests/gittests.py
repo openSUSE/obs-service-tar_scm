@@ -66,6 +66,15 @@ class GitTests(GitHgTests):
 
     # N.B. --versionformat gets tested thoroughly in githgtests.py
 
+    def test_parent_tag(self):
+        f = self.fixtures
+        f.create_commits(1)
+        base = f.get_metadata("%H")
+        f.create_commits(3)
+        self.tar_scm_std("--parent-tag", base,
+                         "--versionformat", "@TAG_OFFSET@")
+        self.assertTarOnly(self.basename(version="3"))
+
     def test_versionformat_parenttag(self):
         # the .1 to catch newlines at the end of PARENT_TAG
         self.tar_scm_std('--versionformat', "@PARENT_TAG@.1")
