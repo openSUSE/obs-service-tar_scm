@@ -541,8 +541,13 @@ def get_timestamp_bzr(repodir):
     return int(timestamp)
 
 
+def get_timestamp_git(repodir):
+    timestamp = detect_version_git(repodir, "%ct", None)
+    return int(timestamp)
+
+
 def get_timestamp_hg(repodir):
-    timestamp = detect_version_hg(repodir, versionformat="{date}")
+    timestamp = detect_version_hg(repodir, "{date}", None)
     timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
     return int(timestamp)
 
@@ -563,7 +568,7 @@ def get_timestamp_svn(repodir):
 def get_timestamp(args, clone_dir):
     """Returns the commit timestamp for checked-out repository."""
     get_timestamp_commands = {
-        'git': lambda x: int(detect_version_git(x, versionformat="%ct")),
+        'git': get_timestamp_git,
         'svn': get_timestamp_svn,
         'hg':  get_timestamp_hg,
         'bzr': get_timestamp_bzr
