@@ -20,6 +20,8 @@ class SvnFixtures(Fixtures):
 
     def init(self):
         self.wd_path = self.container_dir + '/wd'
+        self.user_name  = 'test'
+        self.user_email = 'test@test.com'
 
         self.create_repo()
         self.checkout_repo()
