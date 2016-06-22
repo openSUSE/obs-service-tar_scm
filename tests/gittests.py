@@ -369,3 +369,21 @@ class GitTests(GitHgTests):
               """) % self.abbrev_sha1s('tag8')
         )
         self._check_changes(orig_changes, expected_changes_regexp)
+
+    def test_updatecache_has_tag(self):
+        fix = self.fixtures
+        fix.create_commits(2)
+        self.tar_scm_std("--revision", 'tag2',
+                         "--versionformat", "@PARENT_TAG@")
+        self.assertTarOnly(self.basename(version="tag2"))
+
+        self.scmlogs.next('prepare-branch')
+        repo_path = fix.repo_path
+        os.chdir(repo_path)
+        fix.safe_run('checkout tag2')
+        fix.create_commits(3)
+        fix.safe_run('tag -a -m some_message detached_tag')
+
+        self.tar_scm_std("--revision", 'detached_tag',
+                         "--versionformat", "@PARENT_TAG@")
+        self.assertTarOnly(self.basename(version="detached_tag"))
