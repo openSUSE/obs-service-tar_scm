@@ -28,6 +28,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import yaml
 from urlparse import urlparse
 
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
@@ -1066,6 +1067,33 @@ def main():
     if sys.argv[0].endswith("tar"):
         args.scm = "tar"
 
+    use_obs_scm = None
+    if sys.argv[0].endswith("obs_scm"):
+        use_obs_scm = True
+
+    if sys.argv[0].endswith("snapcraft"):
+        use_obs_scm = True
+        # we read the SCM config from snapcraft.yaml instead from _service file
+        f = open('snapcraft.yaml')
+        dataMap = yaml.safe_load(f)
+        f.close()
+        # we support only the first part atm
+        part = dataMap['parts'].keys()[0];
+        args.filename = part
+        args.url = dataMap['parts'][part]['source']
+        dataMap['parts'][part]['source'] = part
+        if 'source-type' in dataMap['parts'][part]:
+          args.scm = dataMap['parts'][part]['source-type']
+          del dataMap['parts'][part]['source-type']
+	else:
+          args.scm = "git"
+
+        # write the new snapcraft.yaml file
+        # we prefix our own here to be sure to not overwrite user files, if he
+        # is using us in "disabled" mode
+        with open(args.outdir+'/_service:snapcraft:snapcraft.yml', 'w') as outfile:
+           outfile.write( yaml.dump(dataMap, default_flow_style=False) )
+
     FORMAT = "%(message)s"
     logging.basicConfig(format=FORMAT, stream=sys.stderr, level=logging.INFO)
     if args.verbose:
@@ -1095,7 +1123,7 @@ def main():
     # special case when using osc and creating an obscpio, use current work
     # directory to allow the developer to work inside of the git repo and fetch
     # local changes
-    if sys.argv[0].endswith("obs_scm") and os.getenv('OSC_VERSION'):
+    if sys.argv[0].endswith("snapcraft") or (use_obs_scm and os.getenv('OSC_VERSION')):
         repodir = os.getcwd()
 
     if args.scm == "tar":
@@ -1121,7 +1149,7 @@ def main():
 
     version = get_version(args, clone_dir)
     changesversion = version
-    if version and not sys.argv[0].endswith("/tar"):
+    if version and not sys.argv[0].endswith("/tar") and not sys.argv[0].endswith("/snapcraft"):
         dstname += '-' + version
 
     logging.debug("DST: %s", dstname)
@@ -1136,7 +1164,7 @@ def main():
 
     extract_from_archive(tar_dir, args.extract, args.outdir)
 
-    if sys.argv[0].endswith("obs_scm"):
+    if use_obs_scm:
         commit = None
         if args.scm == "git":
             commit = safe_run(['git', 'rev-parse', 'HEAD'], clone_dir)[1]
