@@ -29,6 +29,7 @@ import sys
 import tarfile
 import tempfile
 import yaml
+import dateutil.parser
 from urlparse import urlparse
 
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
@@ -405,7 +406,7 @@ def create_cpio(repodir, basename, dstname, version, commit, args):
 
 
 def create_tar(repodir, outdir, dstname, extension='tar',
-               exclude=[], include=[], package_metadata=False):
+               exclude=[], include=[], package_metadata=False, timestamp=0):
     """Create a tarball of repodir in destination directory."""
     (workdir, topdir) = os.path.split(repodir)
 
@@ -443,6 +444,7 @@ def create_tar(repodir, outdir, dstname, extension='tar',
         """Python 2.7 only: reset uid/gid to 0/0 (root)."""
         tarinfo.uid = tarinfo.gid = 0
         tarinfo.uname = tarinfo.gname = "root"
+        tarinfo.mtime = timestamp
         return tarinfo
 
     def tar_filter(tarinfo):
@@ -522,17 +524,19 @@ def detect_version_tar(args, repodir):
 
 def detect_version_git(args, repodir):
     """Automatic detection of version number for checked-out GIT repository."""
+    parent_tag = args.parent_tag
     versionformat = args.versionformat
     if versionformat is None:
         versionformat = '%ct.%h'
 
-    parent_tag = None
-    if re.match('.*@PARENT_TAG@.*', versionformat):
+    if not parent_tag:
         rc, output = run_cmd(['git', 'describe', '--tags', '--abbrev=0'],
                              repodir)
-        if not rc:
+        if rc == 0:
             # strip to remove newlines
             parent_tag = output.strip()
+    if re.match('.*@PARENT_TAG@.*', versionformat):
+        if parent_tag:
             versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
         else:
             sys.exit("\033[31mNo parent tag present for the checked out "
@@ -547,10 +551,11 @@ def detect_version_git(args, repodir):
                 versionformat = re.sub('@TAG_OFFSET@', tag_offset,
                                        versionformat)
             else:
-                sys.exit(r'@TAG_OFFSET@ can not be expanded')
+                sys.exit("\033[31m@TAG_OFFSET@ can not be expanded: " +
+                         output + "\033[0m")
         else:
             sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
-                     "@PARENT_TAG@ is required.\033[0m")
+                     "as no parent tag was discovered.\033[0m")
 
     version = safe_run(['git', 'log', '-n1', '--date=short',
                         "--pretty=format:%s" % versionformat], repodir)[1]
@@ -559,6 +564,7 @@ def detect_version_git(args, repodir):
 
 def detect_version_svn(args, repodir):
     """Automatic detection of version number for checked-out SVN repository."""
+    parent_tag = args.parent_tag
     versionformat = args.versionformat
     if versionformat is None:
         versionformat = '%r'
@@ -574,6 +580,7 @@ def detect_version_svn(args, repodir):
 
 def detect_version_hg(args, repodir):
     """Automatic detection of version number for checked-out HG repository."""
+    parent_tag = args.parent_tag
     versionformat = args.versionformat
     if versionformat is None:
         versionformat = '{rev}'
@@ -613,6 +620,7 @@ def detect_version_hg(args, repodir):
 
 def detect_version_bzr(args, repodir):
     """Automatic detection of version number for checked-out BZR repository."""
+    parent_tag = args.parent_tag
     versionformat = args.versionformat
     if versionformat is None:
         versionformat = '%r'
@@ -634,6 +642,56 @@ def detect_version(args, repodir):
     version = detect_version_commands[args.scm](args, repodir).strip()
     logging.debug("VERSION(auto): %s", version)
     return version
+
+
+def get_timestamp_bzr(repodir):
+    log = safe_run(['bzr', 'log', '--limit=1', '--log-format=long'],
+                   repodir)[1]
+    match = re.search(r'timestamp:(.*)', log, re.MULTILINE)
+    if not match:
+        return 0
+    timestamp = dateutil.parser.parse(match.group(1).strip()).strftime("%s")
+    return int(timestamp)
+
+
+def get_timestamp_git(repodir):
+    timestamp = detect_version_git(repodir, "%ct", None)
+    return int(timestamp)
+
+
+def get_timestamp_hg(repodir):
+    timestamp = detect_version_hg(repodir, "{date}", None)
+    timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
+    return int(timestamp)
+
+
+def get_timestamp_svn(repodir):
+    svn_info = safe_run(['svn', 'info', '-rHEAD'], repodir)[1]
+
+    match = re.search('Last Changed Date: (.*)', svn_info, re.MULTILINE)
+    if not match:
+        return 0
+
+    timestamp = match.group(1).strip()
+    timestamp = re.sub('\(.*\)', '', timestamp)
+    timestamp = dateutil.parser.parse(timestamp).strftime("%s")
+    return int(timestamp)
+
+
+def get_timestamp(args, clone_dir):
+    """Returns the commit timestamp for checked-out repository."""
+    get_timestamp_commands = {
+        'git': get_timestamp_git,
+        'svn': get_timestamp_svn,
+        'hg':  get_timestamp_hg,
+        'bzr': get_timestamp_bzr
+    }
+
+    timestamp = get_timestamp_commands[args.scm](clone_dir)
+    logging.debug("COMMIT TIMESTAMP: %s (%s)", timestamp,
+                  datetime.datetime.fromtimestamp(timestamp).strftime(
+                      '%Y-%m-%d %H:%M:%S'))
+    return timestamp
 
 
 def get_repocache_hash(scm, url, subdir):
@@ -838,33 +896,98 @@ def write_changes(changes_filename, changes, version, author):
     shutil.move(tmp_fp.name, changes_filename)
 
 
-def detect_changes_commands_git(repodir, changes):
+def _git_log_cmd(cmd_args, repodir, subdir):
+    """ Helper function to call 'git log' with args"""
+    cmd = ['git', 'log'] + cmd_args
+    if subdir:
+        cmd += ['--', subdir]
+    return safe_run(cmd, cwd=repodir)[1]
+
+
+def detect_changes_commands_git(repodir, subdir, changes):
     """Detect changes between GIT revisions."""
     last_rev = changes['revision']
 
     if last_rev is None:
-        last_rev = safe_run(['git', 'log', '-n1', '--pretty=format:%H',
-                             '--skip=10'], cwd=repodir)[1]
-    current_rev = safe_run(['git', 'log', '-n1', '--pretty=format:%H'],
-                           cwd=repodir)[1]
+        last_rev = _git_log_cmd(['-n1', '--pretty=format:%H', '--skip=10'],
+                                repodir, subdir)
+    current_rev = _git_log_cmd(['-n1', '--pretty=format:%H'], repodir, subdir)
 
     if last_rev == current_rev:
         logging.debug("No new commits, skipping changes file generation")
         return
 
-    logging.debug("Generating changes between %s and %s", last_rev,
-                  current_rev)
+    dbg_msg = "Generating changes between %s and %s" % (last_rev, current_rev)
+    if subdir:
+        dbg_msg += " (for subdir: %s)" % (subdir)
+    logging.debug(dbg_msg)
 
-    lines = safe_run(['git', 'log',
-                      '--reverse', '--no-merges', '--pretty=format:%s',
-                      "%s..%s" % (last_rev, current_rev)], repodir)[1]
+    lines = _git_log_cmd(['--reverse', '--no-merges', '--pretty=format:%s',
+                          "%s..%s" % (last_rev, current_rev)], repodir, subdir)
 
     changes['revision'] = current_rev
     changes['lines'] = lines.split('\n')
     return changes
 
 
-def detect_changes(scm, url, repodir, outdir):
+def detect_changes_commands_svn(repodir, subdir, changes):
+    """Detect changes between GIT revisions."""
+    last_rev = changes['revision']
+    first_run = False
+    if subdir:
+        repodir = os.path.join(repodir, subdir)
+
+    if last_rev is None:
+        last_rev = get_svn_rev(repodir, 10)
+        logging.debug("First run get log for initial release")
+        first_run = True
+
+    current_rev = get_svn_rev(repodir, 1)
+
+    if last_rev == current_rev:
+        logging.debug("No new commits, skipping changes file generation")
+        return
+
+    if not first_run:
+        # Increase last_rev by 1 so we dont get duplication of log messages
+        last_rev = int(last_rev) + 1
+
+    logging.debug("Generating changes between %s and %s", last_rev,
+                  current_rev)
+    lines = get_svn_log(repodir, last_rev, current_rev)
+
+    changes['revision'] = current_rev
+    changes['lines'] = lines
+    return changes
+
+
+def get_svn_log(repodir, revision1, revision2):
+    new_lines = []
+
+    xml_lines = safe_run(['svn', 'log', '-r%s:%s' % (revision1,
+                         revision2), '--xml'], repodir)[1]
+    lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
+
+    for line in lines:
+        line = line.replace("<msg>", "").replace("</msg>", "")
+        new_lines = new_lines + line.split("\n")
+
+    return new_lines
+
+
+def get_svn_rev(repodir, num_commits):
+    revisions = safe_run(['svn', 'log', '-l%d' % num_commits, '-q',
+                         '--incremental'], cwd=repodir)[1].split('\n')
+    # remove blank entry on end
+    revisions.pop()
+    # return last entry
+    revision = revisions[-1]
+    # retrieve the revision number and remove r
+    revision = re.search(r'^r[0-9]*', revision, re.M).group().replace("r", "")
+    return revision
+
+
+def detect_changes(scm, url, repodir, outdir, subdir):
     """Detect changes between revisions."""
     changes = read_changes_revision(url, os.getcwd(), outdir)
 
@@ -872,12 +995,13 @@ def detect_changes(scm, url, repodir, outdir):
 
     detect_changes_commands = {
         'git': detect_changes_commands_git,
+        'svn': detect_changes_commands_svn,
     }
 
     if scm not in detect_changes_commands:
         sys.exit("changesgenerate not supported with %s SCM" % scm)
 
-    changes = detect_changes_commands[scm](repodir, changes)
+    changes = detect_changes_commands[scm](repodir, subdir, changes)
     logging.debug("Detected changes:\n%s" % repr(changes))
     return changes
 
@@ -952,6 +1076,8 @@ def parse_args():
                              'specified.')
     parser.add_argument('--versionprefix',
                         help='Specify a base version as prefix.')
+    parser.add_argument('--parent-tag',
+                        help='Override base commit for @TAG_OFFSET@')
     parser.add_argument('--revision',
                         help='Specify revision to package')
     parser.add_argument('--extract', action='append',
@@ -1156,7 +1282,8 @@ def main():
 
     changes = None
     if args.changesgenerate:
-        changes = detect_changes(args.scm, args.url, clone_dir, args.outdir)
+        changes = detect_changes(args.scm, args.url, clone_dir, args.outdir,
+                                 args.subdir)
 
     tar_dir = prep_tree_for_archive(clone_dir, args.subdir, args.outdir,
                                     dstname=dstname)
@@ -1173,7 +1300,8 @@ def main():
         create_tar(tar_dir, args.outdir,
                    dstname=dstname, extension=args.extension,
                    exclude=args.exclude, include=args.include,
-                   package_metadata=args.package_meta)
+                   package_metadata=args.package_meta,
+                   timestamp=get_timestamp(args, clone_dir))
 
     if changes:
         changesauthor = get_changesauthor(args)

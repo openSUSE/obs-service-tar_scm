@@ -36,3 +36,8 @@ class BzrTests(CommonTests):
         basename = self.basename(version='foo2')
         th = self.assertTarOnly(basename)
         self.assertTarMemberContains(th, basename + '/a', '2')
+
+    def assertDirentsMtime(self, entries):
+        '''Skip this test with bazaar because there seem to be no way to create
+        commits with a given timestamp.'''
+        return True

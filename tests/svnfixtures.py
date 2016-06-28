@@ -1,9 +1,11 @@
 #!/usr/bin/env python2
 
 import os
+import stat
 
 from fixtures import Fixtures
 from utils    import mkfreshdir, quietrun, run_svn
+from datetime import datetime
 
 
 class SvnFixtures(Fixtures):
@@ -13,8 +15,13 @@ class SvnFixtures(Fixtures):
     svn tests use this class in order to have something to test against.
     """
 
+    SVN_COMMITTER_DATE = datetime.utcfromtimestamp(
+        Fixtures.COMMITTER_DATE).isoformat() + ".000000Z"
+
     def init(self):
         self.wd_path = self.container_dir + '/wd'
+        self.user_name  = 'test'
+        self.user_email = 'test@test.com'
 
         self.create_repo()
         self.checkout_repo()
@@ -28,6 +35,13 @@ class SvnFixtures(Fixtures):
 
     def create_repo(self):
         quietrun('svnadmin create ' + self.repo_path)
+        # allow revprop changes to explicitly set svn:date
+        hook = self.repo_path + '/hooks/pre-revprop-change'
+        f = open(hook, 'w')
+        f.write("#!/bin/sh\nexit 0;\n")
+        f.close()
+        st = os.stat(hook)
+        os.chmod(hook, st.st_mode | stat.S_IEXEC)
         print "created repo", self.repo_path
 
     def checkout_repo(self):
@@ -41,6 +55,8 @@ class SvnFixtures(Fixtures):
                 self.safe_run('add ' + new)
                 self.added[new] = True
         self.safe_run('commit -m%d' % new_rev)
+        self.safe_run('propset svn:date --revprop -r HEAD %s' %
+                      self.SVN_COMMITTER_DATE)
         return new_rev
 
     def get_metadata(self, formatstr):
