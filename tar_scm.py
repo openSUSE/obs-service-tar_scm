@@ -267,7 +267,7 @@ SWITCH_REVISION_COMMANDS = {
 }
 
 
-def _calc_dir_to_clone_to(scm, url, out_dir):
+def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
     # separate path from parameters etc.
     url_path = urlparse(url)[2].rstrip('/')
 
@@ -278,13 +278,17 @@ def _calc_dir_to_clone_to(scm, url, out_dir):
     url_path = url_path.rstrip('/')
 
     basename = os.path.basename(os.path.normpath(url_path))
+    basename = prefix + basename
     clone_dir = os.path.abspath(os.path.join(out_dir, basename))
     return clone_dir
 
 
 def fetch_upstream(scm, url, revision, out_dir, **kwargs):
     """Fetch sources from repository and checkout given revision."""
-    clone_dir = _calc_dir_to_clone_to(scm, url, out_dir)
+    clone_prefix = ""
+    if kwargs.has_key('clone_prefix'):
+        clone_prefix = kwargs['clone_prefix']
+    clone_dir = _calc_dir_to_clone_to(scm, url, clone_prefix, out_dir)
 
     if not os.path.isdir(clone_dir):
         # initial clone
@@ -524,8 +528,8 @@ def detect_version_tar(args, repodir):
 
 def detect_version_git(args, repodir):
     """Automatic detection of version number for checked-out GIT repository."""
-    parent_tag = args.parent_tag
-    versionformat = args.versionformat
+    parent_tag = args['parent_tag']
+    versionformat = args['versionformat']
     if versionformat is None:
         versionformat = '%ct.%h'
 
@@ -564,8 +568,7 @@ def detect_version_git(args, repodir):
 
 def detect_version_svn(args, repodir):
     """Automatic detection of version number for checked-out SVN repository."""
-    parent_tag = args.parent_tag
-    versionformat = args.versionformat
+    versionformat = args['versionformat']
     if versionformat is None:
         versionformat = '%r'
 
@@ -580,8 +583,8 @@ def detect_version_svn(args, repodir):
 
 def detect_version_hg(args, repodir):
     """Automatic detection of version number for checked-out HG repository."""
-    parent_tag = args.parent_tag
-    versionformat = args.versionformat
+    parent_tag = args['parent_tag']
+    versionformat = args['versionformat']
     if versionformat is None:
         versionformat = '{rev}'
 
@@ -620,8 +623,7 @@ def detect_version_hg(args, repodir):
 
 def detect_version_bzr(args, repodir):
     """Automatic detection of version number for checked-out BZR repository."""
-    parent_tag = args.parent_tag
-    versionformat = args.versionformat
+    versionformat = args['versionformat']
     if versionformat is None:
         versionformat = '%r'
 
@@ -639,7 +641,7 @@ def detect_version(args, repodir):
         'tar': detect_version_tar,
     }
 
-    version = detect_version_commands[args.scm](args, repodir).strip()
+    version = detect_version_commands[args.scm](args.__dict__, repodir).strip()
     logging.debug("VERSION(auto): %s", version)
     return version
 
@@ -655,12 +657,14 @@ def get_timestamp_bzr(repodir):
 
 
 def get_timestamp_git(repodir):
-    timestamp = detect_version_git(repodir, "%ct", None)
+    d = {"parent_tag" : None, "versionformat" : "%ct"}
+    timestamp = detect_version_git(d, repodir)
     return int(timestamp)
 
 
 def get_timestamp_hg(repodir):
-    timestamp = detect_version_hg(repodir, "{date}", None)
+    d = {"parent_tag" : None, "versionformat" : "{date}"}
+    timestamp = detect_version_hg(d, repodir)
     timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
     return int(timestamp)
 
@@ -1198,28 +1202,35 @@ def main():
         use_obs_scm = True
 
     if sys.argv[0].endswith("snapcraft"):
-        use_obs_scm = True
         # we read the SCM config from snapcraft.yaml instead from _service file
         f = open('snapcraft.yaml')
         dataMap = yaml.safe_load(f)
         f.close()
-        # we support only the first part atm
-        part = dataMap['parts'].keys()[0];
-        args.filename = part
-        args.url = dataMap['parts'][part]['source']
-        dataMap['parts'][part]['source'] = part
-        if 'source-type' in dataMap['parts'][part]:
-          args.scm = dataMap['parts'][part]['source-type']
-          del dataMap['parts'][part]['source-type']
-	else:
-          args.scm = "git"
+        # run for each part an own task
+        for part in dataMap['parts'].keys():
+           args.filename = part
+           if not 'source-type' in dataMap['parts'][part].keys():
+              continue
+           if not dataMap['parts'][part]['source-type'] in FETCH_UPSTREAM_COMMANDS.keys():
+              continue
+           # avoid conflicts with files
+           args.clone_prefix = "_obs_"
+           args.url = dataMap['parts'][part]['source']
+           dataMap['parts'][part]['source'] = part
+           args.scm = dataMap['parts'][part]['source-type']
+           del dataMap['parts'][part]['source-type']
+           singletask(True, args)
 
         # write the new snapcraft.yaml file
         # we prefix our own here to be sure to not overwrite user files, if he
         # is using us in "disabled" mode
         with open(args.outdir+'/_service:snapcraft:snapcraft.yml', 'w') as outfile:
            outfile.write( yaml.dump(dataMap, default_flow_style=False) )
+    else:
+        singletask(use_obs_scm, args)
 
+
+def singletask(use_obs_scm, args):
     FORMAT = "%(message)s"
     logging.basicConfig(format=FORMAT, stream=sys.stderr, level=logging.INFO)
     if args.verbose:
@@ -1230,8 +1241,8 @@ def main():
 
     repocachedir = get_repocachedir()
 
-    # construct repodir (the parent directory of the checkout)
     repodir = None
+    # construct repodir (the parent directory of the checkout)
     if repocachedir and os.path.isdir(os.path.join(repocachedir, 'repo')):
         repohash = get_repocache_hash(args.scm, args.url, args.subdir)
         logging.debug("HASH: %s", repohash)

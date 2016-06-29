@@ -24,7 +24,7 @@ class UnitTestCases(unittest.TestCase):
         ]
 
         for cd in clone_dirs:
-            clone_dir = _calc_dir_to_clone_to(scm, cd, outdir)
+            clone_dir = _calc_dir_to_clone_to(scm, cd, None, outdir)
             self.assertEqual(clone_dir, os.path.join(outdir, 'repo'))
 
     @patch('tar_scm.safe_run')
