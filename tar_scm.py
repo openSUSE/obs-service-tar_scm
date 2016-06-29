@@ -356,7 +356,6 @@ def create_cpio(repodir, basename, dstname, version, commit, args):
     """
     (workdir, topdir) = os.path.split(repodir)
     extension = 'obscpio'
-    excludes = args.exclude
 
     cwd = os.getcwd()
     os.chdir(workdir)
@@ -370,7 +369,7 @@ def create_cpio(repodir, basename, dstname, version, commit, args):
 
     # transform glob patterns to regular expressions
     includes = r'|'.join([fnmatch.translate(x) for x in args.include])
-    excludes = r'|'.join([fnmatch.translate(x) for x in excludes]) or r'$.'
+    excludes = r'|'.join([fnmatch.translate(x) for x in args.exclude]) or r'$.'
 
     # add topdir without filtering for now
     for root, dirs, files in os.walk(topdir, topdown=False):
@@ -395,7 +394,7 @@ def create_cpio(repodir, basename, dstname, version, commit, args):
     ret_code = proc.wait()
     if ret_code != 0:
         sys.exit("creating the cpio archive failed!")
-    archivefile.flush()
+    archivefile.close()
 
     # write meta data
     metafile = open(os.path.join(args.outdir, basename + '.obsinfo'), "w")
@@ -404,7 +403,7 @@ def create_cpio(repodir, basename, dstname, version, commit, args):
     # metafile.write("git describe: " + + "\n")
     if commit:
         metafile.write("commit: " + commit + "\n")
-    metafile.flush()
+    metafile.close()
 
     os.chdir(cwd)
 
