@@ -1223,7 +1223,7 @@ def main():
         # write the new snapcraft.yaml file
         # we prefix our own here to be sure to not overwrite user files, if he
         # is using us in "disabled" mode
-        with open(args.outdir+'/_service:snapcraft:snapcraft.yml', 'w') as outfile:
+        with open(args.outdir+'/_service:snapcraft:snapcraft.yaml', 'w') as outfile:
            outfile.write( yaml.dump(dataMap, default_flow_style=False) )
     else:
         singletask(use_obs_scm, args)
