@@ -522,7 +522,7 @@ def read_from_obsinfo(filename, key):
 
 def detect_version_tar(args, repodir):
     """Read former stored version."""
-    return read_from_obsinfo(args.obsinfo, "version")
+    return read_from_obsinfo(args['obsinfo'], "version")
 
 
 def detect_version_git(args, repodir):
@@ -637,13 +637,16 @@ def detect_version(args, repodir):
         'svn': detect_version_svn,
         'hg':  detect_version_hg,
         'bzr': detect_version_bzr,
-        'tar': detect_version_tar,
+        'tar': detect_version_tar
     }
 
     version = detect_version_commands[args.scm](args.__dict__, repodir).strip()
     logging.debug("VERSION(auto): %s", version)
     return version
 
+
+def get_timestamp_tar(repodir):
+    return int(0)
 
 def get_timestamp_bzr(repodir):
     log = safe_run(['bzr', 'log', '--limit=1', '--log-format=long'],
@@ -687,7 +690,8 @@ def get_timestamp(args, clone_dir):
         'git': get_timestamp_git,
         'svn': get_timestamp_svn,
         'hg':  get_timestamp_hg,
-        'bzr': get_timestamp_bzr
+        'bzr': get_timestamp_bzr,
+        'tar': get_timestamp_tar
     }
 
     timestamp = get_timestamp_commands[args.scm](clone_dir)
