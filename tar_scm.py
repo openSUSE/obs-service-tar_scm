@@ -232,7 +232,7 @@ def switch_revision_git(clone_dir, revision):
             print text.rstrip()
             break
 
-    if found_revision == None:
+    if found_revision is None:
         sys.exit('%s: No such revision' % revision)
 
     # only update submodules if they have been enabled
@@ -286,7 +286,7 @@ def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
 def fetch_upstream(scm, url, revision, out_dir, **kwargs):
     """Fetch sources from repository and checkout given revision."""
     clone_prefix = ""
-    if kwargs.has_key('clone_prefix'):
+    if 'clone_prefix' in kwargs:
         clone_prefix = kwargs['clone_prefix']
     clone_dir = _calc_dir_to_clone_to(scm, url, clone_prefix, out_dir)
 
@@ -648,6 +648,7 @@ def detect_version(args, repodir):
 def get_timestamp_tar(repodir):
     return int(0)
 
+
 def get_timestamp_bzr(repodir):
     log = safe_run(['bzr', 'log', '--limit=1', '--log-format=long'],
                    repodir)[1]
@@ -659,13 +660,13 @@ def get_timestamp_bzr(repodir):
 
 
 def get_timestamp_git(repodir):
-    d = {"parent_tag" : None, "versionformat" : "%ct"}
+    d = {"parent_tag": None, "versionformat": "%ct"}
     timestamp = detect_version_git(d, repodir)
     return int(timestamp)
 
 
 def get_timestamp_hg(repodir):
-    d = {"parent_tag" : None, "versionformat" : "{date}"}
+    d = {"parent_tag": None, "versionformat": "{date}"}
     timestamp = detect_version_hg(d, repodir)
     timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
     return int(timestamp)
@@ -1211,24 +1212,27 @@ def main():
         f.close()
         # run for each part an own task
         for part in dataMap['parts'].keys():
-           args.filename = part
-           if not 'source-type' in dataMap['parts'][part].keys():
-              continue
-           if not dataMap['parts'][part]['source-type'] in FETCH_UPSTREAM_COMMANDS.keys():
-              continue
-           # avoid conflicts with files
-           args.clone_prefix = "_obs_"
-           args.url = dataMap['parts'][part]['source']
-           dataMap['parts'][part]['source'] = part
-           args.scm = dataMap['parts'][part]['source-type']
-           del dataMap['parts'][part]['source-type']
-           singletask(True, args)
+            args.filename = part
+            if 'source-type' not in dataMap['parts'][part].keys():
+                continue
+            pep8_1 = dataMap['parts'][part]['source-type']
+            pep8_2 = FETCH_UPSTREAM_COMMANDS.keys()
+            if pep8_1 not in pep8_2:
+                continue
+            # avoid conflicts with files
+            args.clone_prefix = "_obs_"
+            args.url = dataMap['parts'][part]['source']
+            dataMap['parts'][part]['source'] = part
+            args.scm = dataMap['parts'][part]['source-type']
+            del dataMap['parts'][part]['source-type']
+            singletask(True, args)
 
         # write the new snapcraft.yaml file
         # we prefix our own here to be sure to not overwrite user files, if he
         # is using us in "disabled" mode
-        with open(args.outdir+'/_service:snapcraft:snapcraft.yaml', 'w') as outfile:
-           outfile.write( yaml.dump(dataMap, default_flow_style=False) )
+        new_file = args.outdir + '/_service:snapcraft:snapcraft.yaml'
+        with open(new_file, 'w') as outfile:
+            outfile.write(yaml.dump(dataMap, default_flow_style=False))
     else:
         singletask(use_obs_scm, args)
 
@@ -1263,7 +1267,8 @@ def singletask(use_obs_scm, args):
     # special case when using osc and creating an obscpio, use current work
     # directory to allow the developer to work inside of the git repo and fetch
     # local changes
-    if sys.argv[0].endswith("snapcraft") or (use_obs_scm and os.getenv('OSC_VERSION')):
+    if sys.argv[0].endswith("snapcraft") or \
+       (use_obs_scm and os.getenv('OSC_VERSION')):
         repodir = os.getcwd()
 
     if args.scm == "tar":
@@ -1289,7 +1294,8 @@ def singletask(use_obs_scm, args):
 
     version = get_version(args, clone_dir)
     changesversion = version
-    if version and not sys.argv[0].endswith("/tar") and not sys.argv[0].endswith("/snapcraft"):
+    if version and not sys.argv[0].endswith("/tar") \
+       and not sys.argv[0].endswith("/snapcraft"):
         dstname += '-' + version
 
     logging.debug("DST: %s", dstname)
