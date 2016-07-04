@@ -28,8 +28,14 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-import yaml
 import dateutil.parser
+
+try:
+    # not possible to test this on travis atm
+    import yaml
+except ImportError:
+    pass
+
 from urlparse import urlparse
 
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
