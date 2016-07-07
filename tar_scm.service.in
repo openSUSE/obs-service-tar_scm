@@ -1,6 +1,16 @@
+===OBS_ONLY
+<service name="obs_scm">
+<summary>Create a special OBS archive from a SCM</summary>
+   <description>This service uses a SCM client to checkout or update from a given repository. Supported are svn, git, hg and bzr. The result will archived in a format which can be stored
+   incremental by the OBS source server, currently a cpio format. This archive will be extracted again inside of the build root.</description>
+===
+
+===TAR_ONLY
 <service name="tar_scm">
   <summary>Create a tarball from SCM repository</summary>
   <description>This service uses a SCM client to checkout or update from a given repository.  Supported are svn, git, hg and bzr.</description>
+===
+
   <parameter name="scm">
     <description>Specify SCM to use.</description>
     <allowedvalue>svn</allowedvalue>
@@ -93,6 +103,10 @@
   </parameter>
   <parameter name="include">
     <description>Specify subset of files/subdirectories to pack in the tarball.</description>
+  </parameter>
+  <parameter name="extract">
+    <description>Specify a file to be exported directly. Useful for build descriptions like spec files
+which get maintained in the SCM. Can be used multiple times.</description>
   </parameter>
   <parameter name="package-meta">
     <description>Package the metadata of SCM to allow the user or OBS to update after un-tar.</description>

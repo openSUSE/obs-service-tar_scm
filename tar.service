@@ -1,0 +1,19 @@
+<service name="tar">
+  <summary>Create a tarball from SCM repository</summary>
+  <description>This service is packaging a directory structure into a tar ball. The directory gets created via the obs_scm service usually. This service reads the .obsinfo file to learn how to create the tar ball.</description>
+  <parameter name="obsinfo">
+    <description>Specify version to be used in tarball.  Defaults to automatically detected value formatted by versionformat parameter.</description>
+  </parameter>
+  <parameter name="version">
+    <description>Specify version to be used in tarball.  Defaults to automatically detected value formatted by versionformat parameter.</description>
+  </parameter>
+  <parameter name="versionprefix">
+    <description>Specify a base version as prefix.</description>
+  </parameter>
+  <parameter name="filename">
+    <description>Specify name of package, which is used together with version to determine tarball name.</description>
+  </parameter>
+  <parameter name="extension">
+    <description>Specify suffix name of package, which is used together with filename to determine tarball name.</description>
+  </parameter>
+</service>
