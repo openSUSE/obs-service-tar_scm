@@ -100,6 +100,12 @@ class GitTests(GitHgTests, GitSvnTests):
         self.tar_scm_std('--versionformat', "@PARENT_TAG@.@TAG_OFFSET@")
         self.assertTarOnly(self.basename(version=self.rev(2) + ".0"))
 
+    def test_versionformat_parenttag_unshortened(self):
+        # tag-abbrev=7 means using TAG-OFFSET-HASH, EXCEPT when commit == TAG
+        self.tar_scm_std('--versionformat', "@PARENT_TAG@",
+                         '--tag-abbrev=7')
+        self.assertTarOnly(self.basename(version=self.rev(2)))
+
     def _submodule_fixture(self, submod_name):
         fix = self.fixtures
         repo_path = fix.repo_path
