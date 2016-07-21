@@ -54,6 +54,10 @@ def run_cmd(cmd, cwd, interactive=False, raisesysexit=False):
     env = os.environ.copy()
     env['LANG'] = 'C'
 
+    if is_proxy_defined():
+    	env['http_proxy'] = os.environ.get('http_proxy');
+    	env['https_proxy'] = os.environ.get('https_proxy');
+
     proc = subprocess.Popen(cmd,
                             shell=False,
                             stdout=subprocess.PIPE,
@@ -83,6 +87,7 @@ def safe_run(cmd, cwd, interactive=False):
     """Execute the command cmd in the working directory cwd and check return
     value. If the command returns non-zero raise a SystemExit exception.
     """
+    logging.debug("safe_run: " + ' '.join(cmd))
     return run_cmd(cmd, cwd, interactive, raisesysexit=True)
 
 
@@ -91,36 +96,113 @@ def is_sslverify_enabled(kwargs):
     not been set (default enabled) ``False`` otherwise."""
     return 'sslverify' not in kwargs or kwargs['sslverify']
 
+def is_proxy_defined():
+    """Returns ``True`` if the ``proxy`` option has been enabled or
+    not been set (default enabled) ``False`` otherwise."""
+    if os.environ.get('https_proxy') != '': 
+	return True
+    else:
+	return False
+
+def define_global_scm_command(scm_type):
+	"""Sets the global variable ``global_scm_command`` with the proper proxy parameters for each scm, if defined.""" 
+	global svntmpdir
+	global global_scm_command
+
+	if scm_type == 'git':
+    		# git should honor the http[s]_proxy variables, but we need to guarantee this
+		global_scm_command = ['git'];
+    		if is_proxy_defined():
+			global_scm_command = ['git','-c','http.proxy=' + os.environ.get('http_proxy'), '-c', 'https.proxy=' + os.environ.get('https_proxy')];
+
+	elif scm_type == 'svn':
+
+		# Subversion requires declaring proxies in a file, as it does not support the http[s]_proxy variables
+		# this creates the temporary config directory that will be added via '--config-dir'
+    		if is_proxy_defined():
+			svntmpdir=tempfile.mkdtemp()
+			logging.debug("using " + svntmpdir)
+        		CLEANUP_DIRS.append(svntmpdir)
+   			f = open(svntmpdir + "/servers", "wb")
+    			f.write('[global]\n')
+			regexp_proxy=re.match( r'http://(.*):(.*)', os.environ.get('http_proxy'), re.M|re.I)
+			if (regexp_proxy.group(1) != None):
+				logging.debug ('using proxy host: ' + regexp_proxy.group(1))
+    				f.write('http-proxy-host=' + regexp_proxy.group(1) + '\n')
+			if (regexp_proxy.group(2) != None):
+    				logging.debug('using proxy port: ' + regexp_proxy.group(2))
+    				f.write('http-proxy-port=' + regexp_proxy.group(2) + '\n')
+
+			if (os.environ.get('no_proxy') != None):
+        			logging.debug('using proxy exceptions: ' + os.environ.get('no_proxy'))
+        			no_proxy_domains=[]
+        			no_proxy_domains.append(tuple(os.environ.get('no_proxy').split(",")))
+        			no_proxy_string=""
+        			for i in range(len(no_proxy_domains[0])):
+                			tmpstr=str(no_proxy_domains[0][i]).strip()
+                			if tmpstr.startswith('.'):
+                        			no_proxy_string+='*' + tmpstr + ','
+                			else:
+                        			no_proxy_string+=tmpstr + ','
+
+        			logging.debug('no_proxy string = ' + no_proxy_string)
+    				f.write('http-proxy-exceptions=' + no_proxy_string)
+			f.close()
+			global_scm_command=['svn', '--config-dir', svntmpdir, '--non-interactive', '--trust-server-cert']
+    		else:
+			global_scm_command=['svn', '--non-interactive', '--trust-server-cert']
+
+	elif scm_type == 'hg':
+
+		# Mercurial requires declaring proxies via a --config parameter
+		global_scm_command = [ 'hg' ];
+		if is_proxy_defined():
+			regexp_proxy=re.match( r'http://(.*):(.*)', os.environ.get('http_proxy'), re.M|re.I)
+			if (regexp_proxy.group(1) != None):
+				print ('using proxy host: ' + regexp_proxy.group(1))
+				global_scm_command += [ '--config', 'http_proxy.host', regexp_proxy.group(1) ];
+			if (regexp_proxy.group(2) != None):
+    				print ('using proxy port: ' + regexp_proxy.group(2))
+				global_scm_command += [ '--config', 'http_proxy.port', regexp_proxy.group(2) ];
+			if (os.environ.get('no_proxy') != None):
+				print ('using proxy exceptions: ' + os.environ.get('no_proxy'))
+    				global_scm_command += [ '--config', 'no', os.environ.get('no_proxy') ]
+
+	elif scm_type == 'bzr':
+    		# Bazaar honors the http[s]_proxy variables, no action needed
+    		global_scm_command = ['bzr']
 
 def git_ref_exists(clone_dir, revision):
-    rc, _ = run_cmd(['git', 'rev-parse', '--verify', '--quiet', revision],
+    rc, _ = run_cmd(global_scm_command + [ 'rev-parse', '--verify', '--quiet', revision],
                     cwd=clone_dir, interactive=sys.stdout.isatty())
     return (rc == 0)
 
-
 def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via git."""
-    command = ['git', 'clone', url, clone_dir]
+    
     if not is_sslverify_enabled(kwargs):
-        command += ['--config', 'http.sslverify=false']
+    	command = global_scm_command + [ '-c', 'http.sslverify=false', 'clone', url, clone_dir]
+    else:
+    	command = global_scm_command + [ 'clone', url, clone_dir]
     safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
+
     # if the reference does not exist.
     if revision and not git_ref_exists(clone_dir, revision):
         # fetch reference from url and create locally
-        safe_run(['git', 'fetch', url, revision + ':' + revision],
+        safe_run(global_scm_command + ['fetch', url, revision + ':' + revision],
                  cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_git_submodules(clone_dir, kwargs):
     """Recursively initialize git submodules."""
     if 'submodules' in kwargs and kwargs['submodules']:
-        safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
+        safe_run(global_scm_command + ['submodule', 'update', '--init', '--recursive'],
                  cwd=clone_dir)
 
 
 def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via svn."""
-    command = ['svn', 'checkout', '--non-interactive', url, clone_dir]
+    command = global_scm_command + [ 'checkout', '--non-interactive', url, clone_dir]
     if revision:
         command.insert(4, '-r%s' % revision)
     if not is_sslverify_enabled(kwargs):
@@ -130,7 +212,7 @@ def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
 
 def fetch_upstream_hg(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via hg."""
-    command = ['hg', 'clone', url, clone_dir]
+    command = global_scm_command + ['clone', url, clone_dir]
     if not is_sslverify_enabled(kwargs):
         command += ['--insecure']
     safe_run(command, cwd,
@@ -139,7 +221,7 @@ def fetch_upstream_hg(url, clone_dir, revision, cwd, kwargs):
 
 def fetch_upstream_bzr(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources from bzr."""
-    command = ['bzr', 'checkout', url, clone_dir]
+    command = global_scm_command + [ 'checkout', url, clone_dir]
     if revision:
         command.insert(3, '-r')
         command.insert(4, revision)
@@ -162,15 +244,15 @@ FETCH_UPSTREAM_COMMANDS = {
 
 def update_cache_git(url, clone_dir, revision):
     """Update sources via git."""
-    safe_run(['git', 'fetch', '--tags'],
+    safe_run(global_scm_command + ['fetch', '--tags'],
              cwd=clone_dir, interactive=sys.stdout.isatty())
-    safe_run(['git', 'fetch'],
+    safe_run(global_scm_command + ['fetch'],
              cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
 def update_cache_svn(url, clone_dir, revision):
     """Update sources via svn."""
-    command = ['svn', 'update']
+    command = global_scm_command + ['update']
     if revision:
         command.insert(3, "-r%s" % revision)
     safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
@@ -179,7 +261,7 @@ def update_cache_svn(url, clone_dir, revision):
 def update_cache_hg(url, clone_dir, revision):
     """Update sources via hg."""
     try:
-        safe_run(['hg', 'pull'], cwd=clone_dir,
+        safe_run(global_scm_command + ['pull'], cwd=clone_dir,
                  interactive=sys.stdout.isatty())
     except SystemExit, e:
         # Contrary to the docs, hg pull returns exit code 1 when
@@ -191,7 +273,7 @@ def update_cache_hg(url, clone_dir, revision):
 
 def update_cache_bzr(url, clone_dir, revision):
     """Update sources via bzr."""
-    command = ['bzr', 'update']
+    command = global_scm_command + ['update']
     if revision:
         command.insert(3, '-r')
         command.insert(4, revision)
@@ -226,14 +308,14 @@ def switch_revision_git(clone_dir, revision):
         if git_ref_exists(clone_dir, rev):
             found_revision = True
             if os.getenv('OSC_VERSION'):
-                stash_text = safe_run(['git', 'stash'], cwd=clone_dir)[1]
-                text = safe_run(['git', 'reset', '--hard', rev],
+                stash_text = safe_run(global_scm_command + ['stash'], cwd=clone_dir)[1]
+                text = safe_run(global_scm_command + ['reset', '--hard', rev],
                                 cwd=clone_dir)[1]
                 if stash_text != "No local changes to save\n":
-                    text += safe_run(['git', 'stash', 'pop'],
+                    text += safe_run(global_scm_command + ['stash', 'pop'],
                                      cwd=clone_dir)[1]
             else:
-                text = safe_run(['git', 'reset', '--hard', rev],
+                text = safe_run(global_scm_command + ['reset', '--hard', rev],
                                 cwd=clone_dir)[1]
             print text.rstrip()
             break
@@ -244,7 +326,7 @@ def switch_revision_git(clone_dir, revision):
     # only update submodules if they have been enabled
     if os.path.exists(
             os.path.join(clone_dir, os.path.join('.git', 'modules'))):
-        safe_run(['git', 'submodule', 'update', '--recursive'], cwd=clone_dir)
+        safe_run(global_scm_command + ['submodule', 'update', '--recursive'], cwd=clone_dir)
 
 
 def switch_revision_hg(clone_dir, revision):
@@ -252,7 +334,7 @@ def switch_revision_hg(clone_dir, revision):
     if revision is None:
         revision = 'tip'
 
-    rc, _  = run_cmd(['hg', 'update', revision], cwd=clone_dir,
+    rc, _  = run_cmd(global_scm_command + ['update', revision], cwd=clone_dir,
                      interactive=sys.stdout.isatty())
     if rc:
         sys.exit('%s: No such revision' % revision)
@@ -553,7 +635,7 @@ def detect_version_git(args, repodir):
 
     if re.match('.*@TAG_OFFSET@.*', versionformat):
         if parent_tag:
-            rc, output = run_cmd(['git', 'rev-list', '--count',
+            rc, output = run_cmd(global_scm_command + ['rev-list', '--count',
                                   parent_tag + '..HEAD'], repodir)
             if not rc:
                 tag_offset = output.strip()
@@ -566,7 +648,7 @@ def detect_version_git(args, repodir):
             sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
                      "as no parent tag was discovered.\033[0m")
 
-    version = safe_run(['git', 'log', '-n1', '--date=short',
+    version = safe_run(global_scm_command + ['log', '-n1', '--date=short',
                         "--pretty=format:%s" % versionformat], repodir)[1]
     return version_iso_cleanup(version)
 
@@ -577,7 +659,8 @@ def detect_version_svn(args, repodir):
     if versionformat is None:
         versionformat = '%r'
 
-    svn_info = safe_run(['svn', 'info'], repodir)[1]
+    command = global_scm_command + ['info']
+    svn_info = safe_run(command, repodir)[1]
 
     version = ''
     match = re.search('Last Changed Rev: (.*)', svn_info, re.MULTILINE)
@@ -592,8 +675,7 @@ def detect_version_hg(args, repodir):
     versionformat = args['versionformat']
     if versionformat is None:
         versionformat = '{rev}'
-
-    version = safe_run(['hg', 'id', '-n'], repodir)[1]
+    version = safe_run(global_scm_command + ['id', '-n'], repodir)[1]
 
     # Mercurial internally stores commit dates in its changelog
     # context objects as (epoch_secs, tz_delta_to_utc) tuples (see
@@ -621,7 +703,7 @@ def detect_version_hg(args, repodir):
     # 'sub(...)' which is only available since 2.4 (first introduced
     # in openSUSE 12.3).
 
-    version = safe_run(['hg', 'log', '-l1', "-r%s" % version.strip(),
+    version = safe_run(global_scm_command +  ['log', '-l1', "-r%s" % version.strip(),
                         '--template', versionformat], repodir)[1]
     return version_iso_cleanup(version)
 
@@ -632,7 +714,7 @@ def detect_version_bzr(args, repodir):
     if versionformat is None:
         versionformat = '%r'
 
-    version = safe_run(['bzr', 'revno'], repodir)[1]
+    version = safe_run(global_scm_command + ['revno'], repodir)[1]
     return re.sub('%r', version.strip(), versionformat)
 
 
@@ -656,7 +738,7 @@ def get_timestamp_tar(repodir):
 
 
 def get_timestamp_bzr(repodir):
-    log = safe_run(['bzr', 'log', '--limit=1', '--log-format=long'],
+    log = safe_run(global_scm_command + ['log', '--limit=1', '--log-format=long'],
                    repodir)[1]
     match = re.search(r'timestamp:(.*)', log, re.MULTILINE)
     if not match:
@@ -679,7 +761,7 @@ def get_timestamp_hg(repodir):
 
 
 def get_timestamp_svn(repodir):
-    svn_info = safe_run(['svn', 'info', '-rHEAD'], repodir)[1]
+    svn_info = safe_run(global_scm_command + ['info', '-rHEAD'], repodir)[1]
 
     match = re.search('Last Changed Date: (.*)', svn_info, re.MULTILINE)
     if not match:
@@ -912,7 +994,7 @@ def write_changes(changes_filename, changes, version, author):
 
 def _git_log_cmd(cmd_args, repodir, subdir):
     """ Helper function to call 'git log' with args"""
-    cmd = ['git', 'log'] + cmd_args
+    cmd = global_scm_command + ['log'] + cmd_args
     if subdir:
         cmd += ['--', subdir]
     return safe_run(cmd, cwd=repodir)[1]
@@ -978,7 +1060,7 @@ def detect_changes_commands_svn(repodir, subdir, changes):
 def get_svn_log(repodir, revision1, revision2):
     new_lines = []
 
-    xml_lines = safe_run(['svn', 'log', '-r%s:%s' % (revision1,
+    xml_lines = safe_run(global_scm_command + ['log', '-r%s:%s' % (revision1,
                          revision2), '--xml'], repodir)[1]
     lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
 
@@ -990,7 +1072,7 @@ def get_svn_log(repodir, revision1, revision2):
 
 
 def get_svn_rev(repodir, num_commits):
-    revisions = safe_run(['svn', 'log', '-l%d' % num_commits, '-q',
+    revisions = safe_run(global_scm_command + ['log', '-l%d' % num_commits, '-q',
                          '--incremental'], cwd=repodir)[1].split('\n')
     # remove blank entry on end
     revisions.pop()
@@ -1270,6 +1352,11 @@ def singletask(use_obs_scm, args):
         repodir = tempfile.mkdtemp(dir=args.outdir)
         CLEANUP_DIRS.append(repodir)
 
+    # define the global scm command (with or without proxy)
+    define_global_scm_command(args.scm)
+
+    logging.debug('Using scm command: ' + ' '.join(global_scm_command))
+
     # special case when using osc and creating an obscpio, use current work
     # directory to allow the developer to work inside of the git repo and fetch
     # local changes
@@ -1320,7 +1407,7 @@ def singletask(use_obs_scm, args):
     if use_obs_scm:
         commit = None
         if args.scm == "git":
-            commit = safe_run(['git', 'rev-parse', 'HEAD'], clone_dir)[1]
+            commit = safe_run(global_scm_command + ['rev-parse', 'HEAD'], clone_dir)[1]
         create_cpio(tar_dir, basename, dstname, version, commit, args)
     else:
         create_tar(tar_dir, args.outdir,
