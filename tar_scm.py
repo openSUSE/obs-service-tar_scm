@@ -181,11 +181,11 @@ def define_global_scm_command(scm_type):
             if (regexp_proxy.group(1) is not None):
                 print ('using proxy host: ' + regexp_proxy.group(1))
                 global_scm_command += ['--config', 'http_proxy.host',
-                                    regexp_proxy.group(1)]
+                                       regexp_proxy.group(1)]
             if (regexp_proxy.group(2) is not None):
                 print ('using proxy port: ' + regexp_proxy.group(2))
                 global_scm_command += ['--config', 'http_proxy.port',
-                                    regexp_proxy.group(2)]
+                                       regexp_proxy.group(2)]
             if (os.environ.get('no_proxy') is not None):
                 print ('using proxy exceptions: ' +
                        os.environ.get('no_proxy'))
@@ -367,8 +367,9 @@ def switch_revision_hg(clone_dir, revision):
     if revision is None:
         revision = 'tip'
 
-    rc, _  = run_cmd(global_scm_command + ['update', revision], cwd=clone_dir,
-                     interactive=sys.stdout.isatty())
+    rc, _ = run_cmd(global_scm_command + ['update', revision],
+                    cwd=clone_dir,
+                    interactive=sys.stdout.isatty())
     if rc:
         sys.exit('%s: No such revision' % revision)
 
@@ -664,7 +665,7 @@ def detect_version_git(args, repodir):
             versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
         else:
             sys.exit("\033[31mNo parent tag present for the checked out "
-                    "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
+                     "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
 
     if re.match('.*@TAG_OFFSET@.*', versionformat):
         if parent_tag:
@@ -674,13 +675,13 @@ def detect_version_git(args, repodir):
             if not rc:
                 tag_offset = output.strip()
                 versionformat = re.sub('@TAG_OFFSET@', tag_offset,
-                                        versionformat)
+                                       versionformat)
             else:
                 sys.exit("\033[31m@TAG_OFFSET@ can not be expanded: " +
-                            output + "\033[0m")
+                         output + "\033[0m")
         else:
             sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
-                    "as no parent tag was discovered.\033[0m")
+                     "as no parent tag was discovered.\033[0m")
 
     version = safe_run(global_scm_command +
                        ['log', '-n1', '--date=short',
@@ -1111,8 +1112,9 @@ def get_svn_log(repodir, revision1, revision2):
 
 
 def get_svn_rev(repodir, num_commits):
-    revisions = safe_run(global_scm_command + ['log', '-l%d' % num_commits, '-q',
-                         '--incremental'], cwd=repodir)[1].split('\n')
+    revisions = safe_run(global_scm_command +
+                         ['log', '-l%d' % num_commits, '-q', '--incremental'],
+                         cwd=repodir)[1].split('\n')
     # remove blank entry on end
     revisions.pop()
     # return last entry
@@ -1446,7 +1448,8 @@ def singletask(use_obs_scm, args):
     if use_obs_scm:
         commit = None
         if args.scm == "git":
-            commit = safe_run(global_scm_command + ['rev-parse', 'HEAD'], clone_dir)[1]
+            commit = safe_run(global_scm_command +
+                              ['rev-parse', 'HEAD'], clone_dir)[1]
         create_cpio(tar_dir, basename, dstname, version, commit, args)
     else:
         create_tar(tar_dir, args.outdir,
