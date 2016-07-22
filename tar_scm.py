@@ -181,11 +181,11 @@ def define_global_scm_command(scm_type):
             if (regexp_proxy.group(1) is not None):
                 print ('using proxy host: ' + regexp_proxy.group(1))
                 global_scm_command += ['--config', 'http_proxy.host',
-                                        regexp_proxy.group(1)]
+                                    regexp_proxy.group(1)]
             if (regexp_proxy.group(2) is not None):
                 print ('using proxy port: ' + regexp_proxy.group(2))
                 global_scm_command += ['--config', 'http_proxy.port',
-                                        regexp_proxy.group(2)]
+                                    regexp_proxy.group(2)]
             if (os.environ.get('no_proxy') is not None):
                 print ('using proxy exceptions: ' +
                        os.environ.get('no_proxy'))
@@ -664,12 +664,13 @@ def detect_version_git(args, repodir):
             versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
         else:
             sys.exit("\033[31mNo parent tag present for the checked out "
-                        "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
+                    "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
 
     if re.match('.*@TAG_OFFSET@.*', versionformat):
         if parent_tag:
-            rc, output = run_cmd(global_scm_command + ['rev-list', '--count',
-                                    parent_tag + '..HEAD'], repodir)
+            rc, output = run_cmd(global_scm_command +
+                                 ['rev-list', '--count', parent_tag +
+                                  '..HEAD'], repodir)
             if not rc:
                 tag_offset = output.strip()
                 versionformat = re.sub('@TAG_OFFSET@', tag_offset,
@@ -681,7 +682,8 @@ def detect_version_git(args, repodir):
             sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
                     "as no parent tag was discovered.\033[0m")
 
-    version = safe_run(global_scm_command + ['log', '-n1', '--date=short',
+    version = safe_run(global_scm_command +
+                       ['log', '-n1', '--date=short',
                         "--pretty=format:%s" % versionformat], repodir)[1]
     return version_iso_cleanup(version)
 
@@ -736,8 +738,9 @@ def detect_version_hg(args, repodir):
     # 'sub(...)' which is only available since 2.4 (first introduced
     # in openSUSE 12.3).
 
-    version = safe_run(global_scm_command + ['log', '-l1', "-r%s" %
-                                             version.strip(),
+    version = safe_run(global_scm_command +
+                       ['log', '-l1', "-r%s" %
+                        version.strip(),
                         '--template', versionformat], repodir)[1]
     return version_iso_cleanup(version)
 
@@ -773,7 +776,8 @@ def get_timestamp_tar(repodir):
 
 
 def get_timestamp_bzr(repodir):
-    log = safe_run(global_scm_command + ['log', '--limit=1', '--log-format=long'],
+    log = safe_run(global_scm_command +
+                   ['log', '--limit=1', '--log-format=long'],
                    repodir)[1]
     match = re.search(r'timestamp:(.*)', log, re.MULTILINE)
     if not match:
