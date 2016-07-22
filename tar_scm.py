@@ -100,7 +100,7 @@ def is_sslverify_enabled(kwargs):
 def is_proxy_defined():
     """Returns ``True`` if the ``proxy`` option has been enabled or
     not been set (default enabled) ``False`` otherwise."""
-    if os.environ.get('https_proxy') != '': 
+    if os.environ.get('https_proxy') != '':
         return True
     else:
         return False
@@ -108,16 +108,19 @@ def is_proxy_defined():
 
 def define_global_scm_command(scm_type):
     """Sets the global variable ``global_scm_command`` with the proper
-    proxy parameters for each scm, if defined.""" 
+    proxy parameters for each scm, if defined."""
     global svntmpdir
     global global_scm_command
 
-    # git should honor the http[s]_proxy variables, but we need to guarantee this
+    # git should honor the http[s]_proxy variables, but we need to
+    # guarantee this, the variables do not work every time
     if scm_type == 'git':
         global_scm_command = ['git']
         if is_proxy_defined():
-             global_scm_command = ['git','-c','http.proxy=' + os.environ.get('http_proxy'),
-                                   '-c', 'https.proxy=' + os.environ.get('https_proxy')];
+            global_scm_command = ['git', '-c', 'http.proxy=' +
+                                  os.environ.get('http_proxy'),
+                                  '-c', 'https.proxy=' +
+                                  os.environ.get('https_proxy')];
 
     # Subversion requires declaring proxies in a file, as it does not support
     # the http[s]_proxy variables. This creates the temporary config directory
@@ -130,11 +133,11 @@ def define_global_scm_command(scm_type):
             CLEANUP_DIRS.append(svntmpdir)
             f = open(svntmpdir + "/servers", "wb")
             f.write('[global]\n')
-            regexp_proxy = re.match( r'http://(.*):(.*)', os.environ.get('http_proxy'), re.M|re.I)
+            regexp_proxy = re.match( r'http://(.*):(.*)', os.environ.get('http_proxy'), re.M | re.I)
             if (regexp_proxy.group(1) is not None):
                 logging.debug('using proxy host: ' + regexp_proxy.group(1))
                 f.write('http-proxy-host=' + regexp_proxy.group(1) + '\n')
-                
+
             if (regexp_proxy.group(2) is not None):
                 logging.debug('using proxy port: ' + regexp_proxy.group(2))
                 f.write('http-proxy-port=' + regexp_proxy.group(2) + '\n')
@@ -147,33 +150,38 @@ def define_global_scm_command(scm_type):
                 
                 # for some odd reason subversion expects the domains to have an asterisk
                 for i in range(len(no_proxy_domains[0])):
-                    tmpstr=str(no_proxy_domains[0][i]).strip()
+                    tmpstr = str(no_proxy_domains[0][i]).strip()
                     if tmpstr.startswith('.'):
-                        no_proxy_string+='*' + tmpstr + ','
+                        no_proxy_string += '*' + tmpstr + ','
                 else:
-                    no_proxy_string+=tmpstr + ','
+                    no_proxy_string += tmpstr + ','
 
                 logging.debug('no_proxy string = ' + no_proxy_string)
                 f.write('http-proxy-exceptions=' + no_proxy_string)
                 f.close()
-                global_scm_command=['svn', '--config-dir', svntmpdir, '--non-interactive', '--trust-server-cert']
+                global_scm_command = ['svn', '--config-dir', svntmpdir,
+                                      '--non-interactive', '--trust-server-cert']
             else:
-                global_scm_command=['svn', '--non-interactive', '--trust-server-cert']
+                global_scm_command = ['svn', '--non-interactive',
+                                      '--trust-server-cert']
 
     # Mercurial requires declaring proxies via a --config parameter
     elif scm_type == 'hg':
         global_scm_command = [ 'hg' ];
         if is_proxy_defined():
-            regexp_proxy=re.match( r'http://(.*):(.*)', os.environ.get('http_proxy'), re.M | re.I)
-            if (regexp_proxy.group(1) != None):
+            regexp_proxy=re.match( r'http://(.*):(.*)', os.environ.get('http_proxy'),
+                                  re.M | re.I)
+            if (regexp_proxy.group(1) is not None):
                 print ('using proxy host: ' + regexp_proxy.group(1))
-                global_scm_command += [ '--config', 'http_proxy.host', regexp_proxy.group(1) ];
-            if (regexp_proxy.group(2) != None):
+                global_scm_command += ['--config', 'http_proxy.host',
+                                       regexp_proxy.group(1)];
+            if (regexp_proxy.group(2) is not None):
                 print ('using proxy port: ' + regexp_proxy.group(2))
-                global_scm_command += [ '--config', 'http_proxy.port', regexp_proxy.group(2) ];
-            if (os.environ.get('no_proxy') != None):
+                global_scm_command += ['--config', 'http_proxy.port',
+                                       regexp_proxy.group(2)];
+            if (os.environ.get('no_proxy') is not None):
                 print ('using proxy exceptions: ' + os.environ.get('no_proxy'))
-                global_scm_command += [ '--config', 'no', os.environ.get('no_proxy') ]
+                global_scm_command += ['--config', 'no', os.environ.get('no_proxy')]
 
     # Bazaar honors the http[s]_proxy variables, no action needed
     elif scm_type == 'bzr':
@@ -189,7 +197,8 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via git."""
     
     if not is_sslverify_enabled(kwargs):
-        command = global_scm_command + ['-c', 'http.sslverify=false', 'clone', url, clone_dir]
+        command = global_scm_command + ['-c', 'http.sslverify=false', 'clone',
+                                        url, clone_dir]
     else:
         command = global_scm_command + ['clone', url, clone_dir]
     safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
@@ -639,7 +648,7 @@ def detect_version_git(args, repodir):
             versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
         else:
             sys.exit("\033[31mNo parent tag present for the checked out "
-                     "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
+                        "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
 
     if re.match('.*@TAG_OFFSET@.*', versionformat):
         if parent_tag:
@@ -654,7 +663,7 @@ def detect_version_git(args, repodir):
                          output + "\033[0m")
         else:
             sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
-                     "as no parent tag was discovered.\033[0m")
+                        "as no parent tag was discovered.\033[0m")
 
     version = safe_run(global_scm_command + ['log', '-n1', '--date=short',
                         "--pretty=format:%s" % versionformat], repodir)[1]
