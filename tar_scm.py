@@ -176,9 +176,8 @@ def define_global_scm_command(scm_type):
         global_scm_command = ['hg']
         if is_proxy_defined():
             regexp_proxy = re.match(r'http://(.*):(.*)',
-                                    os.environ.get('http_proxy'),
-                                    re.M | re.I)
-            if (regexp_proxy.group(1) is not None):
+                                    os.environ.get('http_proxy'), re.M | re.I)
+            if (regexp_proxy.group(1) is not None): 
                 print ('using proxy host: ' + regexp_proxy.group(1))
                 global_scm_command += ['--config', 'http_proxy.host',
                                        regexp_proxy.group(1)]
