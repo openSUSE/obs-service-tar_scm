@@ -133,7 +133,8 @@ def define_global_scm_command(scm_type):
             CLEANUP_DIRS.append(svntmpdir)
             f = open(svntmpdir + "/servers", "wb")
             f.write('[global]\n')
-            regexp_proxy = re.match(r'http://(.*):(.*)', os.environ.get('http_proxy'),
+            regexp_proxy = re.match(r'http://(.*):(.*)',
+                                    os.environ.get('http_proxy'),
                                     re.M | re.I)
             if (regexp_proxy.group(1) is not None):
                 logging.debug('using proxy host: ' + regexp_proxy.group(1))
@@ -144,12 +145,15 @@ def define_global_scm_command(scm_type):
                 f.write('http-proxy-port=' + regexp_proxy.group(2) + '\n')
 
             if (os.environ.get('no_proxy') is not None):
-                logging.debug('using proxy exceptions: ' + os.environ.get('no_proxy'))
+                logging.debug('using proxy exceptions: ' +
+                              os.environ.get('no_proxy'))
                 no_proxy_domains = []
-                no_proxy_domains.append(tuple(os.environ.get('no_proxy').split(",")))
+                no_proxy_domains.append(tuple(os.environ.get(
+                                        'no_proxy').split(",")))
                 no_proxy_string = ""
 
-                # for some odd reason subversion expects the domains to have an asterisk
+                # for some odd reason subversion expects the domains
+                # to have an asterisk
                 for i in range(len(no_proxy_domains[0])):
                     tmpstr = str(no_proxy_domains[0][i]).strip()
                     if tmpstr.startswith('.'):
@@ -161,7 +165,8 @@ def define_global_scm_command(scm_type):
                 f.write('http-proxy-exceptions=' + no_proxy_string)
                 f.close()
                 global_scm_command = ['svn', '--config-dir', svntmpdir,
-                                      '--non-interactive', '--trust-server-cert']
+                                      '--non-interactive',
+                                      '--trust-server-cert']
             else:
                 global_scm_command = ['svn', '--non-interactive',
                                       '--trust-server-cert']
@@ -170,19 +175,22 @@ def define_global_scm_command(scm_type):
     elif scm_type == 'hg':
         global_scm_command = ['hg']
         if is_proxy_defined():
-            regexp_proxy = re.match(r'http://(.*):(.*)', os.environ.get('http_proxy'),
-                                        re.M | re.I)
+            regexp_proxy = re.match(r'http://(.*):(.*)',
+                                    os.environ.get('http_proxy'),
+                                    re.M | re.I)
             if (regexp_proxy.group(1) is not None):
                 print ('using proxy host: ' + regexp_proxy.group(1))
                 global_scm_command += ['--config', 'http_proxy.host',
-                        regexp_proxy.group(1)]
+                                        regexp_proxy.group(1)]
             if (regexp_proxy.group(2) is not None):
                 print ('using proxy port: ' + regexp_proxy.group(2))
                 global_scm_command += ['--config', 'http_proxy.port',
-                        regexp_proxy.group(2)]
+                                        regexp_proxy.group(2)]
             if (os.environ.get('no_proxy') is not None):
-                print ('using proxy exceptions: ' + os.environ.get('no_proxy'))
-                global_scm_command += ['--config', 'no', os.environ.get('no_proxy')]
+                print ('using proxy exceptions: ' +
+                       os.environ.get('no_proxy'))
+                global_scm_command += ['--config', 'no',
+                                       os.environ.get('no_proxy')]
 
     # Bazaar honors the http[s]_proxy variables, no action needed
     elif scm_type == 'bzr':
@@ -190,14 +198,15 @@ def define_global_scm_command(scm_type):
 
 
 def git_ref_exists(clone_dir, revision):
-    rc, _ = run_cmd(global_scm_command + ['rev-parse', '--verify', '--quiet', revision],
+    rc, _ = run_cmd(global_scm_command + ['rev-parse', '--verify',
+                                          '--quiet', revision],
                     cwd=clone_dir, interactive=sys.stdout.isatty())
     return (rc == 0)
 
 
 def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via git."""
-    
+
     if not is_sslverify_enabled(kwargs):
         command = global_scm_command + ['-c', 'http.sslverify=false', 'clone',
                                         url, clone_dir]
@@ -208,20 +217,23 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     # if the reference does not exist.
     if revision and not git_ref_exists(clone_dir, revision):
         # fetch reference from url and create locally
-        safe_run(global_scm_command + ['fetch', url, revision + ':' + revision],
+        safe_run(global_scm_command + ['fetch', url, revision +
+                                       ':' + revision],
                  cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_git_submodules(clone_dir, kwargs):
     """Recursively initialize git submodules."""
     if 'submodules' in kwargs and kwargs['submodules']:
-        safe_run(global_scm_command + ['submodule', 'update', '--init', '--recursive'],
+        safe_run(global_scm_command + ['submodule', 'update', '--init',
+                                       '--recursive'],
                  cwd=clone_dir)
 
 
 def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via svn."""
-    command = global_scm_command + ['checkout', '--non-interactive', url, clone_dir]
+    command = global_scm_command + ['checkout', '--non-interactive',
+                                    url, clone_dir]
     if revision:
         command.insert(4, '-r%s' % revision)
     if not is_sslverify_enabled(kwargs):
@@ -312,8 +324,8 @@ def switch_revision_git(clone_dir, revision):
     following:
 
     - explicit SHA1: a1b2c3d4....
-    - the SHA1 must be reachable from a default clone/fetch (generally, must be
-      reachable from some branch or tag on the remote).
+    - the SHA1 must be reachable from a default clone/fetch (generally,
+    must be eachable from some branch or tag on the remote).
     - short branch name: "master", "devel" etc.
     - explicit ref: refs/heads/master, refs/tags/v1.2.3,
       refs/changes/49/11249/1
@@ -327,7 +339,8 @@ def switch_revision_git(clone_dir, revision):
         if git_ref_exists(clone_dir, rev):
             found_revision = True
             if os.getenv('OSC_VERSION'):
-                stash_text = safe_run(global_scm_command + ['stash'], cwd=clone_dir)[1]
+                stash_text = safe_run(global_scm_command + ['stash'],
+                                      cwd=clone_dir)[1]
                 text = safe_run(global_scm_command + ['reset', '--hard', rev],
                                 cwd=clone_dir)[1]
                 if stash_text != "No local changes to save\n":
@@ -345,7 +358,8 @@ def switch_revision_git(clone_dir, revision):
     # only update submodules if they have been enabled
     if os.path.exists(
             os.path.join(clone_dir, os.path.join('.git', 'modules'))):
-        safe_run(global_scm_command + ['submodule', 'update', '--recursive'], cwd=clone_dir)
+        safe_run(global_scm_command + ['submodule', 'update', '--recursive'],
+                 cwd=clone_dir)
 
 
 def switch_revision_hg(clone_dir, revision):
@@ -650,7 +664,7 @@ def detect_version_git(args, repodir):
             versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
         else:
             sys.exit("\033[31mNo parent tag present for the checked out "
-                    "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
+                        "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
 
     if re.match('.*@TAG_OFFSET@.*', versionformat):
         if parent_tag:
@@ -662,10 +676,10 @@ def detect_version_git(args, repodir):
                                         versionformat)
             else:
                 sys.exit("\033[31m@TAG_OFFSET@ can not be expanded: " +
-                         output + "\033[0m")
+                            output + "\033[0m")
         else:
             sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
-                        "as no parent tag was discovered.\033[0m")
+                    "as no parent tag was discovered.\033[0m")
 
     version = safe_run(global_scm_command + ['log', '-n1', '--date=short',
                         "--pretty=format:%s" % versionformat], repodir)[1]
@@ -722,13 +736,15 @@ def detect_version_hg(args, repodir):
     # 'sub(...)' which is only available since 2.4 (first introduced
     # in openSUSE 12.3).
 
-    version = safe_run(global_scm_command + ['log', '-l1', "-r%s" % version.strip(),
+    version = safe_run(global_scm_command + ['log', '-l1', "-r%s" %
+                                             version.strip(),
                         '--template', versionformat], repodir)[1]
     return version_iso_cleanup(version)
 
 
 def detect_version_bzr(args, repodir):
-    """Automatic detection of version number for checked-out BZR repository."""
+    """Automatic detection of version number for checked-out BZR
+    repository."""
     versionformat = args['versionformat']
     if versionformat is None:
         versionformat = '%r'
