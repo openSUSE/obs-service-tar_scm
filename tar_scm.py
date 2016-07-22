@@ -120,7 +120,7 @@ def define_global_scm_command(scm_type):
             global_scm_command = ['git', '-c', 'http.proxy=' +
                                   os.environ.get('http_proxy'),
                                   '-c', 'https.proxy=' +
-                                  os.environ.get('https_proxy')];
+                                  os.environ.get('https_proxy')]
 
     # Subversion requires declaring proxies in a file, as it does not support
     # the http[s]_proxy variables. This creates the temporary config directory
@@ -133,7 +133,8 @@ def define_global_scm_command(scm_type):
             CLEANUP_DIRS.append(svntmpdir)
             f = open(svntmpdir + "/servers", "wb")
             f.write('[global]\n')
-            regexp_proxy = re.match( r'http://(.*):(.*)', os.environ.get('http_proxy'), re.M | re.I)
+            regexp_proxy = re.match(r'http://(.*):(.*)', os.environ.get('http_proxy'),
+                                    re.M | re.I)
             if (regexp_proxy.group(1) is not None):
                 logging.debug('using proxy host: ' + regexp_proxy.group(1))
                 f.write('http-proxy-host=' + regexp_proxy.group(1) + '\n')
@@ -147,7 +148,7 @@ def define_global_scm_command(scm_type):
                 no_proxy_domains = []
                 no_proxy_domains.append(tuple(os.environ.get('no_proxy').split(",")))
                 no_proxy_string = ""
-                
+
                 # for some odd reason subversion expects the domains to have an asterisk
                 for i in range(len(no_proxy_domains[0])):
                     tmpstr = str(no_proxy_domains[0][i]).strip()
@@ -167,18 +168,18 @@ def define_global_scm_command(scm_type):
 
     # Mercurial requires declaring proxies via a --config parameter
     elif scm_type == 'hg':
-        global_scm_command = [ 'hg' ];
+        global_scm_command = ['hg']
         if is_proxy_defined():
-            regexp_proxy=re.match( r'http://(.*):(.*)', os.environ.get('http_proxy'),
-                                  re.M | re.I)
+            regexp_proxy = re.match(r'http://(.*):(.*)', os.environ.get('http_proxy'),
+                                        re.M | re.I)
             if (regexp_proxy.group(1) is not None):
                 print ('using proxy host: ' + regexp_proxy.group(1))
                 global_scm_command += ['--config', 'http_proxy.host',
-                                       regexp_proxy.group(1)];
+                        regexp_proxy.group(1)]
             if (regexp_proxy.group(2) is not None):
                 print ('using proxy port: ' + regexp_proxy.group(2))
                 global_scm_command += ['--config', 'http_proxy.port',
-                                       regexp_proxy.group(2)];
+                        regexp_proxy.group(2)]
             if (os.environ.get('no_proxy') is not None):
                 print ('using proxy exceptions: ' + os.environ.get('no_proxy'))
                 global_scm_command += ['--config', 'no', os.environ.get('no_proxy')]
@@ -192,6 +193,7 @@ def git_ref_exists(clone_dir, revision):
     rc, _ = run_cmd(global_scm_command + ['rev-parse', '--verify', '--quiet', revision],
                     cwd=clone_dir, interactive=sys.stdout.isatty())
     return (rc == 0)
+
 
 def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via git."""
@@ -648,16 +650,16 @@ def detect_version_git(args, repodir):
             versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
         else:
             sys.exit("\033[31mNo parent tag present for the checked out "
-                        "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
+                    "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
 
     if re.match('.*@TAG_OFFSET@.*', versionformat):
         if parent_tag:
             rc, output = run_cmd(global_scm_command + ['rev-list', '--count',
-                                  parent_tag + '..HEAD'], repodir)
+                                    parent_tag + '..HEAD'], repodir)
             if not rc:
                 tag_offset = output.strip()
                 versionformat = re.sub('@TAG_OFFSET@', tag_offset,
-                                       versionformat)
+                                        versionformat)
             else:
                 sys.exit("\033[31m@TAG_OFFSET@ can not be expanded: " +
                          output + "\033[0m")
@@ -720,7 +722,7 @@ def detect_version_hg(args, repodir):
     # 'sub(...)' which is only available since 2.4 (first introduced
     # in openSUSE 12.3).
 
-    version = safe_run(global_scm_command +  ['log', '-l1', "-r%s" % version.strip(),
+    version = safe_run(global_scm_command + ['log', '-l1', "-r%s" % version.strip(),
                         '--template', versionformat], repodir)[1]
     return version_iso_cleanup(version)
 
