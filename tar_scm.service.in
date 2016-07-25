@@ -118,6 +118,7 @@ which get maintained in the SCM. Can be used multiple times.</description>
   <parameter name="submodules">
     <description>Specify whether to include git submodules.  Default is 'enable'.</description>
     <allowedvalue>enable</allowedvalue>
+    <allowedvalue>master</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </parameter>
   <parameter name="sslverify">

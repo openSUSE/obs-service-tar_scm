@@ -224,10 +224,12 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
 
 def fetch_upstream_git_submodules(clone_dir, kwargs):
     """Recursively initialize git submodules."""
-    if 'submodules' in kwargs and kwargs['submodules']:
-        safe_run(global_scm_command + ['submodule', 'update', '--init',
-                                       '--recursive'],
+    if 'submodules' in kwargs and kwargs['submodules'] == 'enable':
+        safe_run(global_scm_command + ['submodule', 'update', '--init', '--recursive'],
                  cwd=clone_dir)
+    elif 'submodules' in kwargs and kwargs['submodules'] == 'master':
+        safe_run(['git', 'submodule', 'update', '--init', '--recursive',
+                 '--remote'], cwd=clone_dir)
 
 
 def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
@@ -1239,11 +1241,13 @@ def parse_args():
                              DEFAULT_AUTHOR)
     parser.add_argument('--subdir', default='',
                         help='Package just a subdirectory of the sources')
-    parser.add_argument('--submodules', choices=['enable', 'disable'],
+    parser.add_argument('--submodules',
+                        choices=['enable', 'master', 'disable'],
                         default='enable',
                         help='Whether or not to include git submodules '
                              'from SCM commit log since a given parent '
-                             'revision (see changesrevision).')
+                             'revision (see changesrevision). Use '
+                             '\'master\' to fetch the latest master.')
     parser.add_argument('--sslverify', choices=['enable', 'disable'],
                         default='enable',
                         help='Whether or not to check server certificate '
@@ -1295,10 +1299,6 @@ def parse_args():
     else:
         args.package_meta = False
 
-    if args.submodules == 'enable':
-        args.submodules = True
-    else:
-        args.submodules = False
     args.sslverify = False if args.sslverify == 'disable' else True
 
     # force verbose mode in test-mode
