@@ -177,6 +177,23 @@ class GitTests(GitHgTests, GitSvnTests):
                                    submod_name, 'a')
         self.assertTarMemberContains(th, submod_path, '3')
 
+    def test_latest_submodule_in_different_branch(self):
+        submod_name = 'submod1'
+
+        rev = 'build'
+        self._submodule_fixture_prepare_branch(rev)
+        self._submodule_fixture(submod_name)
+
+        self.tar_scm_std('--submodules', 'master',
+                         '--revision', rev,
+                         '--version', rev)
+        tar_path = os.path.join(self.outdir,
+                                self.basename(version=rev) + '.tar')
+        th = tarfile.open(tar_path)
+        submod_path = os.path.join(self.basename(version=rev),
+                                   submod_name, 'a')
+        self.assertTarMemberContains(th, submod_path, '5')
+
     def _check_servicedata(self, expected_dirents=2, revision=2):
         expected_sha1 = self.sha1s('tag%d' % revision)
         dirents = self.assertNumDirents(self.outdir, expected_dirents)
