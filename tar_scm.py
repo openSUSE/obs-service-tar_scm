@@ -180,17 +180,17 @@ def define_global_scm_command(scm_type):
                                     re.M | re.I)
             if (regexp_proxy.group(1) is not None):
                 print ('using proxy host: ' + regexp_proxy.group(1))
-                global_scm_command += ['--config', 'http_proxy.host',
+                global_scm_command += ['--config=http_proxy.host=' +
                                        regexp_proxy.group(1)]
             if (regexp_proxy.group(2) is not None):
                 print ('using proxy port: ' + regexp_proxy.group(2))
-                global_scm_command += ['--config', 'http_proxy.port',
+                global_scm_command += ['--config=http_proxy.port=' +
                                        regexp_proxy.group(2)]
             if (os.environ.get('no_proxy') is not None):
                 print ('using proxy exceptions: ' +
                        os.environ.get('no_proxy'))
-                global_scm_command += ['--config', 'no',
-                                       os.environ.get('no_proxy')]
+                global_scm_command += ['--config=http_proxy.no=\"' +
+                                       os.environ.get('no_proxy') + "\""]
 
     # Bazaar honors the http[s]_proxy variables, no action needed
     elif scm_type == 'bzr':
@@ -1036,6 +1036,7 @@ def write_changes(changes_filename, changes, version, author):
 
 def _git_log_cmd(cmd_args, repodir, subdir):
     """ Helper function to call 'git log' with args"""
+    define_global_scm_command('git')
     cmd = global_scm_command + ['log'] + cmd_args
     if subdir:
         cmd += ['--', subdir]
