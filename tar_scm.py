@@ -571,6 +571,11 @@ def detect_version_git(args, repodir):
 
     version = safe_run(['git', 'log', '-n1', '--date=short',
                         "--pretty=format:%s" % versionformat], repodir)[1]
+
+    if 'stripversionprefix' in args and args['stripversionprefix'] is not None:
+        if version.startswith(args['stripversionprefix']):
+            version = version[len(args['stripversionprefix']):]
+
     return version_iso_cleanup(version)
 
 
@@ -1095,6 +1100,8 @@ def parse_args():
                         help='Specify a base version as prefix.')
     parser.add_argument('--parent-tag',
                         help='Override base commit for @TAG_OFFSET@')
+    parser.add_argument('--stripversionprefix',
+                        help='Strip prefix string from git tag.')
     parser.add_argument('--revision',
                         help='Specify revision to package')
     parser.add_argument('--extract', action='append',

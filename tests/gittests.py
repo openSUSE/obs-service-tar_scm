@@ -100,6 +100,16 @@ class GitTests(GitHgTests, GitSvnTests):
         self.tar_scm_std('--versionformat', "@PARENT_TAG@.@TAG_OFFSET@")
         self.assertTarOnly(self.basename(version=self.rev(2) + ".0"))
 
+    def test_stripversionprefix(self):
+        self.tar_scm_std("--versionformat", "remove@PARENT_TAG@remove",
+                         "--stripversionprefix", "remove")
+        self.assertTarOnly(self.basename(version=self.rev(2)) + "remove")
+
+        self.tar_scm_std("--versionformat", "keep@PARENT_TAG@remove",
+                         "--stripversionprefix", "remove")
+        self.assertTarOnly(self.basename(version="keep" + self.rev(2)) +
+                           "remove")
+
     def _submodule_fixture(self, submod_name):
         fix = self.fixtures
         repo_path = fix.repo_path
