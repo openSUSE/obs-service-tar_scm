@@ -225,8 +225,8 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
 def fetch_upstream_git_submodules(clone_dir, kwargs):
     """Recursively initialize git submodules."""
     if 'submodules' in kwargs and kwargs['submodules'] == 'enable':
-        safe_run(global_scm_command + ['submodule', 'update', '--init', '--recursive'],
-                 cwd=clone_dir)
+        safe_run(global_scm_command + ['submodule', 'update', '--init', 
+                                       '--recursive'], cwd=clone_dir)
     elif 'submodules' in kwargs and kwargs['submodules'] == 'master':
         safe_run(['git', 'submodule', 'update', '--init', '--recursive',
                  '--remote'], cwd=clone_dir)
