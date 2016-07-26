@@ -134,8 +134,7 @@ def define_global_scm_command(scm_type):
             f = open(svntmpdir + "/servers", "wb")
             f.write('[global]\n')
             regexp_proxy = re.match('http://(.*):(.*)',
-                                    os.environ.get('http_proxy'),
-                                    re.M | re.I)
+                                    os.environ.get('http_proxy'), re.M | re.I)
             if (regexp_proxy.group(1) is not None):
                 logging.debug('using proxy host: ' + regexp_proxy.group(1))
                 f.write('http-proxy-host=' + regexp_proxy.group(1) + '\n')
@@ -176,8 +175,7 @@ def define_global_scm_command(scm_type):
         global_scm_command = ['hg']
         if is_proxy_defined():
             regexp_proxy = re.match('http://(.*):(.*)',
-                                    os.environ.get('http_proxy'),
-                                    re.M | re.I)
+                                    os.environ.get('http_proxy'), re.M | re.I)
             if (regexp_proxy.group(1) is not None):
                 print ('using proxy host: ' + regexp_proxy.group(1))
                 global_scm_command += ['--config', 'http_proxy.host',
