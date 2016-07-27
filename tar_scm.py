@@ -409,6 +409,7 @@ def create_cpio(repodir, basename, dstname, version, commit, args):
     metafile = open(os.path.join(args.outdir, basename + '.obsinfo'), "w")
     metafile.write("name: " + basename + "\n")
     metafile.write("version: " + version + "\n")
+    metafile.write("mtime: " + str(get_timestamp(args, topdir)) + "\n")
     # metafile.write("git describe: " + + "\n")
     if commit:
         metafile.write("commit: " + commit + "\n")
@@ -655,11 +656,11 @@ def detect_version(args, repodir):
     return version
 
 
-def get_timestamp_tar(repodir):
-    return int(0)
+def get_timestamp_tar(args, repodir):
+    return int(read_from_obsinfo(args.obsinfo, "mtime"))
 
 
-def get_timestamp_bzr(repodir):
+def get_timestamp_bzr(args, repodir):
     log = safe_run(['bzr', 'log', '--limit=1', '--log-format=long'],
                    repodir)[1]
     match = re.search(r'timestamp:(.*)', log, re.MULTILINE)
@@ -669,20 +670,20 @@ def get_timestamp_bzr(repodir):
     return int(timestamp)
 
 
-def get_timestamp_git(repodir):
+def get_timestamp_git(args, repodir):
     d = {"parent_tag": None, "versionformat": "%ct"}
     timestamp = detect_version_git(d, repodir)
     return int(timestamp)
 
 
-def get_timestamp_hg(repodir):
+def get_timestamp_hg(args, repodir):
     d = {"parent_tag": None, "versionformat": "{date}"}
     timestamp = detect_version_hg(d, repodir)
     timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
     return int(timestamp)
 
 
-def get_timestamp_svn(repodir):
+def get_timestamp_svn(args, repodir):
     svn_info = safe_run(['svn', 'info', '-rHEAD'], repodir)[1]
 
     match = re.search('Last Changed Date: (.*)', svn_info, re.MULTILINE)
@@ -705,7 +706,7 @@ def get_timestamp(args, clone_dir):
         'tar': get_timestamp_tar
     }
 
-    timestamp = get_timestamp_commands[args.scm](clone_dir)
+    timestamp = get_timestamp_commands[args.scm](args, clone_dir)
     logging.debug("COMMIT TIMESTAMP: %s (%s)", timestamp,
                   datetime.datetime.fromtimestamp(timestamp).strftime(
                       '%Y-%m-%d %H:%M:%S'))
