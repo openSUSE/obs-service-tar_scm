@@ -1260,7 +1260,13 @@ def singletask(use_obs_scm, args):
 
     repodir = None
     # construct repodir (the parent directory of the checkout)
-    if repocachedir and os.path.isdir(os.path.join(repocachedir, 'repo')):
+    if repocachedir and os.path.isdir(repocachedir):
+        # construct subdirs on very first run
+        if not os.path.isdir(os.path.join(repocachedir, 'repo')):
+            os.mkdir(os.path.join(repocachedir, 'repo'))
+        if not os.path.isdir(os.path.join(repocachedir, 'incoming')):
+            os.mkdir(os.path.join(repocachedir, 'incoming'))
+
         repohash = get_repocache_hash(args.scm, args.url, args.subdir)
         logging.debug("HASH: %s", repohash)
         repodir = os.path.join(repocachedir, 'repo')
