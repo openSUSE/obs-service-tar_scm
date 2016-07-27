@@ -456,7 +456,8 @@ def create_tar(repodir, outdir, dstname, extension='tar',
         """Python 2.7 only: reset uid/gid to 0/0 (root)."""
         tarinfo.uid = tarinfo.gid = 0
         tarinfo.uname = tarinfo.gname = "root"
-        tarinfo.mtime = timestamp
+        if timestamp != 0:
+            tarinfo.mtime = timestamp
         return tarinfo
 
     def tar_filter(tarinfo):
