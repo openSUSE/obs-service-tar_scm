@@ -1190,7 +1190,11 @@ def parse_args():
 
 
 def get_repocachedir():
-    # check for enabled caches (1. environment, 2. user config, 3. system wide)
+    # check for enabled caches (1. local .cache, 2. environment, 3. user config, 4. system wide)
+    cwd = os.getcwd()
+    if os.path.isdir(os.path.join(cwd, '.cache')):
+        return os.path.join(cwd, '.cache')
+
     repocachedir = os.getenv('CACHEDIRECTORY')
     if repocachedir is None:
         config = get_config_options()
