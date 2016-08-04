@@ -106,6 +106,111 @@ def is_proxy_defined():
         return False
 
 
+def define_global_scm_command(scm_type):
+    """Defines the global scm command (with or without proxy)"""
+
+    global svntmpdir
+    global hgtmpdir
+    global global_scm_command
+    global_scm_command = ['unknown']
+
+    logging.debug('Using scm command: [' + scm_type + ']')
+
+    # git should honor the http[s]_proxy variables, but we need to
+    # guarantee this, the variables do not work every time
+    if scm_type == 'git':
+        global_scm_command = ['git']
+        if is_proxy_defined():
+            global_scm_command = ['git', '-c', 'http.proxy=' +
+                                  os.environ.get('http_proxy'),
+                                  '-c', 'https.proxy=' +
+                                  os.environ.get('https_proxy')]
+
+    # Subversion requires declaring proxies in a file, as it does not
+    # support the http[s]_proxy variables. This creates the temporary
+    # config directory that will be added via '--config-dir'
+    elif scm_type == 'svn':
+
+        if is_proxy_defined():
+            svntmpdir = tempfile.mkdtemp()
+            logging.debug("using " + svntmpdir)
+            CLEANUP_DIRS.append(svntmpdir)
+            f = open(svntmpdir + "/servers", "wb")
+            f.write('[global]\n')
+            regexp_proxy = re.match('http://(.*):(.*)',
+                                    os.environ.get('http_proxy'),
+                                    re.M | re.I)
+            if (regexp_proxy.group(1) is not None):
+                logging.debug('using proxy host: ' + regexp_proxy.group(1))
+                f.write('http-proxy-host=' + regexp_proxy.group(1) + '\n')
+
+            if (regexp_proxy.group(2) is not None):
+                logging.debug('using proxy port: ' + regexp_proxy.group(2))
+                f.write('http-proxy-port=' + regexp_proxy.group(2) + '\n')
+
+            if (os.environ.get('no_proxy') is not None):
+                logging.debug('using proxy exceptions: ' +
+                              os.environ.get('no_proxy'))
+                no_proxy_domains = []
+                no_proxy_domains.append(tuple(os.environ.get(
+                                        'no_proxy').split(",")))
+                no_proxy_string = ""
+
+                # for some odd reason subversion expects the domains
+                # to have an asterisk
+                for i in range(len(no_proxy_domains[0])):
+                    tmpstr = str(no_proxy_domains[0][i]).strip()
+                    if tmpstr.startswith('.'):
+                        no_proxy_string += '*' + tmpstr + ','
+                else:
+                    no_proxy_string += tmpstr + ','
+
+                logging.debug('no_proxy string = ' + no_proxy_string)
+                f.write('http-proxy-exceptions=' + no_proxy_string)
+                f.close()
+                global_scm_command = ['svn', '--config-dir', svntmpdir,
+                                      '--non-interactive',
+                                      '--trust-server-cert']
+        else:
+            global_scm_command = ['svn', '--non-interactive',
+                                  '--trust-server-cert']
+
+    # Mercurial requires declaring proxies via a --config parameter
+    elif scm_type == 'hg':
+        if is_proxy_defined():
+            hgtmpdir = tempfile.mkdtemp()
+            logging.debug("using " + hgtmpdir)
+            CLEANUP_DIRS.append(hgtmpdir)
+            f = open(hgtmpdir + "/tempsettings.rc", "wb")
+            f.write('[http_proxy]\n')
+
+            regexp_proxy = re.match('http://(.*):(.*)',
+                                    os.environ.get('http_proxy'),
+                                    re.M | re.I)
+            if (regexp_proxy.group(1) is not None):
+                print ('using proxy host: ' + regexp_proxy.group(1))
+                f.write('host=' + regexp_proxy.group(1))
+            if (regexp_proxy.group(2) is not None):
+                print ('using proxy port: ' + regexp_proxy.group(2))
+                f.write('port=' + regexp_proxy.group(2))
+            if (os.environ.get('no_proxy') is not None):
+                print ('using proxy exceptions: ' +
+                       os.environ.get('no_proxy'))
+                f.write('no=' + os.environ.get('no_proxy'))
+            f.close()
+            os.environ['HGRCPATH'] = hgtmpdir
+            global_scm_command = ['hg']
+        else:
+            global_scm_command = ['hg']
+
+    # Bazaar honors the http[s]_proxy variables, no action needed
+    elif scm_type == 'bzr':
+            global_scm_command = ['bzr']
+
+    logging.debug('global_command is: ' + ' '.join(global_scm_command))
+    return global_scm_command
+
+
 def git_ref_exists(clone_dir, revision):
     rc, _ = run_cmd(global_scm_command + ['rev-parse', '--verify',
                                           '--quiet', revision],
@@ -1272,110 +1377,12 @@ def main():
         with open(new_file, 'w') as outfile:
             outfile.write(yaml.dump(dataMap, default_flow_style=False))
     else:
-            # define the global scm command (with or without proxy)
-        global svntmpdir
-        global hgtmpdir
-        global global_scm_command
-
-        logging.debug('Using scm command: [' + args.scm + ']')
-
-        # git should honor the http[s]_proxy variables, but we need to
-        # guarantee this, the variables do not work every time
-        if args.scm == 'git':
-            global_scm_command = ['git']
-            if is_proxy_defined():
-                global_scm_command = ['git', '-c', 'http.proxy=' +
-                                      os.environ.get('http_proxy'),
-                                      '-c', 'https.proxy=' +
-                                      os.environ.get('https_proxy')]
-
-        # Subversion requires declaring proxies in a file, as it does not
-        # support the http[s]_proxy variables. This creates the temporary
-        # config directory that will be added via '--config-dir'
-        elif args.scm == 'svn':
-
-            if is_proxy_defined():
-                svntmpdir = tempfile.mkdtemp()
-                logging.debug("using " + svntmpdir)
-                CLEANUP_DIRS.append(svntmpdir)
-                f = open(svntmpdir + "/servers", "wb")
-                f.write('[global]\n')
-                regexp_proxy = re.match('http://(.*):(.*)',
-                                        os.environ.get('http_proxy'),
-                                        re.M | re.I)
-                if (regexp_proxy.group(1) is not None):
-                    logging.debug('using proxy host: ' + regexp_proxy.group(1))
-                    f.write('http-proxy-host=' + regexp_proxy.group(1) + '\n')
-
-                if (regexp_proxy.group(2) is not None):
-                    logging.debug('using proxy port: ' + regexp_proxy.group(2))
-                    f.write('http-proxy-port=' + regexp_proxy.group(2) + '\n')
-
-                if (os.environ.get('no_proxy') is not None):
-                    logging.debug('using proxy exceptions: ' +
-                                  os.environ.get('no_proxy'))
-                    no_proxy_domains = []
-                    no_proxy_domains.append(tuple(os.environ.get(
-                                            'no_proxy').split(",")))
-                    no_proxy_string = ""
-
-                    # for some odd reason subversion expects the domains
-                    # to have an asterisk
-                    for i in range(len(no_proxy_domains[0])):
-                        tmpstr = str(no_proxy_domains[0][i]).strip()
-                        if tmpstr.startswith('.'):
-                            no_proxy_string += '*' + tmpstr + ','
-                    else:
-                        no_proxy_string += tmpstr + ','
-
-                    logging.debug('no_proxy string = ' + no_proxy_string)
-                    f.write('http-proxy-exceptions=' + no_proxy_string)
-                    f.close()
-                    global_scm_command = ['svn', '--config-dir', svntmpdir,
-                                          '--non-interactive',
-                                          '--trust-server-cert']
-                else:
-                    global_scm_command = ['svn', '--non-interactive',
-                                          '--trust-server-cert']
-
-        # Mercurial requires declaring proxies via a --config parameter
-        elif args.scm == 'hg':
-            if is_proxy_defined():
-                hgtmpdir = tempfile.mkdtemp()
-                logging.debug("using " + hgtmpdir)
-                CLEANUP_DIRS.append(hgtmpdir)
-                f = open(hgtmpdir + "/tempsettings.rc", "wb")
-                f.write('[http_proxy]\n')
-
-                regexp_proxy = re.match('http://(.*):(.*)',
-                                        os.environ.get('http_proxy'),
-                                        re.M | re.I)
-                if (regexp_proxy.group(1) is not None):
-                    print ('using proxy host: ' + regexp_proxy.group(1))
-                    f.write('host=' + regexp_proxy.group(1))
-                if (regexp_proxy.group(2) is not None):
-                    print ('using proxy port: ' + regexp_proxy.group(2))
-                    f.write('port=' + regexp_proxy.group(2))
-                if (os.environ.get('no_proxy') is not None):
-                    print ('using proxy exceptions: ' +
-                           os.environ.get('no_proxy'))
-                    f.write('no=' + os.environ.get('no_proxy'))
-                f.close()
-                os.environ['HGRCPATH'] = hgtmpdir
-                global_scm_command = ['hg']
-            else:
-                global_scm_command = ['hg']
-
-        # Bazaar honors the http[s]_proxy variables, no action needed
-        elif args.scm == 'bzr':
-                global_scm_command = ['bzr']
-
-        logging.debug('global_command is: ' + ' '.join(global_scm_command))
-
         singletask(use_obs_scm, args)
 
 
 def singletask(use_obs_scm, args):
+
+    define_global_scm_command(args.scm)
     FORMAT = "%(message)s"
     logging.basicConfig(format=FORMAT, stream=sys.stderr, level=logging.INFO)
     if args.verbose:
