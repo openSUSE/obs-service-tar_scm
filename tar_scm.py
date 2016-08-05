@@ -100,15 +100,36 @@ def git_ref_exists(clone_dir, revision):
 
 def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via git."""
-    command = ['git', 'clone', url, clone_dir]
-    if not is_sslverify_enabled(kwargs):
-        command += ['--config', 'http.sslverify=false']
-    safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
-    # if the reference does not exist.
-    if revision and not git_ref_exists(clone_dir, revision):
-        # fetch reference from url and create locally
-        safe_run(['git', 'fetch', url, revision + ':' + revision],
-                 cwd=clone_dir, interactive=sys.stdout.isatty())
+    if kwargs['jailed']:
+        reponame = url.split('/')[-1];
+        clone_cache_dir = os.path.join(kwargs['cachedir'],reponame)
+        if not os.path.isdir(os.path.join(clone_cache_dir,'.git')):
+            # clone if no .git dir exists
+            command = ['git', 'clone', '--no-checkout', url, clone_cache_dir]
+            if not is_sslverify_enabled(kwargs):
+                command += ['--config', 'http.sslverify=false']
+        else:
+            # "git fetch" is a blocking command
+            # so no race conditions should occur between multiple service processes
+            command = ['git', '-C', clone_cache_dir, 'fetch', '--tags', '--prune']
+
+        safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
+
+        # We use a temporary shared clone to avoid race conditions
+        # between multiple services
+        safe_run(['git','clone','--shared',clone_cache_dir,clone_dir], cwd=cwd, interactive=sys.stdout.isatty())
+
+    else:
+        command = ['git', 'clone', url, clone_dir]
+
+        if not is_sslverify_enabled(kwargs):
+            command += ['--config', 'http.sslverify=false']
+        safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
+        # if the reference does not exist.
+        if revision and not git_ref_exists(clone_dir, revision):
+            # fetch reference from url and create locally
+            safe_run(['git', 'fetch', url, revision + ':' + revision],
+                     cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_git_submodules(clone_dir, kwargs):
@@ -294,6 +315,8 @@ def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
 
 def fetch_upstream(scm, url, revision, out_dir, **kwargs):
     """Fetch sources from repository and checkout given revision."""
+    logging.debug("CACHEDIR: '%s'" % kwargs['cachedir'])
+    logging.debug("JAILED: '%d'" % kwargs['jailed'])
     clone_prefix = ""
     if 'clone_prefix' in kwargs:
         clone_prefix = kwargs['clone_prefix']
@@ -1148,6 +1171,9 @@ def parse_args():
                         help='osc service parameter for internal use only '
                              '(determines where generated files go before '
                              'collection')
+    parser.add_argument('--jailed', required=False, type=int, default=0,
+                        help='service parameter for internal use only '
+                             '(determines whether service runs in docker jail)')
     parser.add_argument('--history-depth',
                         help='Obsolete osc service parameter that does '
                              'nothing')
@@ -1263,22 +1289,23 @@ def singletask(use_obs_scm, args):
     repocachedir = get_repocachedir()
 
     repodir = None
-    # construct repodir (the parent directory of the checkout)
-    if repocachedir and os.path.isdir(repocachedir):
-        # construct subdirs on very first run
-        if not os.path.isdir(os.path.join(repocachedir, 'repo')):
-            os.mkdir(os.path.join(repocachedir, 'repo'))
-        if not os.path.isdir(os.path.join(repocachedir, 'incoming')):
-            os.mkdir(os.path.join(repocachedir, 'incoming'))
+    if not args.jailed:
+        # construct repodir (the parent directory of the checkout)
+        if repocachedir and os.path.isdir(repocachedir):
+            # construct subdirs on very first run
+            if not os.path.isdir(os.path.join(repocachedir, 'repo')):
+                os.mkdir(os.path.join(repocachedir, 'repo'))
+            if not os.path.isdir(os.path.join(repocachedir, 'incoming')):
+                os.mkdir(os.path.join(repocachedir, 'incoming'))
 
-        repohash = get_repocache_hash(args.scm, args.url, args.subdir)
-        logging.debug("HASH: %s", repohash)
-        repodir = os.path.join(repocachedir, 'repo')
-        repodir = os.path.join(repodir, repohash)
+            repohash = get_repocache_hash(args.scm, args.url, args.subdir)
+            logging.debug("HASH: %s", repohash)
+            repodir = os.path.join(repocachedir, 'repo')
+            repodir = os.path.join(repodir, repohash)
 
-    # if caching is enabled but we haven't cached something yet
-    if repodir and not os.path.isdir(repodir):
-        repodir = tempfile.mkdtemp(dir=os.path.join(repocachedir, 'incoming'))
+        # if caching is enabled but we haven't cached something yet
+        if repodir and not os.path.isdir(repodir):
+            repodir = tempfile.mkdtemp(dir=os.path.join(repocachedir, 'incoming'))
 
     if repodir is None:
         repodir = tempfile.mkdtemp(dir=args.outdir)
@@ -1305,7 +1332,7 @@ def singletask(use_obs_scm, args):
             # not need in case of local osc build
             os.rename(basename, clone_dir)
     else:
-        clone_dir = fetch_upstream(out_dir=repodir, **args.__dict__)
+        clone_dir = fetch_upstream(out_dir=repodir,cachedir=repocachedir, **args.__dict__)
 
     if args.filename:
         dstname = basename = args.filename
