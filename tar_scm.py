@@ -40,31 +40,38 @@ from urlparse import urlparse
 
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
 
-
 def setup_tracking_branches(git_dir):
     output = subprocess.Popen(["git", "-C", git_dir, "branch", "-a"], stdout=subprocess.PIPE).communicate()[0]
 
     p = re.compile('.* ->\s+(.*)')
-    p2 = re.compile('.?\s*((remotes/origin/)?(.+))')
+    p2 = re.compile('.?\s*((remotes/(.*)/)?(.+))')
 
-    all_branches = {}
-    rtr_branches = {}
+    remote_branches = {}
+    local_branches  = {}
+    local2remove    = {}
 
     for line in output.split("\n"):
         m = p.match(line)
         if not m:
             m2 = p2.match(line)
             if m2:
-                if m2.group(3):
-                    all_branches[m2.group(3)] = m2.group(1)
+                if m2.group(2):
+                    if m2.group(3) == 'origin':
+                        remote_branches[m2.group(4)] = m2.group(1)
                 else:
-                    rtr_branches[m2.group(2)] = 1
+                    local_branches[m2.group(4)] = 1
 
-    for branch in rtr_branches:
-        del all_branches[branch]
+    for branch in local_branches:
+        try:
+            del remote_branches[branch]
+        except KeyError:
+            local2remove[branch] = 1
 
-    for branch in all_branches:
-        subprocess.Popen(["git", "-C", git_dir, "branch", "--track", branch, all_branches[branch]], stdout=subprocess.PIPE)
+    for branch in remote_branches:
+        subprocess.Popen(["git", "-C", git_dir, "branch", "--track", branch, remote_branches[branch]], stdout=subprocess.PIPE)
+
+    for branch in local2remove:
+        subprocess.Popen(["git", "-C", git_dir, "branch", "-D", branch])
 
 def run_cmd(cmd, cwd, interactive=False, raisesysexit=False):
     """Execute the command cmd in the working directory cwd and check return
