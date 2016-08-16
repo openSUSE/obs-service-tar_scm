@@ -41,6 +41,31 @@ from urlparse import urlparse
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
 
 
+def setup_tracking_branches(git_dir):
+    output = subprocess.Popen(["git", "-C", git_dir, "branch", "-a"], stdout=subprocess.PIPE).communicate()[0]
+
+    p = re.compile('.* ->\s+(.*)')
+    p2 = re.compile('.?\s*((remotes/origin/)?(.+))')
+
+    all_branches = {}
+    rtr_branches = {}
+
+    for line in output.split("\n"):
+        m = p.match(line)
+        if not m:
+            m2 = p2.match(line)
+            if m2:
+                if m2.group(3):
+                    all_branches[m2.group(3)] = m2.group(1)
+                else:
+                    rtr_branches[m2.group(2)] = 1
+
+    for branch in rtr_branches:
+        del all_branches[branch]
+
+    for branch in all_branches:
+        subprocess.Popen(["git", "-C", git_dir, "branch", "--track", branch, all_branches[branch]], stdout=subprocess.PIPE)
+
 def run_cmd(cmd, cwd, interactive=False, raisesysexit=False):
     """Execute the command cmd in the working directory cwd and check return
     value. If the command returns non-zero and raisesysexit is True raise a
@@ -114,6 +139,8 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
             command = ['git', '-C', clone_cache_dir, 'fetch', '--tags', '--prune']
 
         safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
+
+	setup_tracking_branches(clone_cache_dir)
 
         # We use a temporary shared clone to avoid race conditions
         # between multiple services
