@@ -1297,6 +1297,7 @@ def parse_args():
     if not os.path.isdir(args.outdir):
         sys.exit("%s: No such directory" % args.outdir)
 
+    args.outdir = os.path.abspath(args.outdir)
     orig_subdir = args.subdir
     args.subdir = os.path.normpath(orig_subdir)
     if args.subdir.startswith('/'):
