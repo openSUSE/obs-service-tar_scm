@@ -2,7 +2,7 @@
 
 from commontests import CommonTests
 from bzrfixtures import BzrFixtures
-from utils       import run_bzr
+from utils import run_bzr
 
 
 class BzrTests(CommonTests):
@@ -14,9 +14,9 @@ class BzrTests(CommonTests):
     """
 
     scm = 'bzr'
-    initial_clone_command = 'bzr checkout'
-    update_cache_command  = 'bzr update'
-    sslverify_false_args  = '-Ossl.cert_reqs=None'
+    sslverify_false_args = '-Ossl.cert_reqs=None'
+    initial_clone_command = 'bzr.*checkout'
+    update_cache_command = 'bzr.*update'
     fixtures_class = BzrFixtures
 
     def default_version(self):
