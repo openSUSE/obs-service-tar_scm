@@ -6,10 +6,10 @@ import re
 import tarfile
 import textwrap
 
-from githgtests  import GitHgTests
+from githgtests import GitHgTests
 from gitsvntests import GitSvnTests
 from gitfixtures import GitFixtures
-from utils       import run_git
+from utils import run_git
 
 
 class GitTests(GitHgTests, GitSvnTests):
@@ -21,14 +21,14 @@ class GitTests(GitHgTests, GitSvnTests):
     """
 
     scm = 'git'
-    initial_clone_command = 'git clone'
-    update_cache_command  = 'git fetch'
-    sslverify_false_args  = '--config http.sslverify=false'
+    sslverify_false_args = '-c http.sslverify=false'
+    initial_clone_command = 'git.*clone'
+    update_cache_command = 'git.*fetch'
     fixtures_class = GitFixtures
 
     abbrev_hash_format = '%h'
-    timestamp_format   = '%ct'
-    yyyymmdd_format    = '%cd'
+    timestamp_format = '%ct'
+    yyyymmdd_format = '%cd'
     yyyymmddhhmmss_format = '%ci'
 
     def default_version(self):

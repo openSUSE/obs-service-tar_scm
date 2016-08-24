@@ -106,7 +106,7 @@ def is_proxy_defined():
         return False
 
 
-def define_global_scm_command(scm_type):
+def define_global_scm_command(scm_type, sslverify):
     """Defines the global scm command (with or without proxy)"""
 
     global svntmpdir
@@ -115,6 +115,10 @@ def define_global_scm_command(scm_type):
     global_scm_command = ['unknown']
 
     logging.debug('Using scm command: [' + scm_type + ']')
+    if sslverify:
+            logging.debug('SSL verification is: [ ON ]')
+    else:
+            logging.debug('SSL verification is: [ OFF ]')
 
     # git should honor the http[s]_proxy variables, but we need to
     # guarantee this, the variables do not work every time
@@ -125,6 +129,10 @@ def define_global_scm_command(scm_type):
                                   os.environ.get('http_proxy'),
                                   '-c', 'https.proxy=' +
                                   os.environ.get('https_proxy')]
+        if sslverify is True:
+            command = global_scm_command + ['-c', 'http.sslverify=false']
+        else:
+            command = global_scm_command + ['-c', 'http.sslverify=true']
 
     # Subversion requires declaring proxies in a file, as it does not
     # support the http[s]_proxy variables. This creates the temporary
@@ -169,11 +177,12 @@ def define_global_scm_command(scm_type):
                 f.write('http-proxy-exceptions=' + no_proxy_string)
                 f.close()
                 global_scm_command = ['svn', '--config-dir', svntmpdir,
-                                      '--non-interactive',
-                                      '--trust-server-cert']
+                                      '--non-interactive']
         else:
-            global_scm_command = ['svn', '--non-interactive',
-                                  '--trust-server-cert']
+            global_scm_command = ['svn', '--non-interactive']
+
+        if sslverify is True:
+            global_scm_command += ['--trust-server-cert']
 
     # Mercurial requires declaring proxies via a --config parameter
     elif scm_type == 'hg':
@@ -207,6 +216,9 @@ def define_global_scm_command(scm_type):
     elif scm_type == 'bzr':
             global_scm_command = ['bzr']
 
+            if sslverify is True:
+                global_scm_command += ['-Ossl.cert_reqs=None']
+
     logging.debug('global_command is: ' + ' '.join(global_scm_command))
     return global_scm_command
 
@@ -220,12 +232,7 @@ def git_ref_exists(clone_dir, revision):
 
 def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via git."""
-
-    if not is_sslverify_enabled(kwargs):
-        command = global_scm_command + ['-c', 'http.sslverify=false', 'clone',
-                                        url, clone_dir]
-    else:
-        command = global_scm_command + ['clone', url, clone_dir]
+    command = global_scm_command + ['clone', url, clone_dir]
     safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
 
     # if the reference does not exist.
@@ -238,12 +245,16 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
 
 def fetch_upstream_git_submodules(clone_dir, kwargs):
     """Recursively initialize git submodules."""
+
     if 'submodules' in kwargs and kwargs['submodules'] == 'enable':
-        safe_run(global_scm_command + ['submodule', 'update', '--init',
-                                       '--recursive'], cwd=clone_dir)
+        safe_run(global_scm_command +
+                 ['submodule', 'update', '--init',
+                  '--recursive'], cwd=clone_dir)
     elif 'submodules' in kwargs and kwargs['submodules'] == 'master':
-        safe_run(['git', 'submodule', 'update', '--init', '--recursive',
-                 '--remote'], cwd=clone_dir)
+        safe_run(global_scm_command +
+                 ['submodule', 'update', '--init',
+                  '--recursive', '--remote'],
+                 cwd=clone_dir)
 
 
 def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
@@ -252,16 +263,12 @@ def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
                                     url, clone_dir]
     if revision:
         command.insert(4, '-r%s' % revision)
-    if not is_sslverify_enabled(kwargs):
-        command.insert(3, '--trust-server-cert')
     safe_run(command, cwd, interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_hg(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via hg."""
     command = global_scm_command + ['clone', url, clone_dir]
-    if not is_sslverify_enabled(kwargs):
-        command += ['--insecure']
     safe_run(command, cwd,
              interactive=sys.stdout.isatty())
 
@@ -272,8 +279,6 @@ def fetch_upstream_bzr(url, clone_dir, revision, cwd, kwargs):
     if revision:
         command.insert(3, '-r')
         command.insert(4, revision)
-    if not is_sslverify_enabled(kwargs):
-        command.insert(2, '-Ossl.cert_reqs=None')
     safe_run(command, cwd, interactive=sys.stdout.isatty())
 
 
@@ -386,6 +391,7 @@ def switch_revision_hg(clone_dir, revision):
     rc, _ = run_cmd(global_scm_command + ['update', revision],
                     cwd=clone_dir,
                     interactive=sys.stdout.isatty())
+
     if rc:
         sys.exit('%s: No such revision' % revision)
 
@@ -1382,7 +1388,7 @@ def main():
 
 def singletask(use_obs_scm, args):
 
-    define_global_scm_command(args.scm)
+    define_global_scm_command(args.scm, args.sslverify)
     FORMAT = "%(message)s"
     logging.basicConfig(format=FORMAT, stream=sys.stderr, level=logging.INFO)
     if args.verbose:

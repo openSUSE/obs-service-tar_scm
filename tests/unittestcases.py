@@ -31,21 +31,21 @@ class UnitTestCases(unittest.TestCase):
 
     @patch('tar_scm.safe_run')
     def test__git_log_cmd_with_args(self, safe_run_mock):
-        global_scm_command = define_global_scm_command('git')
+        global_scm_command = define_global_scm_command('git', False)
         new_cmd = _git_log_cmd(['-n1'], None, '')
         safe_run_mock.assert_called_once_with(global_scm_command +
                                               ['log', '-n1'], cwd=None)
 
     @patch('tar_scm.safe_run')
     def test__git_log_cmd_without_args(self, safe_run_mock):
-        global_scm_command = define_global_scm_command('git')
+        global_scm_command = define_global_scm_command('git', False)
         new_cmd = _git_log_cmd([], None, '')
         safe_run_mock.assert_called_once_with(global_scm_command +
                                               ['log'], cwd=None)
 
     @patch('tar_scm.safe_run')
     def test__git_log_cmd_with_subdir(self, safe_run_mock):
-        global_scm_command = define_global_scm_command('git')
+        global_scm_command = define_global_scm_command('git', False)
         new_cmd = _git_log_cmd(['-n1'], None, 'subdir')
         safe_run_mock.assert_called_once_with(global_scm_command +
                                               ['log', '-n1', '--', 'subdir'],
