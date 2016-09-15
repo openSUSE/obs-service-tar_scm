@@ -29,6 +29,7 @@ import sys
 import tarfile
 import tempfile
 import dateutil.parser
+import stat
 
 try:
     # not possible to test this on travis atm
@@ -40,6 +41,38 @@ from urlparse import urlparse
 
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
 
+def setup_tracking_branches(git_dir):
+    output = subprocess.Popen(["git", "-C", git_dir, "branch", "-a"], stdout=subprocess.PIPE).communicate()[0]
+
+    p = re.compile('.* ->\s+(.*)')
+    p2 = re.compile('.?\s*((remotes/(.*)/)?(.+))')
+
+    remote_branches = {}
+    local_branches  = {}
+    local2remove    = {}
+
+    for line in output.split("\n"):
+        m = p.match(line)
+        if not m:
+            m2 = p2.match(line)
+            if m2:
+                if m2.group(2):
+                    if m2.group(3) == 'origin':
+                        remote_branches[m2.group(4)] = m2.group(1)
+                else:
+                    local_branches[m2.group(4)] = 1
+
+    for branch in local_branches:
+        try:
+            del remote_branches[branch]
+        except KeyError:
+            local2remove[branch] = 1
+
+    for branch in remote_branches:
+        subprocess.Popen(["git", "-C", git_dir, "branch", "--track", branch, remote_branches[branch]], stdout=subprocess.PIPE)
+
+    for branch in local2remove:
+        subprocess.Popen(["git", "-C", git_dir, "branch", "-D", branch])
 
 def run_cmd(cmd, cwd, interactive=False, raisesysexit=False):
     """Execute the command cmd in the working directory cwd and check return
@@ -100,15 +133,38 @@ def git_ref_exists(clone_dir, revision):
 
 def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via git."""
-    command = ['git', 'clone', url, clone_dir]
-    if not is_sslverify_enabled(kwargs):
-        command += ['--config', 'http.sslverify=false']
-    safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
-    # if the reference does not exist.
-    if revision and not git_ref_exists(clone_dir, revision):
-        # fetch reference from url and create locally
-        safe_run(['git', 'fetch', url, revision + ':' + revision],
-                 cwd=clone_dir, interactive=sys.stdout.isatty())
+    if kwargs['jailed']:
+        reponame = url.split('/')[-1];
+        clone_cache_dir = os.path.join(kwargs['cachedir'],reponame)
+        if not os.path.isdir(os.path.join(clone_cache_dir,'.git')):
+            # clone if no .git dir exists
+            command = ['git', 'clone', '--no-checkout', url, clone_cache_dir]
+            if not is_sslverify_enabled(kwargs):
+                command += ['--config', 'http.sslverify=false']
+        else:
+            # "git fetch" is a blocking command
+            # so no race conditions should occur between multiple service processes
+            command = ['git', '-C', clone_cache_dir, 'fetch', '--tags', '--prune']
+
+        safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
+
+	setup_tracking_branches(clone_cache_dir)
+
+        # We use a temporary shared clone to avoid race conditions
+        # between multiple services
+        safe_run(['git','clone','--reference',clone_cache_dir,url,clone_dir], cwd=cwd, interactive=sys.stdout.isatty())
+
+    else:
+        command = ['git', 'clone', url, clone_dir]
+
+        if not is_sslverify_enabled(kwargs):
+            command += ['--config', 'http.sslverify=false']
+        safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
+        # if the reference does not exist.
+        if revision and not git_ref_exists(clone_dir, revision):
+            # fetch reference from url and create locally
+            safe_run(['git', 'fetch', url, revision + ':' + revision],
+                     cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
 def fetch_upstream_git_submodules(clone_dir, kwargs):
@@ -294,6 +350,8 @@ def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
 
 def fetch_upstream(scm, url, revision, out_dir, **kwargs):
     """Fetch sources from repository and checkout given revision."""
+    logging.debug("CACHEDIR: '%s'" % kwargs['cachedir'])
+    logging.debug("JAILED: '%d'" % kwargs['jailed'])
     clone_prefix = ""
     if 'clone_prefix' in kwargs:
         clone_prefix = kwargs['clone_prefix']
@@ -896,6 +954,7 @@ def write_changes(changes_filename, changes, version, author):
     logging.debug("Writing changes file %s", changes_filename)
 
     tmp_fp = tempfile.NamedTemporaryFile(delete=False)
+    os.chmod(tmp_fp.name,stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
     tmp_fp.write('-' * 67 + '\n')
     tmp_fp.write("%s - %s\n" % (
         datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y'),
@@ -1148,6 +1207,9 @@ def parse_args():
                         help='osc service parameter for internal use only '
                              '(determines where generated files go before '
                              'collection')
+    parser.add_argument('--jailed', required=False, type=int, default=0,
+                        help='service parameter for internal use only '
+                             '(determines whether service runs in docker jail)')
     parser.add_argument('--history-depth',
                         help='Obsolete osc service parameter that does '
                              'nothing')
@@ -1263,22 +1325,23 @@ def singletask(use_obs_scm, args):
     repocachedir = get_repocachedir()
 
     repodir = None
-    # construct repodir (the parent directory of the checkout)
-    if repocachedir and os.path.isdir(repocachedir):
-        # construct subdirs on very first run
-        if not os.path.isdir(os.path.join(repocachedir, 'repo')):
-            os.mkdir(os.path.join(repocachedir, 'repo'))
-        if not os.path.isdir(os.path.join(repocachedir, 'incoming')):
-            os.mkdir(os.path.join(repocachedir, 'incoming'))
+    if not args.jailed:
+        # construct repodir (the parent directory of the checkout)
+        if repocachedir and os.path.isdir(repocachedir):
+            # construct subdirs on very first run
+            if not os.path.isdir(os.path.join(repocachedir, 'repo')):
+                os.mkdir(os.path.join(repocachedir, 'repo'))
+            if not os.path.isdir(os.path.join(repocachedir, 'incoming')):
+                os.mkdir(os.path.join(repocachedir, 'incoming'))
 
-        repohash = get_repocache_hash(args.scm, args.url, args.subdir)
-        logging.debug("HASH: %s", repohash)
-        repodir = os.path.join(repocachedir, 'repo')
-        repodir = os.path.join(repodir, repohash)
+            repohash = get_repocache_hash(args.scm, args.url, args.subdir)
+            logging.debug("HASH: %s", repohash)
+            repodir = os.path.join(repocachedir, 'repo')
+            repodir = os.path.join(repodir, repohash)
 
-    # if caching is enabled but we haven't cached something yet
-    if repodir and not os.path.isdir(repodir):
-        repodir = tempfile.mkdtemp(dir=os.path.join(repocachedir, 'incoming'))
+        # if caching is enabled but we haven't cached something yet
+        if repodir and not os.path.isdir(repodir):
+            repodir = tempfile.mkdtemp(dir=os.path.join(repocachedir, 'incoming'))
 
     if repodir is None:
         repodir = tempfile.mkdtemp(dir=args.outdir)
@@ -1305,7 +1368,7 @@ def singletask(use_obs_scm, args):
             # not need in case of local osc build
             os.rename(basename, clone_dir)
     else:
-        clone_dir = fetch_upstream(out_dir=repodir, **args.__dict__)
+        clone_dir = fetch_upstream(out_dir=repodir,cachedir=repocachedir, **args.__dict__)
 
     if args.filename:
         dstname = basename = args.filename
