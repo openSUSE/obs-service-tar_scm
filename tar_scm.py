@@ -148,11 +148,19 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
 
         safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
 
-	setup_tracking_branches(clone_cache_dir)
+        setup_tracking_branches(clone_cache_dir)
 
         # We use a temporary shared clone to avoid race conditions
         # between multiple services
-        safe_run(['git','clone','--reference',clone_cache_dir,url,clone_dir], cwd=cwd, interactive=sys.stdout.isatty())
+        command = ['git','clone','--reference',clone_cache_dir,url,clone_dir]
+        try:
+            if (kwargs['package_meta']):
+		logging.info("Using '--dissociate'")
+                command.insert(4,'--dissociate')
+        except(KeyError):
+            pass
+
+        safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
 
     else:
         command = ['git', 'clone', url, clone_dir]
