@@ -30,7 +30,7 @@ import tarfile
 import tempfile
 import dateutil.parser
 import stat
-
+import fcntl
 try:
     # not possible to test this on travis atm
     import yaml
@@ -134,6 +134,8 @@ def git_ref_exists(clone_dir, revision):
 def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
     """Fetch sources via git."""
     if kwargs['jailed']:
+        lf = open(os.path.join(kwargs['cachedir'],'.lock'),'w')
+        fcntl.lockf(lf,fcntl.LOCK_EX)
         reponame = url.split('/')[-1];
         clone_cache_dir = os.path.join(kwargs['cachedir'],reponame)
         if not os.path.isdir(os.path.join(clone_cache_dir,'.git')):
@@ -147,7 +149,8 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
             command = ['git', '-C', clone_cache_dir, 'fetch', '--tags', '--prune']
 
         safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
-
+        fcntl.lockf(lf,fcntl.LOCK_UN)
+        lf.close()
         setup_tracking_branches(clone_cache_dir)
 
         # We use a temporary shared clone to avoid race conditions
