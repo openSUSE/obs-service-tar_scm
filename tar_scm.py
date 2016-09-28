@@ -1244,8 +1244,7 @@ def singletask(use_obs_scm, args):
 
         repohash = scm_object.get_repocache_hash(args.subdir)
         logging.debug("HASH: %s", repohash)
-        repodir = os.path.join(repocachedir, 'repo')
-        repodir = os.path.join(repodir, repohash)
+        repodir = os.path.join(repocachedir, 'repo', repohash)
 
     # if caching is enabled but we haven't cached something yet
     if repodir and not os.path.isdir(repodir):
