@@ -262,8 +262,12 @@ class TarSCM:
                                 "--pretty=format:%s" % versionformat], repodir)[1]
             return version_iso_cleanup(version)
 
+        def get_timestamp(self, args, repodir):
+            d = {"parent_tag": None, "versionformat": "%ct"}
+            timestamp = self.detect_version(d, repodir)
+            return int(timestamp)
 
-
+    ### END class TarSCM.git
 
     class hg(scm):
         def __init__(self):
@@ -338,6 +342,14 @@ class TarSCM:
                                 '--template', versionformat], repodir)[1]
             return version_iso_cleanup(version)
 
+        def get_timestamp(self, args, repodir):
+            d = {"parent_tag": None, "versionformat": "{date}"}
+            timestamp = self.detect_version(d, repodir)
+            timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
+            return int(timestamp)
+
+
+    ### END class TarSCM.hg
 
     class svn(scm):
         def __init__(self):
@@ -373,6 +385,20 @@ class TarSCM:
                 version = match.group(1).strip()
             return re.sub('%r', version, versionformat)
 
+        def get_timestamp(self, args, repodir):
+            svn_info = safe_run(['svn', 'info', '-rHEAD'], repodir)[1]
+
+            match = re.search('Last Changed Date: (.*)', svn_info, re.MULTILINE)
+            if not match:
+                return 0
+
+            timestamp = match.group(1).strip()
+            timestamp = re.sub('\(.*\)', '', timestamp)
+            timestamp = dateutil.parser.parse(timestamp).strftime("%s")
+            return int(timestamp)
+
+    ### END class TarSCM.svn
+
     class bzr(scm):
         def __init__(self):
             self.scm = 'bzr'
@@ -404,6 +430,17 @@ class TarSCM:
             version = safe_run(['bzr', 'revno'], repodir)[1]
             return re.sub('%r', version.strip(), versionformat)
 
+        def get_timestamp(self, args, repodir):
+            log = safe_run(['bzr', 'log', '--limit=1', '--log-format=long'],
+                           repodir)[1]
+            match = re.search(r'timestamp:(.*)', log, re.MULTILINE)
+            if not match:
+                return 0
+            timestamp = dateutil.parser.parse(match.group(1).strip()).strftime("%s")
+            return int(timestamp)
+
+    ### END class TarSCM.bzr
+
     class tar(scm):
         def __init__(self):
             self.scm = 'tar'
@@ -418,6 +455,13 @@ class TarSCM:
         def detect_version(self, args, repodir):
             """Read former stored version."""
             return read_from_obsinfo(args['obsinfo'], "version")
+
+        def get_timestamp(self, args, repodir):
+            return int(read_from_obsinfo(args.obsinfo, "mtime"))
+
+    ### END class TarSCM.tar
+
+
 
 
 
@@ -689,57 +733,10 @@ def detect_version(scm_object, args, repodir):
     return version
 
 
-def get_timestamp_tar(scm_object, args, repodir):
-    return int(read_from_obsinfo(args.obsinfo, "mtime"))
-
-
-def get_timestamp_bzr(scm_object, args, repodir):
-    log = safe_run(['bzr', 'log', '--limit=1', '--log-format=long'],
-                   repodir)[1]
-    match = re.search(r'timestamp:(.*)', log, re.MULTILINE)
-    if not match:
-        return 0
-    timestamp = dateutil.parser.parse(match.group(1).strip()).strftime("%s")
-    return int(timestamp)
-
-
-def get_timestamp_git(scm_object, args, repodir):
-    d = {"parent_tag": None, "versionformat": "%ct"}
-    timestamp = scm_object.detect_version(d, repodir)
-    return int(timestamp)
-
-
-def get_timestamp_hg(scm_object, args, repodir):
-    d = {"parent_tag": None, "versionformat": "{date}"}
-    timestamp = scm_object.detect_version(d, repodir)
-    timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
-    return int(timestamp)
-
-
-def get_timestamp_svn(scm_object, args, repodir):
-    svn_info = safe_run(['svn', 'info', '-rHEAD'], repodir)[1]
-
-    match = re.search('Last Changed Date: (.*)', svn_info, re.MULTILINE)
-    if not match:
-        return 0
-
-    timestamp = match.group(1).strip()
-    timestamp = re.sub('\(.*\)', '', timestamp)
-    timestamp = dateutil.parser.parse(timestamp).strftime("%s")
-    return int(timestamp)
-
-
 def get_timestamp(scm_object, args, clone_dir):
     """Returns the commit timestamp for checked-out repository."""
-    get_timestamp_commands = {
-        'git': get_timestamp_git,
-        'svn': get_timestamp_svn,
-        'hg':  get_timestamp_hg,
-        'bzr': get_timestamp_bzr,
-        'tar': get_timestamp_tar
-    }
-    scm = scm_object.scm
-    timestamp = get_timestamp_commands[scm](scm_object, args, clone_dir)
+
+    timestamp = scm_object.get_timestamp(args, clone_dir)
     logging.debug("COMMIT TIMESTAMP: %s (%s)", timestamp,
                   datetime.datetime.fromtimestamp(timestamp).strftime(
                       '%Y-%m-%d %H:%M:%S'))
