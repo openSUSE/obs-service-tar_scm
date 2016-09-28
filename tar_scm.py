@@ -302,8 +302,10 @@ def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
     return clone_dir
 
 
-def fetch_upstream(scm, url, revision, out_dir, **kwargs):
+def fetch_upstream(scm_object, url, revision, out_dir, **kwargs):
     """Fetch sources from repository and checkout given revision."""
+    scm = scm_object.scm
+    logging.debug("SCM: '%s'" % scm)
     clone_prefix = ""
     if 'clone_prefix' in kwargs:
         clone_prefix = kwargs['clone_prefix']
@@ -321,16 +323,8 @@ def fetch_upstream(scm, url, revision, out_dir, **kwargs):
         UPDATE_CACHE_COMMANDS[scm](url, clone_dir, revision)
 
     
-    SCM_OBJECTS = {
-        'git': TarSCM.git(),
-        'svn': TarSCM.svn(),
-        'hg':  TarSCM.hg(),
-        'bzr': TarSCM.bzr(),
-        'tar': TarSCM.tar(),
-    }
-
     # switch_to_revision
-    SCM_OBJECTS[scm].switch_revision(clone_dir, revision)
+    scm_object.switch_revision(clone_dir, revision)
 
     # git specific: after switching to desired revision its necessary to update
     # submodules since they depend on the actual version of the selected
@@ -1314,6 +1308,16 @@ def singletask(use_obs_scm, args):
        (use_obs_scm and os.getenv('OSC_VERSION')):
         repodir = os.getcwd()
 
+    SCM_OBJECTS = {
+        'git': TarSCM.git(),
+        'svn': TarSCM.svn(),
+        'hg':  TarSCM.hg(),
+        'bzr': TarSCM.bzr(),
+        'tar': TarSCM.tar(),
+    }
+    
+    scm_object = SCM_OBJECTS[args.scm]
+
     if args.scm == "tar":
         if args.obsinfo is None:
             files = glob.glob('*.obsinfo')
@@ -1328,7 +1332,7 @@ def singletask(use_obs_scm, args):
             # not need in case of local osc build
             os.rename(basename, clone_dir)
     else:
-        clone_dir = fetch_upstream(out_dir=repodir, **args.__dict__)
+        clone_dir = fetch_upstream(scm_object, out_dir=repodir, **args.__dict__)
 
     if args.filename:
         dstname = basename = args.filename
