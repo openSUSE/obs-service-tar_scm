@@ -98,18 +98,6 @@ def git_ref_exists(clone_dir, revision):
     return (rc == 0)
 
 
-def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
-    """Fetch sources via git."""
-    command = ['git', 'clone', url, clone_dir]
-    if not is_sslverify_enabled(kwargs):
-        command += ['--config', 'http.sslverify=false']
-    safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
-    # if the reference does not exist.
-    if revision and not git_ref_exists(clone_dir, revision):
-        # fetch reference from url and create locally
-        safe_run(['git', 'fetch', url, revision + ':' + revision],
-                 cwd=clone_dir, interactive=sys.stdout.isatty())
-
 
 def fetch_upstream_git_submodules(clone_dir, kwargs):
     """Recursively initialize git submodules."""
@@ -121,45 +109,11 @@ def fetch_upstream_git_submodules(clone_dir, kwargs):
                  '--remote'], cwd=clone_dir)
 
 
-def fetch_upstream_svn(url, clone_dir, revision, cwd, kwargs):
-    """Fetch sources via svn."""
-    command = ['svn', 'checkout', '--non-interactive', url, clone_dir]
-    if revision:
-        command.insert(4, '-r%s' % revision)
-    if not is_sslverify_enabled(kwargs):
-        command.insert(3, '--trust-server-cert')
-    safe_run(command, cwd, interactive=sys.stdout.isatty())
-
-
-def fetch_upstream_hg(url, clone_dir, revision, cwd, kwargs):
-    """Fetch sources via hg."""
-    command = ['hg', 'clone', url, clone_dir]
-    if not is_sslverify_enabled(kwargs):
-        command += ['--insecure']
-    safe_run(command, cwd,
-             interactive=sys.stdout.isatty())
-
-
-def fetch_upstream_bzr(url, clone_dir, revision, cwd, kwargs):
-    """Fetch sources from bzr."""
-    command = ['bzr', 'checkout', url, clone_dir]
-    if revision:
-        command.insert(3, '-r')
-        command.insert(4, revision)
-    if not is_sslverify_enabled(kwargs):
-        command.insert(2, '-Ossl.cert_reqs=None')
-    safe_run(command, cwd, interactive=sys.stdout.isatty())
-
-
-def fetch_upstream_tar(url, clone_dir, revision, cwd, kwargs):
-    """NOOP, sources are present via obscpio already"""
-
-
 FETCH_UPSTREAM_COMMANDS = {
-    'git': fetch_upstream_git,
-    'svn': fetch_upstream_svn,
-    'hg':  fetch_upstream_hg,
-    'bzr': fetch_upstream_bzr,
+    'git': 1,
+    'svn': 1,
+    'hg':  1,
+    'bzr': 1,
 }
 
 
@@ -260,10 +214,25 @@ class TarSCM:
                     os.path.join(clone_dir, os.path.join('.git', 'modules'))):
                 safe_run(['git', 'submodule', 'update', '--recursive'], cwd=clone_dir)
 
+        def fetch_upstream(self,url, clone_dir, revision, cwd, kwargs):
+            """Fetch sources via git."""
+            command = ['git', 'clone', url, clone_dir]
+
+            if not is_sslverify_enabled(kwargs):
+                command += ['--config', 'http.sslverify=false']
+            safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
+            # if the reference does not exist.
+            if revision and not git_ref_exists(clone_dir, revision):
+                # fetch reference from url and create locally
+                safe_run(['git', 'fetch', url, revision + ':' + revision],
+                         cwd=clone_dir, interactive=sys.stdout.isatty())
+
+
 
     class hg(scm):
         def __init__(self):
             self.scm = 'hg'
+
         def switch_revision(self,clone_dir, revision):
             """Switch sources to revision."""
             if revision is None:
@@ -274,17 +243,49 @@ class TarSCM:
             if rc:
                 sys.exit('%s: No such revision' % revision)
 
+        def fetch_upstream(self,url, clone_dir, revision, cwd, kwargs):
+            """Fetch sources via hg."""
+            command = ['hg', 'clone', url, clone_dir]
+            if not is_sslverify_enabled(kwargs):
+                command += ['--insecure']
+            safe_run(command, cwd,
+                     interactive=sys.stdout.isatty())
+
     class svn(scm):
         def __init__(self):
             self.scm = 'svn'
+
+        def fetch_upstream(self,url, clone_dir, revision, cwd, kwargs):
+            """Fetch sources via svn."""
+            command = ['svn', 'checkout', '--non-interactive', url, clone_dir]
+            if revision:
+                command.insert(4, '-r%s' % revision)
+            if not is_sslverify_enabled(kwargs):
+                command.insert(3, '--trust-server-cert')
+            safe_run(command, cwd, interactive=sys.stdout.isatty())
 
     class bzr(scm):
         def __init__(self):
             self.scm = 'bzr'
 
+        def fetch_upstream(self,url, clone_dir, revision, cwd, kwargs):
+            """Fetch sources from bzr."""
+            command = ['bzr', 'checkout', url, clone_dir]
+            if revision:
+                command.insert(3, '-r')
+                command.insert(4, revision)
+            if not is_sslverify_enabled(kwargs):
+                command.insert(2, '-Ossl.cert_reqs=None')
+            safe_run(command, cwd, interactive=sys.stdout.isatty())
+
     class tar(scm):
         def __init__(self):
             self.scm = 'tar'
+
+        def fetch_upstream(self,url, clone_dir, revision, cwd, kwargs):
+            """NOOP, sources are present via obscpio already"""
+            
+
 
 def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
     # separate path from parameters etc.
@@ -314,10 +315,8 @@ def fetch_upstream(scm_object, url, revision, out_dir, **kwargs):
     if not os.path.isdir(clone_dir):
         # initial clone
         os.mkdir(clone_dir)
-        if scm not in FETCH_UPSTREAM_COMMANDS:
-            sys.exit("Don't know how to fetch for '%s' SCM" % scm)
-        FETCH_UPSTREAM_COMMANDS[scm](url, clone_dir, revision, cwd=out_dir,
-                                     kwargs=kwargs)
+        scm_object.fetch_upstream(url, clone_dir, revision, cwd=out_dir,
+                                  kwargs=kwargs)
     else:
         logging.info("Detected cached repository...")
         UPDATE_CACHE_COMMANDS[scm](url, clone_dir, revision)
