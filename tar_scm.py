@@ -92,11 +92,6 @@ def is_sslverify_enabled(kwargs):
     return 'sslverify' not in kwargs or kwargs['sslverify']
 
 
-def git_ref_exists(clone_dir, revision):
-    rc, _ = run_cmd(['git', 'rev-parse', '--verify', '--quiet', revision],
-                    cwd=clone_dir, interactive=sys.stdout.isatty())
-    return (rc == 0)
-
 
 
 def fetch_upstream_git_submodules(clone_dir, kwargs):
@@ -146,7 +141,7 @@ class TarSCM:
             found_revision = None
             revs = [x + revision for x in ['origin/', '']]
             for rev in revs:
-                if git_ref_exists(clone_dir, rev):
+                if self._ref_exists(clone_dir, rev):
                     found_revision = True
                     if os.getenv('OSC_VERSION'):
                         stash_text = safe_run(['git', 'stash'], cwd=clone_dir)[1]
@@ -210,7 +205,7 @@ class TarSCM:
                     command += ['--config', 'http.sslverify=false']
                 safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
                 # if the reference does not exist.
-                if revision and not git_ref_exists(clone_dir, revision):
+                if revision and not self._ref_exists(clone_dir, revision):
                     # fetch reference from url and create locally
                     safe_run(['git', 'fetch', url, revision + ':' + revision],
                              cwd=clone_dir, interactive=sys.stdout.isatty())
@@ -266,6 +261,12 @@ class TarSCM:
             d = {"parent_tag": None, "versionformat": "%ct"}
             timestamp = self.detect_version(d, repodir)
             return int(timestamp)
+
+        def _ref_exists(self, clone_dir, revision):
+            rc, _ = run_cmd(['git', 'rev-parse', '--verify', '--quiet', revision],
+                            cwd=clone_dir, interactive=sys.stdout.isatty())
+            return (rc == 0)
+
 
     ### END class TarSCM.git
 
@@ -460,9 +461,6 @@ class TarSCM:
             return int(read_from_obsinfo(args.obsinfo, "mtime"))
 
     ### END class TarSCM.tar
-
-
-
 
 
 def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
@@ -721,8 +719,6 @@ def read_from_obsinfo(filename, key):
             return k[1].strip()
         line = infofile.readline()
     return ""
-
-
 
 
 def detect_version(scm_object, args, repodir):
