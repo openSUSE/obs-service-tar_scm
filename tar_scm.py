@@ -51,6 +51,8 @@ class TarSCM:
             """NOOP in other scm's than git"""
             pass
 
+        def detect_changes(self, repodir, subdir, changes):
+            sys.exit("changesgenerate not supported with %s SCM" % self.scm)
 
     class git(scm):
         def __init__(self):
@@ -172,6 +174,40 @@ class TarSCM:
             rc, _ = run_cmd(['git', 'rev-parse', '--verify', '--quiet', revision],
                             cwd=clone_dir, interactive=sys.stdout.isatty())
             return (rc == 0)
+
+        def _log_cmd(self, cmd_args, repodir, subdir):
+            """ Helper function to call 'git log' with args"""
+            cmd = ['git', 'log'] + cmd_args
+            if subdir:
+                cmd += ['--', subdir]
+            return safe_run(cmd, cwd=repodir)[1]
+
+
+        def detect_changes(self, repodir, subdir, changes):
+            """Detect changes between GIT revisions."""
+            last_rev = changes['revision']
+
+            if last_rev is None:
+                last_rev = self._log_cmd(['-n1', '--pretty=format:%H', '--skip=10'],
+                                        repodir, subdir)
+            current_rev = self._log_cmd(['-n1', '--pretty=format:%H'], repodir, subdir)
+
+            if last_rev == current_rev:
+                logging.debug("No new commits, skipping changes file generation")
+                return
+
+            dbg_msg = "Generating changes between %s and %s" % (last_rev, current_rev)
+            if subdir:
+                dbg_msg += " (for subdir: %s)" % (subdir)
+            logging.debug(dbg_msg)
+
+            lines = self._log_cmd(['--reverse', '--no-merges', '--pretty=format:%s',
+                                  "%s..%s" % (last_rev, current_rev)], repodir, subdir)
+
+            changes['revision'] = current_rev
+            changes['lines'] = lines.split('\n')
+            return changes
+
 
 
     ### END class TarSCM.git
@@ -303,6 +339,63 @@ class TarSCM:
             timestamp = re.sub('\(.*\)', '', timestamp)
             timestamp = dateutil.parser.parse(timestamp).strftime("%s")
             return int(timestamp)
+
+        def detect_changes(self, repodir, subdir, changes):
+            """Detect changes between GIT revisions."""
+            last_rev = changes['revision']
+            first_run = False
+            if subdir:
+                repodir = os.path.join(repodir, subdir)
+
+            if last_rev is None:
+                last_rev = self._get_rev(repodir, 10)
+                logging.debug("First run get log for initial release")
+                first_run = True
+
+            current_rev = self._get_rev(repodir, 1)
+
+            if last_rev == current_rev:
+                logging.debug("No new commits, skipping changes file generation")
+                return
+
+            if not first_run:
+                # Increase last_rev by 1 so we dont get duplication of log messages
+                last_rev = int(last_rev) + 1
+
+            logging.debug("Generating changes between %s and %s", last_rev,
+                          current_rev)
+            lines = self._get_log(repodir, last_rev, current_rev)
+
+            changes['revision'] = current_rev
+            changes['lines'] = lines
+            return changes
+
+
+        def _get_log(self, repodir, revision1, revision2):
+            new_lines = []
+
+            xml_lines = safe_run(['svn', 'log', '-r%s:%s' % (revision1,
+                                 revision2), '--xml'], repodir)[1]
+            lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
+
+            for line in lines:
+                line = line.replace("<msg>", "").replace("</msg>", "")
+                new_lines = new_lines + line.split("\n")
+
+            return new_lines
+
+
+        def _get_rev(self, repodir, num_commits):
+            revisions = safe_run(['svn', 'log', '-l%d' % num_commits, '-q',
+                                 '--incremental'], cwd=repodir)[1].split('\n')
+            # remove blank entry on end
+            revisions.pop()
+            # return last entry
+            revision = revisions[-1]
+            # retrieve the revision number and remove r
+            revision = re.search(r'^r[0-9]*', revision, re.M).group().replace("r", "")
+            return revision
+
 
     ### END class TarSCM.svn
 
@@ -904,112 +997,13 @@ def write_changes(changes_filename, changes, version, author):
     shutil.move(tmp_fp.name, changes_filename)
 
 
-def _git_log_cmd(cmd_args, repodir, subdir):
-    """ Helper function to call 'git log' with args"""
-    cmd = ['git', 'log'] + cmd_args
-    if subdir:
-        cmd += ['--', subdir]
-    return safe_run(cmd, cwd=repodir)[1]
-
-
-def detect_changes_commands_git(repodir, subdir, changes):
-    """Detect changes between GIT revisions."""
-    last_rev = changes['revision']
-
-    if last_rev is None:
-        last_rev = _git_log_cmd(['-n1', '--pretty=format:%H', '--skip=10'],
-                                repodir, subdir)
-    current_rev = _git_log_cmd(['-n1', '--pretty=format:%H'], repodir, subdir)
-
-    if last_rev == current_rev:
-        logging.debug("No new commits, skipping changes file generation")
-        return
-
-    dbg_msg = "Generating changes between %s and %s" % (last_rev, current_rev)
-    if subdir:
-        dbg_msg += " (for subdir: %s)" % (subdir)
-    logging.debug(dbg_msg)
-
-    lines = _git_log_cmd(['--reverse', '--no-merges', '--pretty=format:%s',
-                          "%s..%s" % (last_rev, current_rev)], repodir, subdir)
-
-    changes['revision'] = current_rev
-    changes['lines'] = lines.split('\n')
-    return changes
-
-
-def detect_changes_commands_svn(repodir, subdir, changes):
-    """Detect changes between GIT revisions."""
-    last_rev = changes['revision']
-    first_run = False
-    if subdir:
-        repodir = os.path.join(repodir, subdir)
-
-    if last_rev is None:
-        last_rev = get_svn_rev(repodir, 10)
-        logging.debug("First run get log for initial release")
-        first_run = True
-
-    current_rev = get_svn_rev(repodir, 1)
-
-    if last_rev == current_rev:
-        logging.debug("No new commits, skipping changes file generation")
-        return
-
-    if not first_run:
-        # Increase last_rev by 1 so we dont get duplication of log messages
-        last_rev = int(last_rev) + 1
-
-    logging.debug("Generating changes between %s and %s", last_rev,
-                  current_rev)
-    lines = get_svn_log(repodir, last_rev, current_rev)
-
-    changes['revision'] = current_rev
-    changes['lines'] = lines
-    return changes
-
-
-def get_svn_log(repodir, revision1, revision2):
-    new_lines = []
-
-    xml_lines = safe_run(['svn', 'log', '-r%s:%s' % (revision1,
-                         revision2), '--xml'], repodir)[1]
-    lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
-
-    for line in lines:
-        line = line.replace("<msg>", "").replace("</msg>", "")
-        new_lines = new_lines + line.split("\n")
-
-    return new_lines
-
-
-def get_svn_rev(repodir, num_commits):
-    revisions = safe_run(['svn', 'log', '-l%d' % num_commits, '-q',
-                         '--incremental'], cwd=repodir)[1].split('\n')
-    # remove blank entry on end
-    revisions.pop()
-    # return last entry
-    revision = revisions[-1]
-    # retrieve the revision number and remove r
-    revision = re.search(r'^r[0-9]*', revision, re.M).group().replace("r", "")
-    return revision
-
-
-def detect_changes(scm, url, repodir, outdir, subdir):
+def detect_changes(scm_object, url, repodir, outdir, subdir):
     """Detect changes between revisions."""
     changes = read_changes_revision(url, os.getcwd(), outdir)
 
     logging.debug("CHANGES: %s" % repr(changes))
 
-    detect_changes_commands = {
-        'git': detect_changes_commands_git,
-        'svn': detect_changes_commands_svn,
-    }
-
-    if scm not in detect_changes_commands:
-        sys.exit("changesgenerate not supported with %s SCM" % scm)
-
-    changes = detect_changes_commands[scm](repodir, subdir, changes)
+    changes = scm_object.detect_changes(repodir, subdir, changes)
     logging.debug("Detected changes:\n%s" % repr(changes))
     return changes
 
@@ -1325,7 +1319,7 @@ def singletask(use_obs_scm, args):
 
     changes = None
     if args.changesgenerate:
-        changes = detect_changes(args.scm, args.url, clone_dir, args.outdir,
+        changes = detect_changes(scm_object, args.url, clone_dir, args.outdir,
                                  args.subdir)
 
     tar_dir = prep_tree_for_archive(clone_dir, args.subdir, args.outdir,
