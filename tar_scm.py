@@ -41,39 +41,6 @@ from urlparse import urlparse
 
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
 
-def setup_tracking_branches(git_dir):
-    output = subprocess.Popen(["git", "-C", git_dir, "branch", "-a"], stdout=subprocess.PIPE).communicate()[0]
-
-    p = re.compile('.* ->\s+(.*)')
-    p2 = re.compile('.?\s*((remotes/(.*)/)?(.+))')
-
-    remote_branches = {}
-    local_branches  = {}
-    local2remove    = {}
-
-    for line in output.split("\n"):
-        m = p.match(line)
-        if not m:
-            m2 = p2.match(line)
-            if m2:
-                if m2.group(2):
-                    if m2.group(3) == 'origin':
-                        remote_branches[m2.group(4)] = m2.group(1)
-                else:
-                    local_branches[m2.group(4)] = 1
-
-    for branch in local_branches:
-        try:
-            del remote_branches[branch]
-        except KeyError:
-            local2remove[branch] = 1
-
-    for branch in remote_branches:
-        subprocess.Popen(["git", "-C", git_dir, "branch", "--track", branch, remote_branches[branch]], stdout=subprocess.PIPE)
-
-    for branch in local2remove:
-        subprocess.Popen(["git", "-C", git_dir, "branch", "-D", branch])
-
 def run_cmd(cmd, cwd, interactive=False, raisesysexit=False):
     """Execute the command cmd in the working directory cwd and check return
     value. If the command returns non-zero and raisesysexit is True raise a
@@ -138,11 +105,9 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
         fcntl.lockf(lf,fcntl.LOCK_EX)
         reponame = url.split('/')[-1];
         clone_cache_dir = os.path.join(kwargs['cachedir'],reponame)
-        if not os.path.isdir(os.path.join(clone_cache_dir,'.git')):
+        if not os.path.isfile(os.path.join(clone_cache_dir,'config')):
             # clone if no .git dir exists
-            command = ['git', 'clone', '--no-checkout', url, clone_cache_dir]
-            if not is_sslverify_enabled(kwargs):
-                command += ['--config', 'http.sslverify=false']
+            command = ['git', 'clone', '--mirror', url, clone_cache_dir]
         else:
             # "git fetch" is a blocking command
             # so no race conditions should occur between multiple service processes
@@ -151,18 +116,20 @@ def fetch_upstream_git(url, clone_dir, revision, cwd, kwargs):
         safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
         fcntl.lockf(lf,fcntl.LOCK_UN)
         lf.close()
-        setup_tracking_branches(clone_cache_dir)
 
         # We use a temporary shared clone to avoid race conditions
         # between multiple services
-        command = ['git','clone','--reference',clone_cache_dir,url,clone_dir]
+        command = ['git','clone',clone_cache_dir,url,clone_dir]
+        use_reference = True
         try:
             if (kwargs['package_meta']):
-		logging.info("Using '--dissociate'")
-                command.insert(4,'--dissociate')
+		logging.info("Not using '--reference'")
+                use_reference = False
         except(KeyError):
             pass
 
+        if use_reference:
+            command.insert(2,'--reference')
         safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
 
     else:
@@ -1435,6 +1402,7 @@ def singletask(use_obs_scm, args):
                                changes['revision'])
 
     # Populate cache
+    logging.debug("Using repocachedir: '%s'" % repocachedir)
     if repocachedir and os.path.isdir(os.path.join(repocachedir, 'repo')):
         repodir2 = os.path.join(repocachedir, 'repo')
         repodir2 = os.path.join(repodir2, repohash)
