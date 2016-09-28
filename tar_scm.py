@@ -92,18 +92,6 @@ def is_sslverify_enabled(kwargs):
     return 'sslverify' not in kwargs or kwargs['sslverify']
 
 
-
-
-def fetch_upstream_git_submodules(clone_dir, kwargs):
-    """Recursively initialize git submodules."""
-    if 'submodules' in kwargs and kwargs['submodules'] == 'enable':
-        safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
-                 cwd=clone_dir)
-    elif 'submodules' in kwargs and kwargs['submodules'] == 'master':
-        safe_run(['git', 'submodule', 'update', '--init', '--recursive',
-                 '--remote'], cwd=clone_dir)
-
-
 FETCH_UPSTREAM_COMMANDS = {
     'git': 1,
     'svn': 1,
@@ -120,6 +108,11 @@ class TarSCM:
             systems that change revision during fetch/update.
             """
             return
+
+        def fetch_submodules(self, clone_dir, kwargs):
+            """NOOP in other scm's than git"""
+            pass
+
 
     class git(scm):
         def __init__(self):
@@ -210,6 +203,14 @@ class TarSCM:
                     safe_run(['git', 'fetch', url, revision + ':' + revision],
                              cwd=clone_dir, interactive=sys.stdout.isatty())
 
+        def fetch_submodules(self, clone_dir, kwargs):
+            """Recursively initialize git submodules."""
+            if 'submodules' in kwargs and kwargs['submodules'] == 'enable':
+                safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
+                         cwd=clone_dir)
+            elif 'submodules' in kwargs and kwargs['submodules'] == 'master':
+                safe_run(['git', 'submodule', 'update', '--init', '--recursive',
+                         '--remote'], cwd=clone_dir)
 
         def update_cache(self, url, clone_dir, revision):
             """Update sources via git."""
@@ -506,8 +507,7 @@ def fetch_upstream(scm_object, url, revision, out_dir, **kwargs):
     # git specific: after switching to desired revision its necessary to update
     # submodules since they depend on the actual version of the selected
     # revision
-    if scm == 'git':
-        fetch_upstream_git_submodules(clone_dir, kwargs)
+    scm_object.fetch_submodules(clone_dir, kwargs)
 
     return clone_dir
 
