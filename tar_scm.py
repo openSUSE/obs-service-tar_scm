@@ -117,51 +117,6 @@ FETCH_UPSTREAM_COMMANDS = {
 }
 
 
-def update_cache_git(url, clone_dir, revision):
-    """Update sources via git."""
-    safe_run(['git', 'fetch', '--tags'],
-             cwd=clone_dir, interactive=sys.stdout.isatty())
-    safe_run(['git', 'fetch'],
-             cwd=clone_dir, interactive=sys.stdout.isatty())
-
-
-def update_cache_svn(url, clone_dir, revision):
-    """Update sources via svn."""
-    command = ['svn', 'update']
-    if revision:
-        command.insert(3, "-r%s" % revision)
-    safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
-
-
-def update_cache_hg(url, clone_dir, revision):
-    """Update sources via hg."""
-    try:
-        safe_run(['hg', 'pull'], cwd=clone_dir,
-                 interactive=sys.stdout.isatty())
-    except SystemExit, e:
-        # Contrary to the docs, hg pull returns exit code 1 when
-        # there are no changes to pull, but we don't want to treat
-        # this as an error.
-        if re.match('.*no changes found.*', e.message) is None:
-            raise
-
-
-def update_cache_bzr(url, clone_dir, revision):
-    """Update sources via bzr."""
-    command = ['bzr', 'update']
-    if revision:
-        command.insert(3, '-r')
-        command.insert(4, revision)
-    safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
-
-
-UPDATE_CACHE_COMMANDS = {
-    'git': update_cache_git,
-    'svn': update_cache_svn,
-    'hg':  update_cache_hg,
-    'bzr': update_cache_bzr,
-}
-
 
 class TarSCM:
     class scm():
@@ -228,6 +183,13 @@ class TarSCM:
                          cwd=clone_dir, interactive=sys.stdout.isatty())
 
 
+        def update_cache(self, url, clone_dir, revision):
+            """Update sources via git."""
+            safe_run(['git', 'fetch', '--tags'],
+                     cwd=clone_dir, interactive=sys.stdout.isatty())
+            safe_run(['git', 'fetch'],
+                     cwd=clone_dir, interactive=sys.stdout.isatty())
+
 
     class hg(scm):
         def __init__(self):
@@ -251,6 +213,18 @@ class TarSCM:
             safe_run(command, cwd,
                      interactive=sys.stdout.isatty())
 
+        def update_cache(self, url, clone_dir, revision):
+            """Update sources via hg."""
+            try:
+                safe_run(['hg', 'pull'], cwd=clone_dir,
+                         interactive=sys.stdout.isatty())
+            except SystemExit, e:
+                # Contrary to the docs, hg pull returns exit code 1 when
+                # there are no changes to pull, but we don't want to treat
+                # this as an error.
+                if re.match('.*no changes found.*', e.message) is None:
+                    raise
+
     class svn(scm):
         def __init__(self):
             self.scm = 'svn'
@@ -263,6 +237,17 @@ class TarSCM:
             if not is_sslverify_enabled(kwargs):
                 command.insert(3, '--trust-server-cert')
             safe_run(command, cwd, interactive=sys.stdout.isatty())
+
+        def update_cache(self, url, clone_dir, revision):
+            """Update sources via svn."""
+            command = ['svn', 'update']
+            if revision:
+                command.insert(3, "-r%s" % revision)
+            safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
+
+
+
+
 
     class bzr(scm):
         def __init__(self):
@@ -278,13 +263,25 @@ class TarSCM:
                 command.insert(2, '-Ossl.cert_reqs=None')
             safe_run(command, cwd, interactive=sys.stdout.isatty())
 
+        def update_cache(self, url, clone_dir, revision):
+            """Update sources via bzr."""
+            command = ['bzr', 'update']
+            if revision:
+                command.insert(3, '-r')
+                command.insert(4, revision)
+            safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
+
+
     class tar(scm):
         def __init__(self):
             self.scm = 'tar'
 
         def fetch_upstream(self,url, clone_dir, revision, cwd, kwargs):
             """NOOP, sources are present via obscpio already"""
-            
+
+        def update_cache(self, url, clone_dir, revision):
+            """Update sources via tar."""
+            pass
 
 
 def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
@@ -319,7 +316,7 @@ def fetch_upstream(scm_object, url, revision, out_dir, **kwargs):
                                   kwargs=kwargs)
     else:
         logging.info("Detected cached repository...")
-        UPDATE_CACHE_COMMANDS[scm](url, clone_dir, revision)
+        scm_object.update_cache(url, clone_dir, revision)
 
     
     # switch_to_revision
