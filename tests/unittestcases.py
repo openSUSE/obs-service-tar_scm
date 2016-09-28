@@ -6,7 +6,7 @@ import os
 from mock import patch
 
 from tar_scm import _calc_dir_to_clone_to
-from tar_scm import _git_log_cmd
+from tar_scm import TarSCM
 
 
 class UnitTestCases(unittest.TestCase):
@@ -29,16 +29,19 @@ class UnitTestCases(unittest.TestCase):
 
     @patch('tar_scm.safe_run')
     def test__git_log_cmd_with_args(self, safe_run_mock):
-        new_cmd = _git_log_cmd(['-n1'], None, '')
+        scm = TarSCM.git()
+        new_cmd = scm._log_cmd(['-n1'], None, '')
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1'], cwd=None)
 
     @patch('tar_scm.safe_run')
     def test__git_log_cmd_without_args(self, safe_run_mock):
-        new_cmd = _git_log_cmd([], None, '')
+        scm = TarSCM.git()
+        new_cmd = scm._log_cmd([], None, '')
         safe_run_mock.assert_called_once_with(['git', 'log'], cwd=None)
 
     @patch('tar_scm.safe_run')
     def test__git_log_cmd_with_subdir(self, safe_run_mock):
-        new_cmd = _git_log_cmd(['-n1'], None, 'subdir')
+        scm = TarSCM.git()
+        new_cmd = scm._log_cmd(['-n1'], None, 'subdir')
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1',
                                                '--', 'subdir'], cwd=None)
