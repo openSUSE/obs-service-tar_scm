@@ -38,68 +38,6 @@ except ImportError:
 
 from urlparse import urlparse
 
-DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
-
-
-def run_cmd(cmd, cwd, interactive=False, raisesysexit=False):
-    """Execute the command cmd in the working directory cwd and check return
-    value. If the command returns non-zero and raisesysexit is True raise a
-    SystemExit exception otherwise return a tuple of return code and command
-    output.
-    """
-    logging.debug("COMMAND: %s", cmd)
-
-    # Ensure we get predictable results when parsing the output of commands
-    # like 'git branch'
-    env = os.environ.copy()
-    env['LANG'] = 'C'
-
-    proc = subprocess.Popen(cmd,
-                            shell=False,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT,
-                            cwd=cwd,
-                            env=env)
-    output = ''
-    if interactive:
-        stdout_lines = []
-        while proc.poll() is None:
-            for line in proc.stdout:
-                print line.rstrip()
-                stdout_lines.append(line.rstrip())
-        output = '\n'.join(stdout_lines)
-    else:
-        output = proc.communicate()[0]
-
-    if proc.returncode and raisesysexit:
-        logging.info("ERROR(%d): %s", proc.returncode, repr(output))
-        sys.exit("Command failed(%d): %s" % (proc.returncode, repr(output)))
-    else:
-        logging.debug("RESULT(%d): %s", proc.returncode, repr(output))
-    return (proc.returncode, output)
-
-
-def safe_run(cmd, cwd, interactive=False):
-    """Execute the command cmd in the working directory cwd and check return
-    value. If the command returns non-zero raise a SystemExit exception.
-    """
-    return run_cmd(cmd, cwd, interactive, raisesysexit=True)
-
-
-def is_sslverify_enabled(kwargs):
-    """Returns ``True`` if the ``sslverify`` option has been enabled or
-    not been set (default enabled) ``False`` otherwise."""
-    return 'sslverify' not in kwargs or kwargs['sslverify']
-
-
-FETCH_UPSTREAM_COMMANDS = {
-    'git': 1,
-    'svn': 1,
-    'hg':  1,
-    'bzr': 1,
-}
-
-
 
 class TarSCM:
     class scm():
@@ -430,6 +368,58 @@ class TarSCM:
 
     ### END class TarSCM.tar
 
+DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
+
+def run_cmd(cmd, cwd, interactive=False, raisesysexit=False):
+    """Execute the command cmd in the working directory cwd and check return
+    value. If the command returns non-zero and raisesysexit is True raise a
+    SystemExit exception otherwise return a tuple of return code and command
+    output.
+    """
+    logging.debug("COMMAND: %s", cmd)
+
+    # Ensure we get predictable results when parsing the output of commands
+    # like 'git branch'
+    env = os.environ.copy()
+    env['LANG'] = 'C'
+
+    proc = subprocess.Popen(cmd,
+                            shell=False,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT,
+                            cwd=cwd,
+                            env=env)
+    output = ''
+    if interactive:
+        stdout_lines = []
+        while proc.poll() is None:
+            for line in proc.stdout:
+                print line.rstrip()
+                stdout_lines.append(line.rstrip())
+        output = '\n'.join(stdout_lines)
+    else:
+        output = proc.communicate()[0]
+
+    if proc.returncode and raisesysexit:
+        logging.info("ERROR(%d): %s", proc.returncode, repr(output))
+        sys.exit("Command failed(%d): %s" % (proc.returncode, repr(output)))
+    else:
+        logging.debug("RESULT(%d): %s", proc.returncode, repr(output))
+    return (proc.returncode, output)
+
+
+def safe_run(cmd, cwd, interactive=False):
+    """Execute the command cmd in the working directory cwd and check return
+    value. If the command returns non-zero raise a SystemExit exception.
+    """
+    return run_cmd(cmd, cwd, interactive, raisesysexit=True)
+
+
+def is_sslverify_enabled(kwargs):
+    """Returns ``True`` if the ``sslverify`` option has been enabled or
+    not been set (default enabled) ``False`` otherwise."""
+    return 'sslverify' not in kwargs or kwargs['sslverify']
+
 
 def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
     # separate path from parameters etc.
@@ -445,6 +435,14 @@ def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
     basename = prefix + basename
     clone_dir = os.path.abspath(os.path.join(out_dir, basename))
     return clone_dir
+
+
+FETCH_UPSTREAM_COMMANDS = {
+    'git': 1,
+    'svn': 1,
+    'hg':  1,
+    'bzr': 1,
+}
 
 
 def fetch_upstream(scm_object, url, revision, out_dir, **kwargs):
