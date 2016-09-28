@@ -243,72 +243,82 @@ UPDATE_CACHE_COMMANDS = {
 }
 
 
-def switch_revision_git(clone_dir, revision):
-    """Switch sources to revision. The git revision may refer to any of the
-    following:
+class TarSCM:
+    class scm():
+        def switch_revision(self,clone_dir, revision):
+            """Switch sources to revision. Dummy implementation for version control
+            systems that change revision during fetch/update.
+            """
+            return
 
-    - explicit SHA1: a1b2c3d4....
-    - the SHA1 must be reachable from a default clone/fetch (generally, must be
-      reachable from some branch or tag on the remote).
-    - short branch name: "master", "devel" etc.
-    - explicit ref: refs/heads/master, refs/tags/v1.2.3,
-      refs/changes/49/11249/1
-    """
-    if revision is None:
-        revision = 'master'
+    class git(scm):
+        def __init__(self):
+            self.scm = 'git'
+        def switch_revision(self,clone_dir, revision):
+            """Switch sources to revision. The git revision may refer to any of the
+            following:
 
-    found_revision = None
-    revs = [x + revision for x in ['origin/', '']]
-    for rev in revs:
-        if git_ref_exists(clone_dir, rev):
-            found_revision = True
-            if os.getenv('OSC_VERSION'):
-                stash_text = safe_run(['git', 'stash'], cwd=clone_dir)[1]
-                text = safe_run(['git', 'reset', '--hard', rev],
-                                cwd=clone_dir)[1]
-                if stash_text != "No local changes to save\n":
-                    text += safe_run(['git', 'stash', 'pop'],
-                                     cwd=clone_dir)[1]
-            else:
-                text = safe_run(['git', 'reset', '--hard', rev],
-                                cwd=clone_dir)[1]
-            print text.rstrip()
-            break
+            - explicit SHA1: a1b2c3d4....
+            - the SHA1 must be reachable from a default clone/fetch (generally, must be
+              reachable from some branch or tag on the remote).
+            - short branch name: "master", "devel" etc.
+            - explicit ref: refs/heads/master, refs/tags/v1.2.3,
+              refs/changes/49/11249/1
+            """
+            if revision is None:
+                revision = 'master'
 
-    if found_revision is None:
-        sys.exit('%s: No such revision' % revision)
+            found_revision = None
+            revs = [x + revision for x in ['origin/', '']]
+            for rev in revs:
+                if git_ref_exists(clone_dir, rev):
+                    found_revision = True
+                    if os.getenv('OSC_VERSION'):
+                        stash_text = safe_run(['git', 'stash'], cwd=clone_dir)[1]
+                        text = safe_run(['git', 'reset', '--hard', rev],
+                                        cwd=clone_dir)[1]
+                        if stash_text != "No local changes to save\n":
+                            text += safe_run(['git', 'stash', 'pop'],
+                                             cwd=clone_dir)[1]
+                    else:
+                        text = safe_run(['git', 'reset', '--hard', rev],
+                                        cwd=clone_dir)[1]
+                    print text.rstrip()
+                    break
 
-    # only update submodules if they have been enabled
-    if os.path.exists(
-            os.path.join(clone_dir, os.path.join('.git', 'modules'))):
-        safe_run(['git', 'submodule', 'update', '--recursive'], cwd=clone_dir)
+            if found_revision is None:
+                sys.exit('%s: No such revision' % revision)
 
-
-def switch_revision_hg(clone_dir, revision):
-    """Switch sources to revision."""
-    if revision is None:
-        revision = 'tip'
-
-    rc, _  = run_cmd(['hg', 'update', revision], cwd=clone_dir,
-                     interactive=sys.stdout.isatty())
-    if rc:
-        sys.exit('%s: No such revision' % revision)
-
-
-def switch_revision_none(clone_dir, revision):
-    """Switch sources to revision. Dummy implementation for version control
-    systems that change revision during fetch/update.
-    """
-    return
+            # only update submodules if they have been enabled
+            if os.path.exists(
+                    os.path.join(clone_dir, os.path.join('.git', 'modules'))):
+                safe_run(['git', 'submodule', 'update', '--recursive'], cwd=clone_dir)
 
 
-SWITCH_REVISION_COMMANDS = {
-    'git': switch_revision_git,
-    'svn': switch_revision_none,
-    'hg':  switch_revision_hg,
-    'bzr': switch_revision_none,
-}
+    class hg(scm):
+        def __init__(self):
+            self.scm = 'hg'
+        def switch_revision(self,clone_dir, revision):
+            """Switch sources to revision."""
+            if revision is None:
+                revision = 'tip'
 
+            rc, _  = run_cmd(['hg', 'update', revision], cwd=clone_dir,
+                             interactive=sys.stdout.isatty())
+            if rc:
+                sys.exit('%s: No such revision' % revision)
+
+    class svn(scm):
+        def __init__(self):
+            self.scm = 'svn'
+
+    class bzr(scm):
+        def __init__(self):
+            self.scm = 'bzr'
+
+    class tar(scm):
+        def __init__(self):
+            self.scm = 'tar'
 
 def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
     # separate path from parameters etc.
@@ -346,8 +356,17 @@ def fetch_upstream(scm, url, revision, out_dir, **kwargs):
         logging.info("Detected cached repository...")
         UPDATE_CACHE_COMMANDS[scm](url, clone_dir, revision)
 
+    
+    SCM_OBJECTS = {
+        'git': TarSCM.git(),
+        'svn': TarSCM.svn(),
+        'hg':  TarSCM.hg(),
+        'bzr': TarSCM.bzr(),
+        'tar': TarSCM.tar(),
+    }
+
     # switch_to_revision
-    SWITCH_REVISION_COMMANDS[scm](clone_dir, revision)
+    SCM_OBJECTS[scm].switch_revision(clone_dir, revision)
 
     # git specific: after switching to desired revision its necessary to update
     # submodules since they depend on the actual version of the selected
