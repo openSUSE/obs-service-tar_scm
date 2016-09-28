@@ -42,8 +42,9 @@ from urlparse import urlparse
 class TarSCM:
     class scm():
         def __init__(self,**kwargs):
-            self.scm = self.__class__.__name__
-            self.url = kwargs['url']
+            self.scm      = self.__class__.__name__
+            self.url      = kwargs['url']
+            self.helpers  = TarSCM.helpers() 
 
         def switch_revision(self,clone_dir, revision):
             """Switch sources to revision. Dummy implementation for version control
@@ -99,14 +100,14 @@ class TarSCM:
                 if self._ref_exists(clone_dir, rev):
                     found_revision = True
                     if os.getenv('OSC_VERSION'):
-                        stash_text = safe_run(['git', 'stash'], cwd=clone_dir)[1]
-                        text = safe_run(['git', 'reset', '--hard', rev],
+                        stash_text = self.helpers.safe_run(['git', 'stash'], cwd=clone_dir)[1]
+                        text = self.helpers.safe_run(['git', 'reset', '--hard', rev],
                                         cwd=clone_dir)[1]
                         if stash_text != "No local changes to save\n":
-                            text += safe_run(['git', 'stash', 'pop'],
+                            text += self.helpers.safe_run(['git', 'stash', 'pop'],
                                              cwd=clone_dir)[1]
                     else:
-                        text = safe_run(['git', 'reset', '--hard', rev],
+                        text = self.helpers.safe_run(['git', 'reset', '--hard', rev],
                                         cwd=clone_dir)[1]
                     print text.rstrip()
                     break
@@ -117,7 +118,7 @@ class TarSCM:
             # only update submodules if they have been enabled
             if os.path.exists(
                     os.path.join(clone_dir, os.path.join('.git', 'modules'))):
-                safe_run(['git', 'submodule', 'update', '--recursive'], cwd=clone_dir)
+                self.helpers.safe_run(['git', 'submodule', 'update', '--recursive'], cwd=clone_dir)
 
         def fetch_upstream(self, clone_dir, revision, cwd, kwargs):
             """Fetch sources via git."""
@@ -125,27 +126,27 @@ class TarSCM:
 
             if not is_sslverify_enabled(kwargs):
                 command += ['--config', 'http.sslverify=false']
-            safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
+            self.helpers.safe_run(command, cwd=cwd, interactive=sys.stdout.isatty())
             # if the reference does not exist.
             if revision and not self._ref_exists(clone_dir, revision):
                 # fetch reference from url and create locally
-                safe_run(['git', 'fetch', self.url, revision + ':' + revision],
+                self.helpers.safe_run(['git', 'fetch', self.url, revision + ':' + revision],
                          cwd=clone_dir, interactive=sys.stdout.isatty())
 
         def fetch_submodules(self, clone_dir, kwargs):
             """Recursively initialize git submodules."""
             if 'submodules' in kwargs and kwargs['submodules'] == 'enable':
-                safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
+                self.helpers.safe_run(['git', 'submodule', 'update', '--init', '--recursive'],
                          cwd=clone_dir)
             elif 'submodules' in kwargs and kwargs['submodules'] == 'master':
-                safe_run(['git', 'submodule', 'update', '--init', '--recursive',
+                self.helpers.safe_run(['git', 'submodule', 'update', '--init', '--recursive',
                          '--remote'], cwd=clone_dir)
 
         def update_cache(self, clone_dir, revision):
             """Update sources via git."""
-            safe_run(['git', 'fetch', '--tags'],
+            self.helpers.safe_run(['git', 'fetch', '--tags'],
                      cwd=clone_dir, interactive=sys.stdout.isatty())
-            safe_run(['git', 'fetch'],
+            self.helpers.safe_run(['git', 'fetch'],
                      cwd=clone_dir, interactive=sys.stdout.isatty())
 
         def detect_version(self, args, repodir):
@@ -156,7 +157,7 @@ class TarSCM:
                 versionformat = '%ct.%h'
 
             if not parent_tag:
-                rc, output = run_cmd(['git', 'describe', '--tags', '--abbrev=0'],
+                rc, output = self.helpers.run_cmd(['git', 'describe', '--tags', '--abbrev=0'],
                                      repodir)
                 if rc == 0:
                     # strip to remove newlines
@@ -170,7 +171,7 @@ class TarSCM:
 
             if re.match('.*@TAG_OFFSET@.*', versionformat):
                 if parent_tag:
-                    rc, output = run_cmd(['git', 'rev-list', '--count',
+                    rc, output = self.helpers.run_cmd(['git', 'rev-list', '--count',
                                           parent_tag + '..HEAD'], repodir)
                     if not rc:
                         tag_offset = output.strip()
@@ -183,7 +184,7 @@ class TarSCM:
                     sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
                              "as no parent tag was discovered.\033[0m")
 
-            version = safe_run(['git', 'log', '-n1', '--date=short',
+            version = self.helpers.safe_run(['git', 'log', '-n1', '--date=short',
                                 "--pretty=format:%s" % versionformat], repodir)[1]
             return version_iso_cleanup(version)
 
@@ -193,7 +194,7 @@ class TarSCM:
             return int(timestamp)
 
         def _ref_exists(self, clone_dir, revision):
-            rc, _ = run_cmd(['git', 'rev-parse', '--verify', '--quiet', revision],
+            rc, _ = self.helpers.run_cmd(['git', 'rev-parse', '--verify', '--quiet', revision],
                             cwd=clone_dir, interactive=sys.stdout.isatty())
             return (rc == 0)
 
@@ -202,7 +203,7 @@ class TarSCM:
             cmd = ['git', 'log'] + cmd_args
             if subdir:
                 cmd += ['--', subdir]
-            return safe_run(cmd, cwd=repodir)[1]
+            return self.helpers.safe_run(cmd, cwd=repodir)[1]
 
 
         def detect_changes(self, repodir, subdir, changes):
@@ -237,7 +238,7 @@ class TarSCM:
             if revision is None:
                 revision = 'tip'
 
-            rc, _  = run_cmd(['hg', 'update', revision], cwd=clone_dir,
+            rc, _  = self.helpers.run_cmd(['hg', 'update', revision], cwd=clone_dir,
                              interactive=sys.stdout.isatty())
             if rc:
                 sys.exit('%s: No such revision' % revision)
@@ -247,13 +248,13 @@ class TarSCM:
             command = ['hg', 'clone', self.url, clone_dir]
             if not is_sslverify_enabled(kwargs):
                 command += ['--insecure']
-            safe_run(command, cwd,
+            self.helpers.safe_run(command, cwd,
                      interactive=sys.stdout.isatty())
 
         def update_cache(self, clone_dir, revision):
             """Update sources via hg."""
             try:
-                safe_run(['hg', 'pull'], cwd=clone_dir,
+                self.helpers.safe_run(['hg', 'pull'], cwd=clone_dir,
                          interactive=sys.stdout.isatty())
             except SystemExit, e:
                 # Contrary to the docs, hg pull returns exit code 1 when
@@ -269,7 +270,7 @@ class TarSCM:
             if versionformat is None:
                 versionformat = '{rev}'
 
-            version = safe_run(['hg', 'id', '-n'], repodir)[1]
+            version = self.helpers.safe_run(['hg', 'id', '-n'], repodir)[1]
 
             # Mercurial internally stores commit dates in its changelog
             # context objects as (epoch_secs, tz_delta_to_utc) tuples (see
@@ -297,7 +298,7 @@ class TarSCM:
             # 'sub(...)' which is only available since 2.4 (first introduced
             # in openSUSE 12.3).
 
-            version = safe_run(['hg', 'log', '-l1', "-r%s" % version.strip(),
+            version = self.helpers.safe_run(['hg', 'log', '-l1', "-r%s" % version.strip(),
                                 '--template', versionformat], repodir)[1]
             return version_iso_cleanup(version)
 
@@ -316,14 +317,14 @@ class TarSCM:
                 command.insert(4, '-r%s' % revision)
             if not is_sslverify_enabled(kwargs):
                 command.insert(3, '--trust-server-cert')
-            safe_run(command, cwd, interactive=sys.stdout.isatty())
+            self.helpers.safe_run(command, cwd, interactive=sys.stdout.isatty())
 
         def update_cache(self, clone_dir, revision):
             """Update sources via svn."""
             command = ['svn', 'update']
             if revision:
                 command.insert(3, "-r%s" % revision)
-            safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
+            self.helpers.safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
 
         def detect_version(self, args, repodir):
             """Automatic detection of version number for checked-out SVN repository."""
@@ -331,7 +332,7 @@ class TarSCM:
             if versionformat is None:
                 versionformat = '%r'
 
-            svn_info = safe_run(['svn', 'info'], repodir)[1]
+            svn_info = self.helpers.safe_run(['svn', 'info'], repodir)[1]
 
             version = ''
             match = re.search('Last Changed Rev: (.*)', svn_info, re.MULTILINE)
@@ -340,7 +341,7 @@ class TarSCM:
             return re.sub('%r', version, versionformat)
 
         def get_timestamp(self, args, repodir):
-            svn_info = safe_run(['svn', 'info', '-rHEAD'], repodir)[1]
+            svn_info = self.helpers.safe_run(['svn', 'info', '-rHEAD'], repodir)[1]
 
             match = re.search('Last Changed Date: (.*)', svn_info, re.MULTILINE)
             if not match:
@@ -389,7 +390,7 @@ class TarSCM:
         def _get_log(self, repodir, revision1, revision2):
             new_lines = []
 
-            xml_lines = safe_run(['svn', 'log', '-r%s:%s' % (revision1,
+            xml_lines = self.helpers.safe_run(['svn', 'log', '-r%s:%s' % (revision1,
                                  revision2), '--xml'], repodir)[1]
             lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
 
@@ -401,7 +402,7 @@ class TarSCM:
 
 
         def _get_rev(self, repodir, num_commits):
-            revisions = safe_run(['svn', 'log', '-l%d' % num_commits, '-q',
+            revisions = self.helpers.safe_run(['svn', 'log', '-l%d' % num_commits, '-q',
                                  '--incremental'], cwd=repodir)[1].split('\n')
             # remove blank entry on end
             revisions.pop()
@@ -421,7 +422,7 @@ class TarSCM:
                 command.insert(4, revision)
             if not is_sslverify_enabled(kwargs):
                 command.insert(2, '-Ossl.cert_reqs=None')
-            safe_run(command, cwd, interactive=sys.stdout.isatty())
+            self.helpers.safe_run(command, cwd, interactive=sys.stdout.isatty())
 
         def update_cache(self, clone_dir, revision):
             """Update sources via bzr."""
@@ -429,7 +430,7 @@ class TarSCM:
             if revision:
                 command.insert(3, '-r')
                 command.insert(4, revision)
-            safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
+            self.helpers.safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
 
         def detect_version(self, args, repodir):
             """Automatic detection of version number for checked-out BZR repository."""
@@ -437,11 +438,11 @@ class TarSCM:
             if versionformat is None:
                 versionformat = '%r'
 
-            version = safe_run(['bzr', 'revno'], repodir)[1]
+            version = self.helpers.safe_run(['bzr', 'revno'], repodir)[1]
             return re.sub('%r', version.strip(), versionformat)
 
         def get_timestamp(self, args, repodir):
-            log = safe_run(['bzr', 'log', '--limit=1', '--log-format=long'],
+            log = self.helpers.safe_run(['bzr', 'log', '--limit=1', '--log-format=long'],
                            repodir)[1]
             match = re.search(r'timestamp:(.*)', log, re.MULTILINE)
             if not match:
@@ -466,51 +467,49 @@ class TarSCM:
             return int(read_from_obsinfo(args.obsinfo, "mtime"))
     ### END class TarSCM.tar
 
-DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
+    class helpers():
+        def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False):
+            """Execute the command cmd in the working directory cwd and check return
+            value. If the command returns non-zero and raisesysexit is True raise a
+            SystemExit exception otherwise return a tuple of return code and command
+            output.
+            """
+            logging.debug("COMMAND: %s", cmd)
 
-def run_cmd(cmd, cwd, interactive=False, raisesysexit=False):
-    """Execute the command cmd in the working directory cwd and check return
-    value. If the command returns non-zero and raisesysexit is True raise a
-    SystemExit exception otherwise return a tuple of return code and command
-    output.
-    """
-    logging.debug("COMMAND: %s", cmd)
+            # Ensure we get predictable results when parsing the output of commands
+            # like 'git branch'
+            env = os.environ.copy()
+            env['LANG'] = 'C'
 
-    # Ensure we get predictable results when parsing the output of commands
-    # like 'git branch'
-    env = os.environ.copy()
-    env['LANG'] = 'C'
+            proc = subprocess.Popen(cmd,
+                                    shell=False,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    cwd=cwd,
+                                    env=env)
+            output = ''
+            if interactive:
+                stdout_lines = []
+                while proc.poll() is None:
+                    for line in proc.stdout:
+                        print line.rstrip()
+                        stdout_lines.append(line.rstrip())
+                output = '\n'.join(stdout_lines)
+            else:
+                output = proc.communicate()[0]
 
-    proc = subprocess.Popen(cmd,
-                            shell=False,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT,
-                            cwd=cwd,
-                            env=env)
-    output = ''
-    if interactive:
-        stdout_lines = []
-        while proc.poll() is None:
-            for line in proc.stdout:
-                print line.rstrip()
-                stdout_lines.append(line.rstrip())
-        output = '\n'.join(stdout_lines)
-    else:
-        output = proc.communicate()[0]
+            if proc.returncode and raisesysexit:
+                logging.info("ERROR(%d): %s", proc.returncode, repr(output))
+                sys.exit("Command failed(%d): %s" % (proc.returncode, repr(output)))
+            else:
+                logging.debug("RESULT(%d): %s", proc.returncode, repr(output))
+            return (proc.returncode, output)
 
-    if proc.returncode and raisesysexit:
-        logging.info("ERROR(%d): %s", proc.returncode, repr(output))
-        sys.exit("Command failed(%d): %s" % (proc.returncode, repr(output)))
-    else:
-        logging.debug("RESULT(%d): %s", proc.returncode, repr(output))
-    return (proc.returncode, output)
-
-
-def safe_run(cmd, cwd, interactive=False):
-    """Execute the command cmd in the working directory cwd and check return
-    value. If the command returns non-zero raise a SystemExit exception.
-    """
-    return run_cmd(cmd, cwd, interactive, raisesysexit=True)
+        def safe_run(self, cmd, cwd, interactive=False):
+            """Execute the command cmd in the working directory cwd and check return
+            value. If the command returns non-zero raise a SystemExit exception.
+            """
+            return self.run_cmd(cmd, cwd, interactive, raisesysexit=True)
 
 
 def is_sslverify_enabled(kwargs):
@@ -593,6 +592,7 @@ def prep_tree_for_archive(repodir, subdir, outdir, dstname):
 
 # skip vcs files base on this pattern
 METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn).*')
+DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
 
 
 def create_cpio(scm_object, repodir, basename, dstname, version, commit, args):
@@ -1219,7 +1219,7 @@ def main():
 
 
 def singletask(use_obs_scm, args):
-    FORMAT = "%(message)s"
+    FORMAT  = "%(message)s"
     logging.basicConfig(format=FORMAT, stream=sys.stderr, level=logging.INFO)
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -1231,6 +1231,7 @@ def singletask(use_obs_scm, args):
 
     scm_class  = getattr(TarSCM,args.scm)
     scm_object = scm_class(url=args.url)
+    helpers    = scm_object.helpers
 
     repodir = None
     # construct repodir (the parent directory of the checkout)
@@ -1304,7 +1305,7 @@ def singletask(use_obs_scm, args):
     if use_obs_scm:
         commit = None
         if args.scm == "git":
-            commit = safe_run(['git', 'rev-parse', 'HEAD'], clone_dir)[1]
+            commit = helpers.safe_run(['git', 'rev-parse', 'HEAD'], clone_dir)[1]
         create_cpio(scm_object, tar_dir, basename, dstname, version, commit, args)
     else:
         create_tar(scm_object, tar_dir, args.outdir,
