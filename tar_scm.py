@@ -190,6 +190,47 @@ class TarSCM:
             safe_run(['git', 'fetch'],
                      cwd=clone_dir, interactive=sys.stdout.isatty())
 
+        def detect_version(self, args, repodir):
+            """Automatic detection of version number for checked-out GIT repository."""
+            parent_tag = args['parent_tag']
+            versionformat = args['versionformat']
+            if versionformat is None:
+                versionformat = '%ct.%h'
+
+            if not parent_tag:
+                rc, output = run_cmd(['git', 'describe', '--tags', '--abbrev=0'],
+                                     repodir)
+                if rc == 0:
+                    # strip to remove newlines
+                    parent_tag = output.strip()
+            if re.match('.*@PARENT_TAG@.*', versionformat):
+                if parent_tag:
+                    versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
+                else:
+                    sys.exit("\033[31mNo parent tag present for the checked out "
+                             "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
+
+            if re.match('.*@TAG_OFFSET@.*', versionformat):
+                if parent_tag:
+                    rc, output = run_cmd(['git', 'rev-list', '--count',
+                                          parent_tag + '..HEAD'], repodir)
+                    if not rc:
+                        tag_offset = output.strip()
+                        versionformat = re.sub('@TAG_OFFSET@', tag_offset,
+                                               versionformat)
+                    else:
+                        sys.exit("\033[31m@TAG_OFFSET@ can not be expanded: " +
+                                 output + "\033[0m")
+                else:
+                    sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
+                             "as no parent tag was discovered.\033[0m")
+
+            version = safe_run(['git', 'log', '-n1', '--date=short',
+                                "--pretty=format:%s" % versionformat], repodir)[1]
+            return version_iso_cleanup(version)
+
+
+
 
     class hg(scm):
         def __init__(self):
@@ -225,6 +266,46 @@ class TarSCM:
                 if re.match('.*no changes found.*', e.message) is None:
                     raise
 
+        def detect_version(self, args, repodir):
+            """Automatic detection of version number for checked-out HG repository."""
+            parent_tag = args['parent_tag']
+            versionformat = args['versionformat']
+            if versionformat is None:
+                versionformat = '{rev}'
+
+            version = safe_run(['hg', 'id', '-n'], repodir)[1]
+
+            # Mercurial internally stores commit dates in its changelog
+            # context objects as (epoch_secs, tz_delta_to_utc) tuples (see
+            # mercurial/util.py).  For example, if the commit was created
+            # whilst the timezone was BST (+0100) then tz_delta_to_utc is
+            # -3600.  In this case,
+            #
+            #     hg log -l1 -r$rev --template '{date}\n'
+            #
+            # will result in something like '1375437706.0-3600' where the
+            # first number is timezone-agnostic.  However, hyphens are not
+            # permitted in rpm version numbers, so tar_scm removes them via
+            # sed.  This is required for this template format for any time
+            # zone "numerically east" of UTC.
+            #
+            # N.B. since the extraction of the timestamp as a version number
+            # is generally done in order to provide chronological sorting,
+            # ideally we would ditch the second number.  However the
+            # template format string is left up to the author of the
+            # _service file, so we can't do it here because we don't know
+            # what it will expand to.  Mercurial provides template filters
+            # for dates (e.g. 'hgdate') which _service authors could
+            # potentially use, but unfortunately none of them can easily
+            # extract only the first value from the tuple, except for maybe
+            # 'sub(...)' which is only available since 2.4 (first introduced
+            # in openSUSE 12.3).
+
+            version = safe_run(['hg', 'log', '-l1', "-r%s" % version.strip(),
+                                '--template', versionformat], repodir)[1]
+            return version_iso_cleanup(version)
+
+
     class svn(scm):
         def __init__(self):
             self.scm = 'svn'
@@ -245,9 +326,19 @@ class TarSCM:
                 command.insert(3, "-r%s" % revision)
             safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
 
+        def detect_version(self, args, repodir):
+            """Automatic detection of version number for checked-out SVN repository."""
+            versionformat = args['versionformat']
+            if versionformat is None:
+                versionformat = '%r'
 
+            svn_info = safe_run(['svn', 'info'], repodir)[1]
 
-
+            version = ''
+            match = re.search('Last Changed Rev: (.*)', svn_info, re.MULTILINE)
+            if match:
+                version = match.group(1).strip()
+            return re.sub('%r', version, versionformat)
 
     class bzr(scm):
         def __init__(self):
@@ -271,6 +362,14 @@ class TarSCM:
                 command.insert(4, revision)
             safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
 
+        def detect_version(self, args, repodir):
+            """Automatic detection of version number for checked-out BZR repository."""
+            versionformat = args['versionformat']
+            if versionformat is None:
+                versionformat = '%r'
+
+            version = safe_run(['bzr', 'revno'], repodir)[1]
+            return re.sub('%r', version.strip(), versionformat)
 
     class tar(scm):
         def __init__(self):
@@ -282,6 +381,11 @@ class TarSCM:
         def update_cache(self, url, clone_dir, revision):
             """Update sources via tar."""
             pass
+
+        def detect_version(self, args, repodir):
+            """Read former stored version."""
+            return read_from_obsinfo(args['obsinfo'], "version")
+
 
 
 def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
@@ -369,7 +473,7 @@ def prep_tree_for_archive(repodir, subdir, outdir, dstname):
 METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn).*')
 
 
-def create_cpio(repodir, basename, dstname, version, commit, args):
+def create_cpio(scm_object, repodir, basename, dstname, version, commit, args):
     """Create an OBS cpio archive of repodir in destination directory.
     """
     (workdir, topdir) = os.path.split(repodir)
@@ -418,7 +522,7 @@ def create_cpio(repodir, basename, dstname, version, commit, args):
     metafile = open(os.path.join(args.outdir, basename + '.obsinfo'), "w")
     metafile.write("name: " + basename + "\n")
     metafile.write("version: " + version + "\n")
-    metafile.write("mtime: " + str(get_timestamp(args, topdir)) + "\n")
+    metafile.write("mtime: " + str(get_timestamp(scm_object, args, topdir)) + "\n")
     # metafile.write("git describe: " + + "\n")
     if commit:
         metafile.write("commit: " + commit + "\n")
@@ -427,7 +531,7 @@ def create_cpio(repodir, basename, dstname, version, commit, args):
     os.chdir(cwd)
 
 
-def create_tar(repodir, outdir, dstname, extension='tar',
+def create_tar(scm_object, repodir, outdir, dstname, extension='tar',
                exclude=[], include=[], package_metadata=False, timestamp=0):
     """Create a tarball of repodir in destination directory."""
     (workdir, topdir) = os.path.split(repodir)
@@ -518,10 +622,10 @@ def version_iso_cleanup(version):
     return version
 
 
-def get_version(args, clone_dir):
+def get_version(scm_object, args, clone_dir):
     version = args.version
     if version == '_auto_' or args.versionformat:
-        version = detect_version(args, clone_dir)
+        version = detect_version(scm_object, args, clone_dir)
     if args.versionprefix:
         version = "%s.%s" % (args.versionprefix, version)
 
@@ -540,136 +644,21 @@ def read_from_obsinfo(filename, key):
     return ""
 
 
-def detect_version_tar(args, repodir):
-    """Read former stored version."""
-    return read_from_obsinfo(args['obsinfo'], "version")
 
 
-def detect_version_git(args, repodir):
-    """Automatic detection of version number for checked-out GIT repository."""
-    parent_tag = args['parent_tag']
-    versionformat = args['versionformat']
-    if versionformat is None:
-        versionformat = '%ct.%h'
-
-    if not parent_tag:
-        rc, output = run_cmd(['git', 'describe', '--tags', '--abbrev=0'],
-                             repodir)
-        if rc == 0:
-            # strip to remove newlines
-            parent_tag = output.strip()
-    if re.match('.*@PARENT_TAG@.*', versionformat):
-        if parent_tag:
-            versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
-        else:
-            sys.exit("\033[31mNo parent tag present for the checked out "
-                     "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
-
-    if re.match('.*@TAG_OFFSET@.*', versionformat):
-        if parent_tag:
-            rc, output = run_cmd(['git', 'rev-list', '--count',
-                                  parent_tag + '..HEAD'], repodir)
-            if not rc:
-                tag_offset = output.strip()
-                versionformat = re.sub('@TAG_OFFSET@', tag_offset,
-                                       versionformat)
-            else:
-                sys.exit("\033[31m@TAG_OFFSET@ can not be expanded: " +
-                         output + "\033[0m")
-        else:
-            sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
-                     "as no parent tag was discovered.\033[0m")
-
-    version = safe_run(['git', 'log', '-n1', '--date=short',
-                        "--pretty=format:%s" % versionformat], repodir)[1]
-    return version_iso_cleanup(version)
-
-
-def detect_version_svn(args, repodir):
-    """Automatic detection of version number for checked-out SVN repository."""
-    versionformat = args['versionformat']
-    if versionformat is None:
-        versionformat = '%r'
-
-    svn_info = safe_run(['svn', 'info'], repodir)[1]
-
-    version = ''
-    match = re.search('Last Changed Rev: (.*)', svn_info, re.MULTILINE)
-    if match:
-        version = match.group(1).strip()
-    return re.sub('%r', version, versionformat)
-
-
-def detect_version_hg(args, repodir):
-    """Automatic detection of version number for checked-out HG repository."""
-    parent_tag = args['parent_tag']
-    versionformat = args['versionformat']
-    if versionformat is None:
-        versionformat = '{rev}'
-
-    version = safe_run(['hg', 'id', '-n'], repodir)[1]
-
-    # Mercurial internally stores commit dates in its changelog
-    # context objects as (epoch_secs, tz_delta_to_utc) tuples (see
-    # mercurial/util.py).  For example, if the commit was created
-    # whilst the timezone was BST (+0100) then tz_delta_to_utc is
-    # -3600.  In this case,
-    #
-    #     hg log -l1 -r$rev --template '{date}\n'
-    #
-    # will result in something like '1375437706.0-3600' where the
-    # first number is timezone-agnostic.  However, hyphens are not
-    # permitted in rpm version numbers, so tar_scm removes them via
-    # sed.  This is required for this template format for any time
-    # zone "numerically east" of UTC.
-    #
-    # N.B. since the extraction of the timestamp as a version number
-    # is generally done in order to provide chronological sorting,
-    # ideally we would ditch the second number.  However the
-    # template format string is left up to the author of the
-    # _service file, so we can't do it here because we don't know
-    # what it will expand to.  Mercurial provides template filters
-    # for dates (e.g. 'hgdate') which _service authors could
-    # potentially use, but unfortunately none of them can easily
-    # extract only the first value from the tuple, except for maybe
-    # 'sub(...)' which is only available since 2.4 (first introduced
-    # in openSUSE 12.3).
-
-    version = safe_run(['hg', 'log', '-l1', "-r%s" % version.strip(),
-                        '--template', versionformat], repodir)[1]
-    return version_iso_cleanup(version)
-
-
-def detect_version_bzr(args, repodir):
-    """Automatic detection of version number for checked-out BZR repository."""
-    versionformat = args['versionformat']
-    if versionformat is None:
-        versionformat = '%r'
-
-    version = safe_run(['bzr', 'revno'], repodir)[1]
-    return re.sub('%r', version.strip(), versionformat)
-
-
-def detect_version(args, repodir):
+def detect_version(scm_object, args, repodir):
     """Automatic detection of version number for checked-out repository."""
-    detect_version_commands = {
-        'git': detect_version_git,
-        'svn': detect_version_svn,
-        'hg':  detect_version_hg,
-        'bzr': detect_version_bzr,
-        'tar': detect_version_tar
-    }
 
-    version = detect_version_commands[args.scm](args.__dict__, repodir).strip()
+    version = scm_object.detect_version(args.__dict__, repodir).strip()
     logging.debug("VERSION(auto): %s", version)
     return version
 
 
-def get_timestamp_tar(args, repodir):
+def get_timestamp_tar(scm_object, args, repodir):
     return int(read_from_obsinfo(args.obsinfo, "mtime"))
 
 
-def get_timestamp_bzr(args, repodir):
+def get_timestamp_bzr(scm_object, args, repodir):
     log = safe_run(['bzr', 'log', '--limit=1', '--log-format=long'],
                    repodir)[1]
     match = re.search(r'timestamp:(.*)', log, re.MULTILINE)
@@ -679,20 +668,20 @@ def get_timestamp_bzr(args, repodir):
     return int(timestamp)
 
 
-def get_timestamp_git(args, repodir):
+def get_timestamp_git(scm_object, args, repodir):
     d = {"parent_tag": None, "versionformat": "%ct"}
-    timestamp = detect_version_git(d, repodir)
+    timestamp = scm_object.detect_version(d, repodir)
     return int(timestamp)
 
 
-def get_timestamp_hg(args, repodir):
+def get_timestamp_hg(scm_object, args, repodir):
     d = {"parent_tag": None, "versionformat": "{date}"}
-    timestamp = detect_version_hg(d, repodir)
+    timestamp = scm_object.detect_version(d, repodir)
     timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
     return int(timestamp)
 
 
-def get_timestamp_svn(args, repodir):
+def get_timestamp_svn(scm_object, args, repodir):
     svn_info = safe_run(['svn', 'info', '-rHEAD'], repodir)[1]
 
     match = re.search('Last Changed Date: (.*)', svn_info, re.MULTILINE)
@@ -705,7 +694,7 @@ def get_timestamp_svn(args, repodir):
     return int(timestamp)
 
 
-def get_timestamp(args, clone_dir):
+def get_timestamp(scm_object, args, clone_dir):
     """Returns the commit timestamp for checked-out repository."""
     get_timestamp_commands = {
         'git': get_timestamp_git,
@@ -714,8 +703,8 @@ def get_timestamp(args, clone_dir):
         'bzr': get_timestamp_bzr,
         'tar': get_timestamp_tar
     }
-
-    timestamp = get_timestamp_commands[args.scm](args, clone_dir)
+    scm = scm_object.scm
+    timestamp = get_timestamp_commands[scm](scm_object, args, clone_dir)
     logging.debug("COMMIT TIMESTAMP: %s (%s)", timestamp,
                   datetime.datetime.fromtimestamp(timestamp).strftime(
                       '%Y-%m-%d %H:%M:%S'))
@@ -1335,7 +1324,7 @@ def singletask(use_obs_scm, args):
     else:
         dstname = basename = os.path.basename(clone_dir)
 
-    version = get_version(args, clone_dir)
+    version = get_version(scm_object, args, clone_dir)
     changesversion = version
     if version and not sys.argv[0].endswith("/tar") \
        and not sys.argv[0].endswith("/snapcraft"):
@@ -1358,13 +1347,13 @@ def singletask(use_obs_scm, args):
         commit = None
         if args.scm == "git":
             commit = safe_run(['git', 'rev-parse', 'HEAD'], clone_dir)[1]
-        create_cpio(tar_dir, basename, dstname, version, commit, args)
+        create_cpio(scm_object, tar_dir, basename, dstname, version, commit, args)
     else:
-        create_tar(tar_dir, args.outdir,
+        create_tar(scm_object, tar_dir, args.outdir,
                    dstname=dstname, extension=args.extension,
                    exclude=args.exclude, include=args.include,
                    package_metadata=args.package_meta,
-                   timestamp=get_timestamp(args, clone_dir))
+                   timestamp=get_timestamp(scm_object, args, clone_dir))
 
     if changes:
         changesauthor = get_changesauthor(args)
@@ -1373,7 +1362,7 @@ def singletask(use_obs_scm, args):
 
         if not version:
             args.version = "_auto_"
-            changesversion = get_version(args, clone_dir)
+            changesversion = get_version(scm_object, args, clone_dir)
 
         for filename in glob.glob('*.changes'):
             new_changes_file = os.path.join(args.outdir, filename)
