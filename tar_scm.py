@@ -41,6 +41,10 @@ from urlparse import urlparse
 
 class TarSCM:
     class scm():
+        def __init__(self,**kwargs):
+            self.scm = self.__class__.__name__
+            self.url = kwargs['url']
+
         def switch_revision(self,clone_dir, revision):
             """Switch sources to revision. Dummy implementation for version control
             systems that change revision during fetch/update.
@@ -54,9 +58,27 @@ class TarSCM:
         def detect_changes(self, repodir, subdir, changes):
             sys.exit("changesgenerate not supported with %s SCM" % self.scm)
 
+        def get_repocache_hash(self, subdir):
+            """Calculate hash fingerprint for repository cache."""
+            return hashlib.sha256(self.url).hexdigest()
+
+        def _calc_dir_to_clone_to(self, prefix, out_dir):
+            # separate path from parameters etc.
+            url_path = urlparse(self.url)[2].rstrip('/')
+
+            # remove trailing scm extension
+            url_path = re.sub(r'\.%s$' % self.scm, '', url_path)
+
+            # special handling for cloning bare repositories (../repo/.git/)
+            url_path = url_path.rstrip('/')
+
+            basename = os.path.basename(os.path.normpath(url_path))
+            basename = prefix + basename
+            clone_dir = os.path.abspath(os.path.join(out_dir, basename))
+            return clone_dir
+    ### END class TarSCM.scm
+
     class git(scm):
-        def __init__(self):
-            self.scm = 'git'
         def switch_revision(self,clone_dir, revision):
             """Switch sources to revision. The git revision may refer to any of the
             following:
@@ -97,9 +119,9 @@ class TarSCM:
                     os.path.join(clone_dir, os.path.join('.git', 'modules'))):
                 safe_run(['git', 'submodule', 'update', '--recursive'], cwd=clone_dir)
 
-        def fetch_upstream(self,url, clone_dir, revision, cwd, kwargs):
+        def fetch_upstream(self, clone_dir, revision, cwd, kwargs):
             """Fetch sources via git."""
-            command = ['git', 'clone', url, clone_dir]
+            command = ['git', 'clone', self.url, clone_dir]
 
             if not is_sslverify_enabled(kwargs):
                 command += ['--config', 'http.sslverify=false']
@@ -107,7 +129,7 @@ class TarSCM:
             # if the reference does not exist.
             if revision and not self._ref_exists(clone_dir, revision):
                 # fetch reference from url and create locally
-                safe_run(['git', 'fetch', url, revision + ':' + revision],
+                safe_run(['git', 'fetch', self.url, revision + ':' + revision],
                          cwd=clone_dir, interactive=sys.stdout.isatty())
 
         def fetch_submodules(self, clone_dir, kwargs):
@@ -119,7 +141,7 @@ class TarSCM:
                 safe_run(['git', 'submodule', 'update', '--init', '--recursive',
                          '--remote'], cwd=clone_dir)
 
-        def update_cache(self, url, clone_dir, revision):
+        def update_cache(self, clone_dir, revision):
             """Update sources via git."""
             safe_run(['git', 'fetch', '--tags'],
                      cwd=clone_dir, interactive=sys.stdout.isatty())
@@ -207,15 +229,9 @@ class TarSCM:
             changes['revision'] = current_rev
             changes['lines'] = lines.split('\n')
             return changes
-
-
-
     ### END class TarSCM.git
 
     class hg(scm):
-        def __init__(self):
-            self.scm = 'hg'
-
         def switch_revision(self,clone_dir, revision):
             """Switch sources to revision."""
             if revision is None:
@@ -226,15 +242,15 @@ class TarSCM:
             if rc:
                 sys.exit('%s: No such revision' % revision)
 
-        def fetch_upstream(self,url, clone_dir, revision, cwd, kwargs):
+        def fetch_upstream(self, clone_dir, revision, cwd, kwargs):
             """Fetch sources via hg."""
-            command = ['hg', 'clone', url, clone_dir]
+            command = ['hg', 'clone', self.url, clone_dir]
             if not is_sslverify_enabled(kwargs):
                 command += ['--insecure']
             safe_run(command, cwd,
                      interactive=sys.stdout.isatty())
 
-        def update_cache(self, url, clone_dir, revision):
+        def update_cache(self, clone_dir, revision):
             """Update sources via hg."""
             try:
                 safe_run(['hg', 'pull'], cwd=clone_dir,
@@ -290,24 +306,19 @@ class TarSCM:
             timestamp = self.detect_version(d, repodir)
             timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
             return int(timestamp)
-
-
     ### END class TarSCM.hg
 
     class svn(scm):
-        def __init__(self):
-            self.scm = 'svn'
-
-        def fetch_upstream(self,url, clone_dir, revision, cwd, kwargs):
+        def fetch_upstream(self, clone_dir, revision, cwd, kwargs):
             """Fetch sources via svn."""
-            command = ['svn', 'checkout', '--non-interactive', url, clone_dir]
+            command = ['svn', 'checkout', '--non-interactive', self.url, clone_dir]
             if revision:
                 command.insert(4, '-r%s' % revision)
             if not is_sslverify_enabled(kwargs):
                 command.insert(3, '--trust-server-cert')
             safe_run(command, cwd, interactive=sys.stdout.isatty())
 
-        def update_cache(self, url, clone_dir, revision):
+        def update_cache(self, clone_dir, revision):
             """Update sources via svn."""
             command = ['svn', 'update']
             if revision:
@@ -370,6 +381,10 @@ class TarSCM:
             changes['lines'] = lines
             return changes
 
+        def get_repocache_hash(self,subdir):
+            """Calculate hash fingerprint for repository cache."""
+            return hashlib.sha256(self.url+'/' + subdir).hexdigest()
+
 
         def _get_log(self, repodir, revision1, revision2):
             new_lines = []
@@ -395,17 +410,12 @@ class TarSCM:
             # retrieve the revision number and remove r
             revision = re.search(r'^r[0-9]*', revision, re.M).group().replace("r", "")
             return revision
-
-
     ### END class TarSCM.svn
 
     class bzr(scm):
-        def __init__(self):
-            self.scm = 'bzr'
-
-        def fetch_upstream(self,url, clone_dir, revision, cwd, kwargs):
+        def fetch_upstream(self, clone_dir, revision, cwd, kwargs):
             """Fetch sources from bzr."""
-            command = ['bzr', 'checkout', url, clone_dir]
+            command = ['bzr', 'checkout', self.url, clone_dir]
             if revision:
                 command.insert(3, '-r')
                 command.insert(4, revision)
@@ -413,7 +423,7 @@ class TarSCM:
                 command.insert(2, '-Ossl.cert_reqs=None')
             safe_run(command, cwd, interactive=sys.stdout.isatty())
 
-        def update_cache(self, url, clone_dir, revision):
+        def update_cache(self, clone_dir, revision):
             """Update sources via bzr."""
             command = ['bzr', 'update']
             if revision:
@@ -438,17 +448,13 @@ class TarSCM:
                 return 0
             timestamp = dateutil.parser.parse(match.group(1).strip()).strftime("%s")
             return int(timestamp)
-
     ### END class TarSCM.bzr
 
     class tar(scm):
-        def __init__(self):
-            self.scm = 'tar'
-
-        def fetch_upstream(self,url, clone_dir, revision, cwd, kwargs):
+        def fetch_upstream(self, clone_dir, revision, cwd, kwargs):
             """NOOP, sources are present via obscpio already"""
 
-        def update_cache(self, url, clone_dir, revision):
+        def update_cache(self, clone_dir, revision):
             """Update sources via tar."""
             pass
 
@@ -458,7 +464,6 @@ class TarSCM:
 
         def get_timestamp(self, args, repodir):
             return int(read_from_obsinfo(args.obsinfo, "mtime"))
-
     ### END class TarSCM.tar
 
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
@@ -514,22 +519,6 @@ def is_sslverify_enabled(kwargs):
     return 'sslverify' not in kwargs or kwargs['sslverify']
 
 
-def _calc_dir_to_clone_to(scm, url, prefix, out_dir):
-    # separate path from parameters etc.
-    url_path = urlparse(url)[2].rstrip('/')
-
-    # remove trailing scm extension
-    url_path = re.sub(r'\.%s$' % scm, '', url_path)
-
-    # special handling for cloning bare repositories (../repo/.git/)
-    url_path = url_path.rstrip('/')
-
-    basename = os.path.basename(os.path.normpath(url_path))
-    basename = prefix + basename
-    clone_dir = os.path.abspath(os.path.join(out_dir, basename))
-    return clone_dir
-
-
 FETCH_UPSTREAM_COMMANDS = {
     'git': 1,
     'svn': 1,
@@ -538,23 +527,23 @@ FETCH_UPSTREAM_COMMANDS = {
 }
 
 
-def fetch_upstream(scm_object, url, revision, out_dir, **kwargs):
+def fetch_upstream(scm_object, revision, out_dir, **kwargs):
     """Fetch sources from repository and checkout given revision."""
     scm = scm_object.scm
     logging.debug("SCM: '%s'" % scm)
     clone_prefix = ""
     if 'clone_prefix' in kwargs:
         clone_prefix = kwargs['clone_prefix']
-    clone_dir = _calc_dir_to_clone_to(scm, url, clone_prefix, out_dir)
+    clone_dir = scm_object._calc_dir_to_clone_to(clone_prefix, out_dir)
 
     if not os.path.isdir(clone_dir):
         # initial clone
         os.mkdir(clone_dir)
-        scm_object.fetch_upstream(url, clone_dir, revision, cwd=out_dir,
+        scm_object.fetch_upstream( clone_dir, revision, cwd=out_dir,
                                   kwargs=kwargs)
     else:
         logging.info("Detected cached repository...")
-        scm_object.update_cache(url, clone_dir, revision)
+        scm_object.update_cache(clone_dir, revision)
 
     
     # switch_to_revision
@@ -793,15 +782,6 @@ def get_timestamp(scm_object, args, clone_dir):
                   datetime.datetime.fromtimestamp(timestamp).strftime(
                       '%Y-%m-%d %H:%M:%S'))
     return timestamp
-
-
-def get_repocache_hash(scm, url, subdir):
-    """Calculate hash fingerprint for repository cache."""
-    digest = hashlib.new('sha256')
-    digest.update(url)
-    if scm == 'svn':
-        digest.update('/' + subdir)
-    return digest.hexdigest()
 
 
 def import_xml_parser():
@@ -1249,6 +1229,9 @@ def singletask(use_obs_scm, args):
 
     repocachedir = get_repocachedir()
 
+    scm_class  = getattr(TarSCM,args.scm)
+    scm_object = scm_class(url=args.url)
+
     repodir = None
     # construct repodir (the parent directory of the checkout)
     if repocachedir and os.path.isdir(repocachedir):
@@ -1258,7 +1241,7 @@ def singletask(use_obs_scm, args):
         if not os.path.isdir(os.path.join(repocachedir, 'incoming')):
             os.mkdir(os.path.join(repocachedir, 'incoming'))
 
-        repohash = get_repocache_hash(args.scm, args.url, args.subdir)
+        repohash = scm_object.get_repocache_hash(args.subdir)
         logging.debug("HASH: %s", repohash)
         repodir = os.path.join(repocachedir, 'repo')
         repodir = os.path.join(repodir, repohash)
@@ -1277,16 +1260,6 @@ def singletask(use_obs_scm, args):
     if sys.argv[0].endswith("snapcraft") or \
        (use_obs_scm and os.getenv('OSC_VERSION')):
         repodir = os.getcwd()
-
-    SCM_OBJECTS = {
-        'git': TarSCM.git(),
-        'svn': TarSCM.svn(),
-        'hg':  TarSCM.hg(),
-        'bzr': TarSCM.bzr(),
-        'tar': TarSCM.tar(),
-    }
-    
-    scm_object = SCM_OBJECTS[args.scm]
 
     if args.scm == "tar":
         if args.obsinfo is None:
