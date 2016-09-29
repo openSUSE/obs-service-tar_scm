@@ -1028,11 +1028,11 @@ def get_changesauthor(args):
         return args.changesauthor
 
     config = ConfigParser.RawConfigParser()
-    obs = 'https://api.opensuse.org'
+    obs = 'https://api.opensuse.org/'
     config.add_section(obs)
     config.set(obs, 'email', DEFAULT_AUTHOR)
     config.read(os.path.expanduser('~/.oscrc'))
-    changesauthor = config.get('https://api.opensuse.org', 'email')
+    changesauthor = config.get(obs, 'email')
 
     logging.debug("AUTHOR: %s", changesauthor)
     return changesauthor
