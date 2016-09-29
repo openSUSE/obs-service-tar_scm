@@ -52,6 +52,35 @@ class TarSCM:
             """
             return
 
+        def fetch_upstream(self, revision, out_dir, **kwargs):
+            """Fetch sources from repository and checkout given revision."""
+            logging.debug("CACHEDIR: '%s'" % kwargs['cachedir'])
+            logging.debug("JAILED: '%d'" % kwargs['jailed'])
+            logging.debug("SCM: '%s'" % self.scm)
+            clone_prefix = ""
+            if 'clone_prefix' in kwargs:
+                clone_prefix = kwargs['clone_prefix']
+            clone_dir = self._calc_dir_to_clone_to(clone_prefix, out_dir)
+
+            if not os.path.isdir(clone_dir):
+                # initial clone
+                os.mkdir(clone_dir)
+                self.fetch_upstream_scm( clone_dir, revision, cwd=out_dir,
+                                          kwargs=kwargs)
+            else:
+                logging.info("Detected cached repository...")
+                self.update_cache(clone_dir, revision)
+            
+            # switch_to_revision
+            self.switch_revision(clone_dir, revision)
+
+            # git specific: after switching to desired revision its necessary to update
+            # submodules since they depend on the actual version of the selected
+            # revision
+            self.fetch_submodules(clone_dir, kwargs)
+
+            return clone_dir
+
         def fetch_submodules(self, clone_dir, kwargs):
             """NOOP in other scm's than git"""
             pass
@@ -120,8 +149,8 @@ class TarSCM:
                     os.path.join(clone_dir, os.path.join('.git', 'modules'))):
                 self.helpers.safe_run(['git', 'submodule', 'update', '--recursive'], cwd=clone_dir)
 
-        def fetch_upstream(self, clone_dir, revision, cwd, kwargs):
-            """Fetch sources via git."""
+        def fetch_upstream_scm(self, clone_dir, revision, cwd, kwargs):
+            """SCM specific version of fetch_uptream for git."""
             if kwargs['jailed']:
                 lf = open(os.path.join(kwargs['cachedir'],'.lock'),'w')
                 fcntl.lockf(lf,fcntl.LOCK_EX)
@@ -276,8 +305,8 @@ class TarSCM:
             if rc:
                 sys.exit('%s: No such revision' % revision)
 
-        def fetch_upstream(self, clone_dir, revision, cwd, kwargs):
-            """Fetch sources via hg."""
+        def fetch_upstream_scm(self, clone_dir, revision, cwd, kwargs):
+            """SCM specific version of fetch_uptream for hg."""
             command = ['hg', 'clone', self.url, clone_dir]
             if not is_sslverify_enabled(kwargs):
                 command += ['--insecure']
@@ -343,8 +372,8 @@ class TarSCM:
     ### END class TarSCM.hg
 
     class svn(scm):
-        def fetch_upstream(self, clone_dir, revision, cwd, kwargs):
-            """Fetch sources via svn."""
+        def fetch_upstream_scm(self, clone_dir, revision, cwd, kwargs):
+            """SCM specific version of fetch_uptream for svn."""
             command = ['svn', 'checkout', '--non-interactive', self.url, clone_dir]
             if revision:
                 command.insert(4, '-r%s' % revision)
@@ -447,8 +476,8 @@ class TarSCM:
     ### END class TarSCM.svn
 
     class bzr(scm):
-        def fetch_upstream(self, clone_dir, revision, cwd, kwargs):
-            """Fetch sources from bzr."""
+        def fetch_upstream_scm(self, clone_dir, revision, cwd, kwargs):
+            """SCM specific version of fetch_uptream for bzr."""
             command = ['bzr', 'checkout', self.url, clone_dir]
             if revision:
                 command.insert(3, '-r')
@@ -486,7 +515,21 @@ class TarSCM:
 
     class tar(scm):
         def fetch_upstream(self, clone_dir, revision, cwd, kwargs):
-            """NOOP, sources are present via obscpio already"""
+            """SCM specific version of fetch_uptream for tar."""
+            if kwargs.obsinfo is None:
+                files = glob.glob('*.obsinfo')
+                if len(files) > 0:
+                    # or we refactor and loop about all on future
+                    kwargs.obsinfo = files[0]
+            if kwargs.obsinfo is None:
+                sys.exit("ERROR: no .obsinfo file found")
+            basename = clone_dir = read_from_obsinfo(args.obsinfo, "name")
+            clone_dir += "-" + read_from_obsinfo(args.obsinfo, "version")
+            if not os.path.exists(clone_dir):
+                # not need in case of local osc build
+                os.rename(basename, clone_dir)
+
+            return clone_dir
 
         def update_cache(self, clone_dir, revision):
             """Update sources via tar."""
@@ -557,38 +600,6 @@ FETCH_UPSTREAM_COMMANDS = {
     'hg':  1,
     'bzr': 1,
 }
-
-
-def fetch_upstream(scm_object, revision, out_dir, **kwargs):
-    """Fetch sources from repository and checkout given revision."""
-    scm = scm_object.scm
-    logging.debug("CACHEDIR: '%s'" % kwargs['cachedir'])
-    logging.debug("JAILED: '%d'" % kwargs['jailed'])
-    logging.debug("SCM: '%s'" % scm)
-    clone_prefix = ""
-    if 'clone_prefix' in kwargs:
-        clone_prefix = kwargs['clone_prefix']
-    clone_dir = scm_object._calc_dir_to_clone_to(clone_prefix, out_dir)
-
-    if not os.path.isdir(clone_dir):
-        # initial clone
-        os.mkdir(clone_dir)
-        scm_object.fetch_upstream( clone_dir, revision, cwd=out_dir,
-                                  kwargs=kwargs)
-    else:
-        logging.info("Detected cached repository...")
-        scm_object.update_cache(clone_dir, revision)
-
-    
-    # switch_to_revision
-    scm_object.switch_revision(clone_dir, revision)
-
-    # git specific: after switching to desired revision its necessary to update
-    # submodules since they depend on the actual version of the selected
-    # revision
-    scm_object.fetch_submodules(clone_dir, kwargs)
-
-    return clone_dir
 
 
 def extract_from_archive(repodir, files, outdir):
@@ -1297,21 +1308,7 @@ def singletask(use_obs_scm, args):
        (use_obs_scm and os.getenv('OSC_VERSION')):
         repodir = os.getcwd()
 
-    if args.scm == "tar":
-        if args.obsinfo is None:
-            files = glob.glob('*.obsinfo')
-            if len(files) > 0:
-                # or we refactor and loop about all on future
-                args.obsinfo = files[0]
-        if args.obsinfo is None:
-            sys.exit("ERROR: no .obsinfo file found")
-        basename = clone_dir = read_from_obsinfo(args.obsinfo, "name")
-        clone_dir += "-" + read_from_obsinfo(args.obsinfo, "version")
-        if not os.path.exists(clone_dir):
-            # not need in case of local osc build
-            os.rename(basename, clone_dir)
-    else:
-        clone_dir = fetch_upstream(scm_object,out_dir=repodir,cachedir=repocachedir, **args.__dict__)
+    clone_dir = scm_object.fetch_upstream(out_dir=repodir,cachedir=repocachedir, **args.__dict__)
 
     if args.filename:
         dstname = basename = args.filename
