@@ -83,7 +83,20 @@ class TarSCM:
             """NOOP in other scm's than git"""
             pass
 
-        def detect_changes(self, repodir, subdir, changes):
+        def detect_changes(self, args, clone_dir):
+            """Detect changes between revisions."""
+            if (not args.changesgenerate):
+                return None
+
+            changes = read_changes_revision(self.url, os.getcwd(), args.outdir)
+
+            logging.debug("CHANGES: %s" % repr(changes))
+
+            changes = self.detect_changes_scm(clone_dir, args.subdir, changes)
+            logging.debug("Detected changes:\n%s" % repr(changes))
+            return changes
+
+        def detect_changes_scm(self, repodir, subdir, changes):
             sys.exit("changesgenerate not supported with %s SCM" % self.scm)
 
         def get_repocache_hash(self, subdir):
@@ -239,14 +252,14 @@ class TarSCM:
             return self.helpers.safe_run(cmd, cwd=repodir)[1]
 
 
-        def detect_changes(self, repodir, subdir, changes):
+        def detect_changes_scm(self, clone_dir, subdir, changes):
             """Detect changes between GIT revisions."""
             last_rev = changes['revision']
 
             if last_rev is None:
                 last_rev = self._log_cmd(['-n1', '--pretty=format:%H', '--skip=10'],
-                                        repodir, subdir)
-            current_rev = self._log_cmd(['-n1', '--pretty=format:%H'], repodir, subdir)
+                                        clone_dir, subdir)
+            current_rev = self._log_cmd(['-n1', '--pretty=format:%H'], clone_dir, subdir)
 
             if last_rev == current_rev:
                 logging.debug("No new commits, skipping changes file generation")
@@ -258,7 +271,7 @@ class TarSCM:
             logging.debug(dbg_msg)
 
             lines = self._log_cmd(['--reverse', '--no-merges', '--pretty=format:%s',
-                                  "%s..%s" % (last_rev, current_rev)], repodir, subdir)
+                                  "%s..%s" % (last_rev, current_rev)], clone_dir, subdir)
 
             changes['revision'] = current_rev
             changes['lines'] = lines.split('\n')
@@ -385,19 +398,19 @@ class TarSCM:
             timestamp = dateutil.parser.parse(timestamp).strftime("%s")
             return int(timestamp)
 
-        def detect_changes(self, repodir, subdir, changes):
+        def detect_changes_scm(self, clone_dir, subdir, changes):
             """Detect changes between GIT revisions."""
             last_rev = changes['revision']
             first_run = False
             if subdir:
-                repodir = os.path.join(repodir, subdir)
+                clone_dir = os.path.join(clone_dir, subdir)
 
             if last_rev is None:
-                last_rev = self._get_rev(repodir, 10)
+                last_rev = self._get_rev(clone_dir, 10)
                 logging.debug("First run get log for initial release")
                 first_run = True
 
-            current_rev = self._get_rev(repodir, 1)
+            current_rev = self._get_rev(clone_dir, 1)
 
             if last_rev == current_rev:
                 logging.debug("No new commits, skipping changes file generation")
@@ -409,7 +422,7 @@ class TarSCM:
 
             logging.debug("Generating changes between %s and %s", last_rev,
                           current_rev)
-            lines = self._get_log(repodir, last_rev, current_rev)
+            lines = self._get_log(clone_dir, last_rev, current_rev)
 
             changes['revision'] = current_rev
             changes['lines'] = lines
@@ -1001,17 +1014,6 @@ def write_changes(changes_filename, changes, version, author):
     shutil.move(tmp_fp.name, changes_filename)
 
 
-def detect_changes(scm_object, url, repodir, outdir, subdir):
-    """Detect changes between revisions."""
-    changes = read_changes_revision(url, os.getcwd(), outdir)
-
-    logging.debug("CHANGES: %s" % repr(changes))
-
-    changes = scm_object.detect_changes(repodir, subdir, changes)
-    logging.debug("Detected changes:\n%s" % repr(changes))
-    return changes
-
-
 def get_changesauthor(args):
     if args.changesauthor:
         return args.changesauthor
@@ -1300,10 +1302,7 @@ def singletask(use_obs_scm, args):
 
     logging.debug("DST: %s", dstname)
 
-    changes = None
-    if args.changesgenerate:
-        changes = detect_changes(scm_object, args.url, clone_dir, args.outdir,
-                                 args.subdir)
+    changes = scm_object.detect_changes(args,clone_dir)
 
     tar_dir = prep_tree_for_archive(clone_dir, args.subdir, args.outdir,
                                     dstname=dstname)
