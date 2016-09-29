@@ -44,7 +44,8 @@ class TarSCM:
         def __init__(self,**kwargs):
             self.scm      = self.__class__.__name__
             self.url      = kwargs['url']
-            self.helpers  = TarSCM.helpers() 
+            self.helpers  = TarSCM.helpers()
+            self.repocachedir = None
 
         def switch_revision(self,clone_dir, revision):
             """Switch sources to revision. Dummy implementation for version control
@@ -105,6 +106,32 @@ class TarSCM:
 
         def get_current_commit(self, clone_dir):
             return None
+
+        def get_repocachedir(self):
+            # check for enabled caches in this order (first wins):
+            #   1. local .cache
+            #   2. environment
+            #   3. user config
+            #   4. system wide
+            cwd = os.getcwd()
+            if self.repocachedir is None:
+                if os.path.isdir(os.path.join(cwd, '.cache')):
+                    self.repocachedir = os.path.join(cwd, '.cache')
+
+            if self.repocachedir is None:
+                self.repocachedir = os.getenv('CACHEDIRECTORY')
+
+            if self.repocachedir is None:
+                config = get_config_options()
+                try:
+                    self.repocachedir = config.get('tar_scm', 'CACHEDIRECTORY')
+                except ConfigParser.Error:
+                    pass
+
+            if self.repocachedir:
+                logging.debug("REPOCACHE: %s", self.repocachedir)
+
+            return self.repocachedir
 
         def _calc_dir_to_clone_to(self, prefix, out_dir):
             # separate path from parameters etc.
@@ -1178,28 +1205,6 @@ def parse_args():
     return args
 
 
-def get_repocachedir():
-    # check for enabled caches in this order (first wins):
-    #   1. local .cache
-    #   2. environment
-    #   3. user config
-    #   4. system wide
-    cwd = os.getcwd()
-    if os.path.isdir(os.path.join(cwd, '.cache')):
-        return os.path.join(cwd, '.cache')
-
-    repocachedir = os.getenv('CACHEDIRECTORY')
-    if repocachedir is None:
-        config = get_config_options()
-        try:
-            repocachedir = config.get('tar_scm', 'CACHEDIRECTORY')
-        except ConfigParser.Error:
-            pass
-
-    if repocachedir:
-        logging.debug("REPOCACHE: %s", repocachedir)
-
-    return repocachedir
 
 
 def main():
@@ -1253,11 +1258,12 @@ def singletask(use_obs_scm, args):
     # force cleaning of our workspace on exit
     atexit.register(cleanup, CLEANUP_DIRS)
 
-    repocachedir = get_repocachedir()
+    # create objects for TarSCM.<scm> and TarSCM.helpers
+    scm_class    = getattr(TarSCM,args.scm)
+    scm_object   = scm_class(url=args.url)
+    helpers      = scm_object.helpers
 
-    scm_class  = getattr(TarSCM,args.scm)
-    scm_object = scm_class(url=args.url)
-    helpers    = scm_object.helpers
+    repocachedir = scm_object.get_repocachedir()
 
     repodir = None
     # construct repodir (the parent directory of the checkout)
