@@ -90,6 +90,9 @@ class TarSCM:
             """Calculate hash fingerprint for repository cache."""
             return hashlib.sha256(self.url).hexdigest()
 
+        def get_current_commit(self, clone_dir):
+            return None
+
         def _calc_dir_to_clone_to(self, prefix, out_dir):
             # separate path from parameters etc.
             url_path = urlparse(self.url)[2].rstrip('/')
@@ -219,6 +222,9 @@ class TarSCM:
             d = {"parent_tag": None, "versionformat": "%ct"}
             timestamp = self.detect_version(d, repodir)
             return int(timestamp)
+
+        def get_current_commit(self, clone_dir):
+            return  self.helpers.safe_run(['git', 'rev-parse', 'HEAD'], clone_dir)[1]
 
         def _ref_exists(self, clone_dir, revision):
             rc, _ = self.helpers.run_cmd(['git', 'rev-parse', '--verify', '--quiet', revision],
@@ -1310,17 +1316,26 @@ def singletask(use_obs_scm, args):
     # FIXME: Consolidate calling parameters and shrink to one call of create_archive
     if use_obs_scm:
         tmp_archive = TarSCM.archive.obscpio()
-        commit = None
-        if args.scm == "git":
-            commit = helpers.safe_run(['git', 'rev-parse', 'HEAD'], clone_dir)[1]
-        tmp_archive.create_archive(scm_object, tar_dir, basename, dstname, version, commit, args)
+        tmp_archive.create_archive(
+                scm_object,
+                tar_dir,
+                basename,
+                dstname,
+                version,
+                scm_object.get_current_commit(clone_dir),
+                args)
     else:
         tmp_archive = TarSCM.archive.tar()
-        tmp_archive.create_archive(scm_object, tar_dir, args.outdir,
-                   dstname=dstname, extension=args.extension,
-                   exclude=args.exclude, include=args.include,
-                   package_metadata=args.package_meta,
-                   timestamp=get_timestamp(scm_object, args, clone_dir))
+        tmp_archive.create_archive(
+                scm_object,
+                tar_dir,
+                args.outdir,
+                dstname=dstname,
+                extension=args.extension,
+                exclude=args.exclude,
+                include=args.include,
+                package_metadata=args.package_meta,
+                timestamp=get_timestamp(scm_object, args, clone_dir))
 
     if changes:
         changesauthor = get_changesauthor(args)
