@@ -10,11 +10,6 @@ import argparse
 
 class UnitTestCases(unittest.TestCase):
 
-    def test_cli_init(self):
-        cli = TarSCM.cli()
-
-        print cli
-
     def test_calc_dir_to_clone_to(self):
         scm = 'git'
         outdir = '/out/'
