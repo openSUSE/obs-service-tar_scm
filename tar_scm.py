@@ -1284,8 +1284,9 @@ def main():
             args.url = dataMap['parts'][part]['source']
             dataMap['parts'][part]['source'] = part
             args.scm = dataMap['parts'][part]['source-type']
+            args.use_obs_scm = True
             del dataMap['parts'][part]['source-type']
-            singletask(True, args)
+            singletask(args)
 
         # write the new snapcraft.yaml file
         # we prefix our own here to be sure to not overwrite user files, if he
