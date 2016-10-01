@@ -10,6 +10,11 @@ import argparse
 
 class UnitTestCases(unittest.TestCase):
 
+    def test_cli_init(self):
+        cli = TarSCM.cli()
+
+        print cli
+
     def test_calc_dir_to_clone_to(self):
         scm = 'git'
         outdir = '/out/'
@@ -23,13 +28,8 @@ class UnitTestCases(unittest.TestCase):
             'http://remote/repo/.git;param?query#fragment',
         ]
 
-        parser = argparse.ArgumentParser()
-        args = parser.parse_args()
-        args.url            = None
-        args.revision       = None
-        args.outdir         = None
-        args.use_obs_scm    = None
-        scm = TarSCM.git(args)
+        cli = TarSCM.cli()
+        scm = TarSCM.git(cli)
 
         for cd in clone_dirs:
             scm.url=cd
@@ -38,37 +38,22 @@ class UnitTestCases(unittest.TestCase):
 
     @patch('tar_scm.TarSCM.helpers.safe_run')
     def test__git_log_cmd_with_args(self, safe_run_mock):
-        parser = argparse.ArgumentParser()
-        args = parser.parse_args()
-        args.url            = None
-        args.revision       = None
-        args.outdir         = None
-        args.use_obs_scm    = None
-        scm = TarSCM.git(args)
+        cli = TarSCM.cli()
+        scm = TarSCM.git(cli)
         new_cmd = scm._log_cmd(['-n1'], None, '')
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1'], cwd=None)
 
     @patch('tar_scm.TarSCM.helpers.safe_run')
     def test__git_log_cmd_without_args(self, safe_run_mock):
-        parser = argparse.ArgumentParser()
-        args = parser.parse_args()
-        args.url            = None
-        args.revision       = None
-        args.outdir         = None
-        args.use_obs_scm    = None
-        scm = TarSCM.git(args)
+        cli = TarSCM.cli()
+        scm = TarSCM.git(cli)
         new_cmd = scm._log_cmd([], None, '')
         safe_run_mock.assert_called_once_with(['git', 'log'], cwd=None)
 
     @patch('tar_scm.TarSCM.helpers.safe_run')
     def test__git_log_cmd_with_subdir(self, safe_run_mock):
-        parser = argparse.ArgumentParser()
-        args = parser.parse_args()
-        args.url            = None
-        args.revision       = None
-        args.outdir         = None
-        args.use_obs_scm    = None
-        scm = TarSCM.git(args)
+        cli = TarSCM.cli()
+        scm = TarSCM.git(cli)
         new_cmd = scm._log_cmd(['-n1'], None, 'subdir')
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1',
                                                '--', 'subdir'], cwd=None)
