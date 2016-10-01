@@ -30,11 +30,8 @@ import tarfile
 import tempfile
 import dateutil.parser
 
-try:
-    # not possible to test this on travis atm
-    import yaml
-except ImportError:
-    pass
+import copy 
+import yaml
 
 from urlparse import urlparse
 
@@ -790,6 +787,7 @@ class TarSCM:
             self.revision       = None
             self.outdir         = None
             self.use_obs_scm    = False
+            self.snapcraft      = False
 
         def parse_args(self):
             parser = argparse.ArgumentParser(description='Git Tarballs')
@@ -910,6 +908,147 @@ class TarSCM:
             return args
     ### END class TarSCM.cli
 
+    class tasks():
+        def __init__(self):
+            self.task_list = []
+
+        def generate_list(self,args):
+
+            if  args.snapcraft:
+                # we read the SCM config from snapcraft.yaml instead from _service file
+                f = open('snapcraft.yaml')
+                self.dataMap = yaml.safe_load(f)
+                f.close()
+                args.use_obs_scm = True
+                # run for each part an own task
+                for part in self.dataMap['parts'].keys():
+                    args.filename = part
+                    if 'source-type' not in self.dataMap['parts'][part].keys():
+                        continue
+                    pep8_1 = self.dataMap['parts'][part]['source-type']
+                    pep8_2 = FETCH_UPSTREAM_COMMANDS.keys()
+                    if pep8_1 not in pep8_2:
+                        continue
+                    # avoid conflicts with files
+                    args.clone_prefix = "_obs_"
+                    args.url = self.dataMap['parts'][part]['source']
+                    self.dataMap['parts'][part]['source'] = part
+                    args.scm = self.dataMap['parts'][part]['source-type']
+                    del self.dataMap['parts'][part]['source-type']
+                    self.task_list.append(copy.copy(args))
+
+            else:
+                self.task_list.append(args)
+
+        def process_list(self):
+            for task in self.task_list:
+                self._process_single_task(task)
+
+        def finalize(self,args):
+            if  args.snapcraft:
+                # write the new snapcraft.yaml file
+                # we prefix our own here to be sure to not overwrite user files, if he
+                # is using us in "disabled" mode
+                new_file = args.outdir + '/_service:snapcraft:snapcraft.yaml'
+                with open(new_file, 'w') as outfile:
+                    outfile.write(yaml.dump(self.dataMap, default_flow_style=False))
+
+        def _process_single_task(self,args):
+            FORMAT  = "%(message)s"
+            logging.basicConfig(format=FORMAT, stream=sys.stderr, level=logging.INFO)
+            if args.verbose:
+                logging.getLogger().setLevel(logging.DEBUG)
+
+            # force cleaning of our workspace on exit
+            atexit.register(cleanup, CLEANUP_DIRS)
+
+            # create objects for TarSCM.<scm> and TarSCM.helpers
+            scm_class    = getattr(TarSCM,args.scm)
+            scm_object   = scm_class(args)
+            helpers      = scm_object.helpers
+
+            repocachedir = scm_object.get_repocachedir()
+
+            repodir      = scm_object.repodir
+
+            clone_dir    = scm_object.fetch_upstream(cachedir=repocachedir, **args.__dict__)
+
+            if args.filename:
+                dstname = basename = args.filename
+            else:
+                dstname = basename = os.path.basename(clone_dir)
+
+            version = get_version(scm_object, args, clone_dir)
+            changesversion = version
+            if version and not sys.argv[0].endswith("/tar") \
+               and not sys.argv[0].endswith("/snapcraft"):
+                dstname += '-' + version
+
+            logging.debug("DST: %s", dstname)
+
+            changes = scm_object.detect_changes(args,clone_dir)
+
+            tar_dir = prep_tree_for_archive(clone_dir, args.subdir, args.outdir,
+                                            dstname=dstname)
+            CLEANUP_DIRS.append(tar_dir)
+
+            archive = TarSCM.archive()
+
+            archive.extract_from_archive(tar_dir, args.extract, args.outdir)
+
+            # FIXME: Consolidate calling parameters and shrink to one call of create_archive
+            if args.use_obs_scm:
+                tmp_archive = TarSCM.archive.obscpio()
+                tmp_archive.create_archive(
+                        scm_object,
+                        tar_dir,
+                        basename,
+                        dstname,
+                        version,
+                        scm_object.get_current_commit(clone_dir),
+                        args)
+            else:
+                tmp_archive = TarSCM.archive.tar()
+                tmp_archive.create_archive(
+                        scm_object,
+                        tar_dir,
+                        args.outdir,
+                        dstname=dstname,
+                        extension=args.extension,
+                        exclude=args.exclude,
+                        include=args.include,
+                        package_metadata=args.package_meta,
+                        timestamp=get_timestamp(scm_object, args, clone_dir))
+
+            if changes:
+                changesauthor = get_changesauthor(args)
+
+                logging.debug("AUTHOR: %s", changesauthor)
+
+                if not version:
+                    args.version = "_auto_"
+                    changesversion = get_version(scm_object, args, clone_dir)
+
+                for filename in glob.glob('*.changes'):
+                    new_changes_file = os.path.join(args.outdir, filename)
+                    shutil.copy(filename, new_changes_file)
+                    write_changes(new_changes_file, changes['lines'],
+                                  changesversion, changesauthor)
+                write_changes_revision(args.url, args.outdir,
+                                       changes['revision'])
+
+            # Populate cache
+            logging.debug("Using repocachedir: '%s'" % repocachedir)
+            if repocachedir and os.path.isdir(os.path.join(repocachedir, 'repo')):
+                repodir2 = os.path.join(repocachedir, 'repo', scm_object.repohash)
+                if repodir2 and not os.path.isdir(repodir2):
+                    os.rename(repodir, repodir2)
+                elif not os.path.samefile(repodir, repodir2):
+                    CLEANUP_DIRS.append(repodir)
+
+    ### END class TarSCM.tasks
+# **** END class TarSCM ****
+
 def is_sslverify_enabled(kwargs):
     """Returns ``True`` if the ``sslverify`` option has been enabled or
     not been set (default enabled) ``False`` otherwise."""
@@ -946,13 +1085,7 @@ def prep_tree_for_archive(repodir, subdir, outdir, dstname):
 # skip vcs files base on this pattern
 METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn).*')
 DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
-
-
-
-
-
 CLEANUP_DIRS = []
-
 
 def cleanup(dirs):
     """Cleaning temporary directories."""
@@ -1267,129 +1400,16 @@ def main():
         args.use_obs_scm = True
 
     if  os.path.basename(sys.argv[0]) == "snapcraft":
-        # we read the SCM config from snapcraft.yaml instead from _service file
-        f = open('snapcraft.yaml')
-        dataMap = yaml.safe_load(f)
-        f.close()
-        # run for each part an own task
-        for part in dataMap['parts'].keys():
-            args.filename = part
-            if 'source-type' not in dataMap['parts'][part].keys():
-                continue
-            pep8_1 = dataMap['parts'][part]['source-type']
-            pep8_2 = FETCH_UPSTREAM_COMMANDS.keys()
-            if pep8_1 not in pep8_2:
-                continue
-            # avoid conflicts with files
-            args.clone_prefix = "_obs_"
-            args.url = dataMap['parts'][part]['source']
-            dataMap['parts'][part]['source'] = part
-            args.scm = dataMap['parts'][part]['source-type']
-            args.use_obs_scm = True
-            del dataMap['parts'][part]['source-type']
-            singletask(args)
+        args.snapcraft = True
 
-        # write the new snapcraft.yaml file
-        # we prefix our own here to be sure to not overwrite user files, if he
-        # is using us in "disabled" mode
-        new_file = args.outdir + '/_service:snapcraft:snapcraft.yaml'
-        with open(new_file, 'w') as outfile:
-            outfile.write(yaml.dump(dataMap, default_flow_style=False))
-    else:
-        singletask(args)
+    task_list = TarSCM.tasks()
 
+    task_list.generate_list(args)
 
-def singletask(args):
-    FORMAT  = "%(message)s"
-    logging.basicConfig(format=FORMAT, stream=sys.stderr, level=logging.INFO)
-    if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
+    task_list.process_list()
 
-    # force cleaning of our workspace on exit
-    atexit.register(cleanup, CLEANUP_DIRS)
+    task_list.finalize(args)
 
-    # create objects for TarSCM.<scm> and TarSCM.helpers
-    scm_class    = getattr(TarSCM,args.scm)
-    scm_object   = scm_class(args)
-    helpers      = scm_object.helpers
-
-    repocachedir = scm_object.get_repocachedir()
-
-    repodir      = scm_object.repodir
-
-    clone_dir    = scm_object.fetch_upstream(cachedir=repocachedir, **args.__dict__)
-
-    if args.filename:
-        dstname = basename = args.filename
-    else:
-        dstname = basename = os.path.basename(clone_dir)
-
-    version = get_version(scm_object, args, clone_dir)
-    changesversion = version
-    if version and not sys.argv[0].endswith("/tar") \
-       and not sys.argv[0].endswith("/snapcraft"):
-        dstname += '-' + version
-
-    logging.debug("DST: %s", dstname)
-
-    changes = scm_object.detect_changes(args,clone_dir)
-
-    tar_dir = prep_tree_for_archive(clone_dir, args.subdir, args.outdir,
-                                    dstname=dstname)
-    CLEANUP_DIRS.append(tar_dir)
-
-    archive = TarSCM.archive()
-
-    archive.extract_from_archive(tar_dir, args.extract, args.outdir)
-
-    # FIXME: Consolidate calling parameters and shrink to one call of create_archive
-    if args.use_obs_scm:
-        tmp_archive = TarSCM.archive.obscpio()
-        tmp_archive.create_archive(
-                scm_object,
-                tar_dir,
-                basename,
-                dstname,
-                version,
-                scm_object.get_current_commit(clone_dir),
-                args)
-    else:
-        tmp_archive = TarSCM.archive.tar()
-        tmp_archive.create_archive(
-                scm_object,
-                tar_dir,
-                args.outdir,
-                dstname=dstname,
-                extension=args.extension,
-                exclude=args.exclude,
-                include=args.include,
-                package_metadata=args.package_meta,
-                timestamp=get_timestamp(scm_object, args, clone_dir))
-
-    if changes:
-        changesauthor = get_changesauthor(args)
-
-        logging.debug("AUTHOR: %s", changesauthor)
-
-        if not version:
-            args.version = "_auto_"
-            changesversion = get_version(scm_object, args, clone_dir)
-
-        for filename in glob.glob('*.changes'):
-            new_changes_file = os.path.join(args.outdir, filename)
-            shutil.copy(filename, new_changes_file)
-            write_changes(new_changes_file, changes['lines'],
-                          changesversion, changesauthor)
-        write_changes_revision(args.url, args.outdir,
-                               changes['revision'])
-
-    # Populate cache
-    if repocachedir and os.path.isdir(os.path.join(repocachedir, 'repo')):
-        repodir2 = os.path.join(repocachedir, 'repo', scm_object.repohash)
-        if repodir2 and not os.path.isdir(repodir2):
-            os.rename(repodir, repodir2)
-        elif not os.path.samefile(repodir, repodir2):
-            CLEANUP_DIRS.append(repodir)
 
 if __name__ == '__main__':
     main()
