@@ -789,7 +789,7 @@ class TarSCM:
             self.url            = None
             self.revision       = None
             self.outdir         = None
-            self.use_obs_scm    = None
+            self.use_obs_scm    = False
 
         def parse_args(self):
             parser = argparse.ArgumentParser(description='Git Tarballs')
@@ -1260,14 +1260,13 @@ def main():
     args = TarSCM.cli()
     args.parse_args()
 
-    if sys.argv[0].endswith("tar"):
+    if os.path.basename(sys.argv[0]) == "tar":
         args.scm = "tar"
-
-    args.use_obs_scm = False
-    if sys.argv[0].endswith("obs_scm"):
+    
+    if os.path.basename(sys.argv[0]) == "obs_scm":
         args.use_obs_scm = True
 
-    if sys.argv[0].endswith("snapcraft"):
+    if  os.path.basename(sys.argv[0]) == "snapcraft":
         # we read the SCM config from snapcraft.yaml instead from _service file
         f = open('snapcraft.yaml')
         dataMap = yaml.safe_load(f)
