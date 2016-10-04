@@ -13,9 +13,10 @@ import inspect
 
 class SnapcraftTestCases(unittest.TestCase):
     def setUp(self):
-        self.cli             = TarSCM.cli()
-        self.cli.snapcraft   = True
-        self.basedir         = os.path.abspath(os.path.dirname(__file__))
+        self.basedir        = os.path.abspath(os.path.dirname(__file__))
+        self.cli            = TarSCM.cli()
+        self.cli.outdir     = os.path.join(self.basedir,'tmp',self.__class__.__name__,'out')
+        self.cli.snapcraft  = True
 
     def _cd_fixtures_dir(self):
         print "_cd_fixtures_dir"
@@ -40,7 +41,7 @@ class SnapcraftTestCases(unittest.TestCase):
         expected = {'scm': 'bzr', 'clone_prefix': '_obs_', 'snapcraft': True,
                 'revision': None, 'url': 'lp:~mterry/libpipeline/printf',
                 'filename': 'libpipeline', 'use_obs_scm': True,
-                'jailed': None, 'outdir': None}
+                'jailed': None, 'outdir': self.cli.outdir}
         self._cd_fixtures_dir()
         tasks           = TarSCM.tasks()
         tasks.generate_list(self.cli)
@@ -55,7 +56,7 @@ class SnapcraftTestCases(unittest.TestCase):
                 'clone_prefix': '_obs_',
                 'filename': 'libpipeline',
                 'jailed': None,
-                'outdir': None,
+                'outdir': self.cli.outdir,
                 'revision': None,
                 'scm': 'bzr',
                 'snapcraft': True,
@@ -66,7 +67,7 @@ class SnapcraftTestCases(unittest.TestCase):
                 'clone_prefix': '_obs_',
                 'filename': 'kanku',
                 'jailed': None,
-                'outdir': None,
+                'outdir': self.cli.outdir,
                 'revision': None,
                 'scm': 'git',
                 'snapcraft': True,
@@ -78,7 +79,42 @@ class SnapcraftTestCases(unittest.TestCase):
         tasks           = TarSCM.tasks()
         tasks.generate_list(self.cli)
         i = 0
+        # test values in the objects instead of objects
         for got in tasks.task_list:
             self.assertEqual(got.__dict__,expected[i])
             i += 1
         self._restore_cwd()
+
+    def test_tasks_finalize(self):
+	expected = '''apps:
+  pipelinetest:
+    command: ./bin/test
+description: 'This is an example package of an autotools project built with snapcraft
+
+  using a remote source.
+
+  '
+name: pipelinetest
+parts:
+  kanku:
+    after:
+    - libpipeline
+    plugin: make
+    source: kanku
+  libpipeline:
+    plugin: autotools
+    source: libpipeline
+summary: Libpipeline example
+version: 1.0
+'''
+        self._cd_fixtures_dir()
+        tasks           = TarSCM.tasks()
+        os.makedirs(self.cli.outdir)
+        tasks.generate_list(self.cli)
+        tasks.finalize(self.cli)
+        i = 0
+        self._restore_cwd()
+	sf  = open(os.path.join(self.cli.outdir,'_service:snapcraft:snapcraft.yaml'),'r')
+	got = sf.read()
+	sf.close()
+        self.assertEqual(got,expected)
