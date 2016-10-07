@@ -6,14 +6,10 @@ import sys
 class cli():
     DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
     def __init__(self):
-        self.url                = None
-        self.revision           = None
-        self.outdir             = None
-        self.use_obs_scm        = False
-        self.snapcraft          = False
-        self.changesgenerate    = False
+        self.use_obs_scm    = False
+        self.snapcraft      = False
 
-    def parse_args(self):
+    def parse_args(self, options):
         parser = argparse.ArgumentParser(description='Git Tarballs')
         parser.add_argument('-v', '--verbose', action='store_true', default=False,
                             help='Enable verbose output')
@@ -91,7 +87,7 @@ class cli():
         parser.add_argument('--history-depth',
                             help='Obsolete osc service parameter that does '
                                  'nothing')
-        args = parser.parse_args()
+        args = parser.parse_args(options)
 
         # basic argument validation
         if not os.path.isdir(args.outdir):
