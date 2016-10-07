@@ -15,6 +15,12 @@ parts:
         source: .
         after:
             - libpipeline
+    unkown-source-type:
+        plugin: make
+        source: .
+        source-type: not-known
+        after:
+            - libpipeline
     libpipeline:
         plugin: autotools
         source: lp:~mterry/libpipeline/printf
