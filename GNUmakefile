@@ -48,8 +48,10 @@ tar_scm: tar_scm.py
 	sed 's,^\#!/usr/bin/.*,#!$(PYTHON),' $< > $@
 
 .PHONY: install
-install: tar_scm
+install: tar_scm compile
 	mkdir -p $(DESTDIR)$(mylibdir)
+	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM
+	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM/scm
 	mkdir -p $(DESTDIR)$(mycfgdir)
 	install -m 0755 tar_scm $(DESTDIR)$(mylibdir)/tar_scm
 	install -m 0644 tar_scm.rc $(DESTDIR)$(mycfgdir)/tar_scm
@@ -60,6 +62,13 @@ install: tar_scm
 	install -m 0644 snapcraft.service $(DESTDIR)$(mylibdir)/snapcraft.service
 	sed -e '/^===OBS_ONLY/,/^===/d' -e '/^===/d' tar_scm.service.in > $(DESTDIR)$(mylibdir)/tar_scm.service
 	sed -e '/^===TAR_ONLY/,/^===/d' -e '/^===/d' tar_scm.service.in > $(DESTDIR)$(mylibdir)/obs_scm.service
-
+	find ./TarSCM/ -name '*.py*' -exec install -m 644 {} $(DESTDIR)$(mylibdir)/{} \;
 show-python:
 	@echo "$(PYTHON)"
+
+clean:
+	find -name '*.pyc' -exec rm {} \;
+
+compile:
+	find -name '*.py' -exec python -m py_compile {} \;
+

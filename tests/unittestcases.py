@@ -5,7 +5,7 @@ import sys
 import os
 from mock import patch
 
-from tar_scm import TarSCM
+import TarSCM
 import argparse
 
 class UnitTestCases(unittest.TestCase):
@@ -23,32 +23,36 @@ class UnitTestCases(unittest.TestCase):
             'http://remote/repo/.git;param?query#fragment',
         ]
 
-        cli = TarSCM.cli()
-        scm = TarSCM.git(cli)
+        cli     = TarSCM.cli()
+        tasks   = TarSCM.tasks()
+        scm     = TarSCM.scm.git(cli,tasks)
 
         for cd in clone_dirs:
             scm.url=cd
             clone_dir = scm._calc_dir_to_clone_to("")
             self.assertEqual(clone_dir, os.path.join(scm.repodir, 'repo'))
 
-    @patch('tar_scm.TarSCM.helpers.safe_run')
+    @patch('TarSCM.helpers.safe_run')
     def test__git_log_cmd_with_args(self, safe_run_mock):
-        cli = TarSCM.cli()
-        scm = TarSCM.git(cli)
+        cli     = TarSCM.cli()
+        tasks   = TarSCM.tasks()
+        scm     = TarSCM.scm.git(cli,tasks)
         new_cmd = scm._log_cmd(['-n1'], None, '')
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1'], cwd=None)
 
-    @patch('tar_scm.TarSCM.helpers.safe_run')
+    @patch('TarSCM.helpers.safe_run')
     def test__git_log_cmd_without_args(self, safe_run_mock):
-        cli = TarSCM.cli()
-        scm = TarSCM.git(cli)
+        cli     = TarSCM.cli()
+        tasks   = TarSCM.tasks()
+        scm     = TarSCM.scm.git(cli,tasks)
         new_cmd = scm._log_cmd([], None, '')
         safe_run_mock.assert_called_once_with(['git', 'log'], cwd=None)
 
-    @patch('tar_scm.TarSCM.helpers.safe_run')
+    @patch('TarSCM.helpers.safe_run')
     def test__git_log_cmd_with_subdir(self, safe_run_mock):
-        cli = TarSCM.cli()
-        scm = TarSCM.git(cli)
+        cli     = TarSCM.cli()
+        tasks   = TarSCM.tasks()
+        scm     = TarSCM.scm.git(cli,tasks)
         new_cmd = scm._log_cmd(['-n1'], None, 'subdir')
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1',
                                                '--', 'subdir'], cwd=None)
