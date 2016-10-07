@@ -17,8 +17,7 @@ from hgtests  import HgTests
 from bzrtests import BzrTests
 from testenv import TestEnvironment
 from unittestcases import UnitTestCases
-from snapcraft import SnapcraftTestCases
-
+from tasks import TasksTestCases
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
@@ -30,7 +29,7 @@ if __name__ == '__main__':
         HgTests,
         BzrTests,
         UnitTestCases,
-        SnapcraftTestCases
+        TasksTestCases
     ]
 
     if len(sys.argv) == 1:
@@ -45,8 +44,8 @@ if __name__ == '__main__':
         #   suite.addTest(HgTests('test_version_versionformat'))
         #   suite.addTest(HgTests('test_versionformat_dateYYYYMMDD'))
         #test_class = GitTests
-        #test_class = SnapcraftTestCases
-        test_class = UnitTestCases
+        test_class = TasksTestCases
+        #test_class = UnitTestCases
         to_run = {}
         for arg in sys.argv[1:]:
             m = re.match('^/(.+)/$', arg)

@@ -11,7 +11,7 @@ import scm
 from archive import archive
 from helpers import helpers
 from changes import changes
-
+from exceptions import OptionsError
 try:
     # not possible to test this on travis atm
     import yaml
@@ -81,13 +81,13 @@ class tasks():
         """
         src = os.path.join(repodir, subdir)
         if not os.path.exists(src):
-            sys.exit("%s: No such file or directory" % src)
+            raise Exception("%s: No such file or directory" % src)
 
         dst = os.path.join(outdir, dstname)
         if os.path.exists(dst) and \
             (os.path.samefile(src, dst) or
              os.path.samefile(os.path.dirname(src), dst)):
-            sys.exit("%s: src and dst refer to same file" % src)
+            raise Exception("%s: src and dst refer to same file" % src)
 
         shutil.copytree(src, dst, symlinks=True)
 
@@ -104,7 +104,10 @@ class tasks():
         atexit.register(self.cleanup)
 
         # create objects for TarSCM.<scm> and TarSCM.helpers
-        scm_class    = getattr(scm, args.scm)
+        try:
+            scm_class    = getattr(scm, args.scm)
+        except:
+            raise OptionsError("Please specify valid --scm=... options")
         scm_object   = scm_class(args, self)
         helpers      = scm_object.helpers
 

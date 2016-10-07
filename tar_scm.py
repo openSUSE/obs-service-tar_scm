@@ -18,27 +18,32 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import TarSCM
 import TarSCM.tasks
+from TarSCM.exceptions import OptionsError
 
 def main():
-    args = TarSCM.cli()
-    args.parse_args()
+    cli = TarSCM.cli()
+    cli.parse_args(sys.argv[1:])
 
     if os.path.basename(sys.argv[0]) == "tar":
-        args.scm = "tar"
+        cli.scm = "tar"
     
     if os.path.basename(sys.argv[0]) == "obs_scm":
-        args.use_obs_scm = True
+        cli.use_obs_scm = True
 
     if  os.path.basename(sys.argv[0]) == "snapcraft":
-        args.snapcraft = True
+        cli.snapcraft = True
 
     task_list = TarSCM.tasks()
 
-    task_list.generate_list(args)
+    task_list.generate_list(cli)
 
-    task_list.process_list()
+    try:
+        task_list.process_list()
+    except OptionsError as e:
+        print(e)
+        sys.exit(1)
 
-    task_list.finalize(args)
+    task_list.finalize(cli)
 
 
 if __name__ == '__main__':
