@@ -1,15 +1,13 @@
-#!/usr/bin/env python2
-
 import unittest
 import sys
 import os
+import argparse
+import inspect
 
 from mock import patch
 
 from tar_scm import TarSCM
-import argparse
-import inspect
-#import
+
 
 class SnapcraftTestCases(unittest.TestCase):
     def setUp(self):
@@ -41,7 +39,7 @@ class SnapcraftTestCases(unittest.TestCase):
         expected = {'scm': 'bzr', 'clone_prefix': '_obs_', 'snapcraft': True,
                 'revision': None, 'url': 'lp:~mterry/libpipeline/printf',
                 'filename': 'libpipeline', 'use_obs_scm': True,
-                'outdir': self.cli.outdir}
+                'outdir': self.cli.outdir,'changesgenerate': False}
         self._cd_fixtures_dir()
         tasks           = TarSCM.tasks()
         tasks.generate_list(self.cli)
@@ -53,6 +51,7 @@ class SnapcraftTestCases(unittest.TestCase):
     def test_generate_task_list_multi_tasks(self):
         expected        = [
             {
+                'changesgenerate': False,
                 'clone_prefix': '_obs_',
                 'filename': 'libpipeline',
                 'outdir': self.cli.outdir,
@@ -63,6 +62,7 @@ class SnapcraftTestCases(unittest.TestCase):
                 'use_obs_scm': True
             },
             {
+                'changesgenerate': False,
                 'clone_prefix': '_obs_',
                 'filename': 'kanku',
                 'outdir': self.cli.outdir,
