@@ -146,47 +146,17 @@ version: 1.0
         tasks.cleanup()
         self.assertEqual(os.path.exists(os.path.join(self.tmp_dir,self.__class__.__name__)),False)
 
-    def test_prep_tree_for_archive(self):
-        tasks   = TarSCM.tasks()
-        basedir  = os.path.join(self.tmp_dir, self.__class__.__name__)
-        dir1    = os.path.join(basedir,"test1")
-        os.makedirs(dir1)
-        self.assertRaisesRegexp(
-                Exception,
-                re.compile('src and dst refer to same file'),
-                tasks.prep_tree_for_archive,
-                basedir,
-                "test1",
-                basedir,
-                "test1"
-        )
-        
-        self.assertRaisesRegexp(
-                Exception,
-                re.compile('No such file or directory'),
-                tasks.prep_tree_for_archive,
-                basedir,
-                "test2",
-                basedir,
-                "test1"
-        )
-
-        self.assertEqual(
-                tasks.prep_tree_for_archive(basedir,"test1",basedir,"test2"),
-                os.path.join(basedir,"test2")
-        )
-
     def test_get_version(self):
         class FakeSCM():
-            def detect_version(self, args, repodir):
+            def detect_version(self, args):
                 return '0.0.1'
 
         scm     = FakeSCM()
         tasks   = TarSCM.tasks()
-        v       = tasks.get_version(scm, self.cli, '')
+        v       = tasks.get_version(scm, self.cli)
         self.assertEqual(v,'0.0.1')
         self.cli.versionprefix = "r"
-        v       = tasks.get_version(scm, self.cli, '')
+        v       = tasks.get_version(scm, self.cli)
         self.assertEqual(v,'r.0.0.1')
 
     def test_process_list(self):

@@ -7,29 +7,29 @@ import logging
 from base import scm
 
 class svn(scm):
-    def fetch_upstream_scm(self, clone_dir, kwargs):
+    def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for svn."""
-        command = ['svn', 'checkout', '--non-interactive', self.url, clone_dir]
+        command = ['svn', 'checkout', '--non-interactive', self.url, self.clone_dir]
         if self.revision:
             command.insert(4, '-r%s' % self.revision)
-        if not self.is_sslverify_enabled(kwargs):
+        if not self.is_sslverify_enabled():
             command.insert(3, '--trust-server-cert')
         self.helpers.safe_run(command, self.repodir, interactive=sys.stdout.isatty())
 
-    def update_cache(self, clone_dir):
+    def update_cache(self):
         """Update sources via svn."""
         command = ['svn', 'update']
         if self.revision:
             command.insert(3, "-r%s" % self.revision)
-        self.helpers.safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
+        self.helpers.safe_run(command, cwd=self.clone_dir, interactive=sys.stdout.isatty())
 
-    def detect_version(self, args, repodir):
+    def detect_version(self, args):
         """Automatic detection of version number for checked-out SVN repository."""
         versionformat = args['versionformat']
         if versionformat is None:
             versionformat = '%r'
 
-        svn_info = self.helpers.safe_run(['svn', 'info'], repodir)[1]
+        svn_info = self.helpers.safe_run(['svn', 'info'], self.clone_dir)[1]
 
         version = ''
         match = re.search('Last Changed Rev: (.*)', svn_info, re.MULTILINE)
@@ -37,8 +37,8 @@ class svn(scm):
             version = match.group(1).strip()
         return re.sub('%r', version, versionformat)
 
-    def get_timestamp(self, args, repodir):
-        svn_info = self.helpers.safe_run(['svn', 'info', '-rHEAD'], repodir)[1]
+    def get_timestamp(self):
+        svn_info = self.helpers.safe_run(['svn', 'info', '-rHEAD'], self.clone_dir)[1]
 
         match = re.search('Last Changed Date: (.*)', svn_info, re.MULTILINE)
         if not match:
@@ -49,12 +49,14 @@ class svn(scm):
         timestamp = dateutil.parser.parse(timestamp).strftime("%s")
         return int(timestamp)
 
-    def detect_changes_scm(self, clone_dir, subdir, changes):
+    def detect_changes_scm(self, subdir, changes):
         """Detect changes between GIT revisions."""
         last_rev = changes['revision']
         first_run = False
         if subdir:
-            clone_dir = os.path.join(clone_dir, subdir)
+            clone_dir = os.path.join(self.clone_dir, subdir)
+        else:
+            clone_dir = self.clone_dir
 
         if last_rev is None:
             last_rev = self._get_rev(clone_dir, 10)
@@ -84,11 +86,14 @@ class svn(scm):
         return hashlib.sha256(self.url+'/' + subdir).hexdigest()
 
 
-    def _get_log(self, repodir, revision1, revision2):
+    def _get_log(self, clone_dir, revision1, revision2):
         new_lines = []
 
-        xml_lines = self.helpers.safe_run(['svn', 'log', '-r%s:%s' % (revision1,
-                             revision2), '--xml'], repodir)[1]
+        xml_lines = self.helpers.safe_run(
+                ['svn', 'log', '-r%s:%s' % (revision1, revision2), '--xml'],
+                clone_dir
+                )[1]
+
         lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
 
         for line in lines:
@@ -98,9 +103,9 @@ class svn(scm):
         return new_lines
 
 
-    def _get_rev(self, repodir, num_commits):
+    def _get_rev(self, clone_dir, num_commits):
         revisions = self.helpers.safe_run(['svn', 'log', '-l%d' % num_commits, '-q',
-                             '--incremental'], cwd=repodir)[1].split('\n')
+                             '--incremental'], cwd=clone_dir)[1].split('\n')
         # remove blank entry on end
         revisions.pop()
         # return last entry
@@ -108,4 +113,3 @@ class svn(scm):
         # retrieve the revision number and remove r
         revision = re.search(r'^r[0-9]*', revision, re.M).group().replace("r", "")
         return revision
-### END class TarSCM.svn

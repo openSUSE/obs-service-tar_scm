@@ -75,25 +75,6 @@ class tasks():
             with open(new_file, 'w') as outfile:
                 outfile.write(yaml.dump(self.dataMap, default_flow_style=False))
 
-    def prep_tree_for_archive(self, repodir, subdir, outdir, dstname):
-        """Prepare directory tree for creation of the archive by copying the
-        requested sub-directory to the top-level destination directory.
-        """
-        src = os.path.join(repodir, subdir)
-        if not os.path.exists(src):
-            raise Exception("%s: No such file or directory" % src)
-
-        dst = os.path.join(outdir, dstname)
-        if os.path.exists(dst) and \
-            (os.path.samefile(src, dst) or
-             os.path.samefile(os.path.dirname(src), dst)):
-            raise Exception("%s: src and dst refer to same file" % src)
-
-        shutil.copytree(src, dst, symlinks=True)
-
-        return dst
-
-
     def _process_single_task(self,args):
         FORMAT  = "%(message)s"
         logging.basicConfig(format=FORMAT, stream=sys.stderr, level=logging.INFO)
@@ -115,14 +96,14 @@ class tasks():
 
         repodir      = scm_object.repodir
 
-        clone_dir    = scm_object.fetch_upstream(cachedir=repocachedir, **args.__dict__)
+        scm_object.fetch_upstream()
 
         if args.filename:
             dstname = basename = args.filename
         else:
-            dstname = basename = os.path.basename(clone_dir)
+            dstname = basename = os.path.basename(scm_object.clone_dir)
 
-        version = self.get_version(scm_object, args, clone_dir)
+        version = self.get_version(scm_object, args)
         changesversion = version
         if version and not sys.argv[0].endswith("/tar") \
            and not sys.argv[0].endswith("/snapcraft"):
@@ -130,39 +111,36 @@ class tasks():
 
         logging.debug("DST: %s", dstname)
 
-        changes = scm_object.detect_changes(args,clone_dir)
+        changes = scm_object.detect_changes()
 
-        tar_dir = self.prep_tree_for_archive(clone_dir, args.subdir, args.outdir,
-                                        dstname=dstname)
-        self.cleanup_dirs.append(tar_dir)
+        scm_object.prep_tree_for_archive(args.subdir, args.outdir, dstname=dstname)
+        self.cleanup_dirs.append(scm_object.arch_dir)
 
         arch = archive()
 
-        arch.extract_from_archive(tar_dir, args.extract, args.outdir)
+        arch.extract_from_archive(scm_object.arch_dir, args.extract, args.outdir)
 
         # FIXME: Consolidate calling parameters and shrink to one call of create_archive
         if args.use_obs_scm:
             tmp_archive = archive.obscpio()
             tmp_archive.create_archive(
                     scm_object,
-                    tar_dir,
                     basename,
                     dstname,
                     version,
-                    scm_object.get_current_commit(clone_dir),
+                    scm_object.get_current_commit(scm_object.clone_dir),
                     args)
         else:
             tmp_archive = archive.tar()
             tmp_archive.create_archive(
                     scm_object,
-                    tar_dir,
                     args.outdir,
                     dstname=dstname,
                     extension=args.extension,
                     exclude=args.exclude,
                     include=args.include,
                     package_metadata=args.package_meta,
-                    timestamp=self.helpers.get_timestamp(scm_object, args, clone_dir))
+                    timestamp=self.helpers.get_timestamp(scm_object, args, scm_object.clone_dir))
 
         if changes:
             changesauthor = self.changes.get_changesauthor(args)
@@ -171,7 +149,7 @@ class tasks():
 
             if not version:
                 args.version = "_auto_"
-                changesversion = self.get_version(scm_object, args, clone_dir)
+                changesversion = self.get_version(scm_object, args)
 
             for filename in glob.glob('*.changes'):
                 new_changes_file = os.path.join(args.outdir, filename)
@@ -190,19 +168,19 @@ class tasks():
             elif not os.path.samefile(repodir, repodir2):
                 self.cleanup_dirs.append(repodir)
 
-    def get_version(self, scm_object, args, clone_dir):
+    def get_version(self, scm_object, args):
         version = args.version
         if version == '_auto_' or args.versionformat:
-            version = self.detect_version(scm_object, args, clone_dir)
+            version = self.detect_version(scm_object, args)
         if args.versionprefix:
             version = "%s.%s" % (args.versionprefix, version)
 
         logging.debug("VERSION(auto): %s", version)
         return version
 
-    def detect_version(self, scm_object, args, repodir):
+    def detect_version(self, scm_object, args):
         """Automatic detection of version number for checked-out repository."""
 
-        version = scm_object.detect_version(args.__dict__, repodir).strip()
+        version = scm_object.detect_version(args.__dict__).strip()
         logging.debug("VERSION(auto): %s", version)
         return version

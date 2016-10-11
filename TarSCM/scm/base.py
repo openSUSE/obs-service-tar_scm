@@ -5,6 +5,7 @@ import sys
 import logging
 import re
 import hashlib
+import shutil
 
 from urlparse import urlparse
 from ..helpers import helpers
@@ -27,66 +28,71 @@ class scm():
             self.changes    = changes()
         self.repocachedir   = self.get_repocachedir()
         self.repodir        = self.prepare_repodir()
+        self.clone_dir      = None
 
-    def switch_revision(self,clone_dir):
+	# arch_dir - Directory which is used for the archive
+	# e.g. myproject-2.0
+	self.arch_dir	    = None
+
+
+    def switch_revision(self):
         '''Switch sources to revision. Dummy implementation for version control
         systems that change revision during fetch/update.
         '''
         return
 
-    def fetch_upstream(self, **kwargs):
+    def fetch_upstream(self):
         """Fetch sources from repository and checkout given revision."""
         logging.debug("CACHEDIR: '%s'" % self.repocachedir)
-        logging.debug("JAILED: '%d'" % kwargs['jailed'])
+        logging.debug("JAILED: '%d'" % self.args.jailed)
         logging.debug("SCM: '%s'" % self.scm)
         clone_prefix = ""
-        if 'clone_prefix' in kwargs:
-            clone_prefix = kwargs['clone_prefix']
-        clone_dir = self._calc_dir_to_clone_to(clone_prefix)
+        if 'clone_prefix' in self.args.__dict__:
+            clone_prefix = self.args.__dict__['clone_prefix']
 
-        if not os.path.isdir(clone_dir):
+        self._calc_dir_to_clone_to(clone_prefix)
+
+        if not os.path.isdir(self.clone_dir):
             # initial clone
-            os.mkdir(clone_dir)
-            self.fetch_upstream_scm( clone_dir, kwargs=kwargs)
+            os.mkdir(self.clone_dir)
+            self.fetch_upstream_scm()
         else:
             logging.info("Detected cached repository...")
-            self.update_cache(clone_dir)
+            self.update_cache()
         
         # switch_to_revision
-        self.switch_revision(clone_dir)
+        self.switch_revision()
 
         # git specific: after switching to desired revision its necessary to update
         # submodules since they depend on the actual version of the selected
         # revision
-        self.fetch_submodules(clone_dir, kwargs)
+        self.fetch_submodules()
 
-        return clone_dir
-
-    def fetch_submodules(self, clone_dir, kwargs):
+    def fetch_submodules(self):
         """NOOP in other scm's than git"""
         pass
 
-    def detect_changes(self, args, clone_dir):
+    def detect_changes(self):
         """Detect changes between revisions."""
-        if (not args.changesgenerate):
+        if (not self.args.changesgenerate):
             return None
 
-        changes = self.changes.read_changes_revision(self.url, os.getcwd(), args.outdir)
+        changes = self.changes.read_changes_revision(self.url, os.getcwd(), self.args.outdir)
 
         logging.debug("CHANGES: %s" % repr(changes))
 
-        changes = self.detect_changes_scm(clone_dir, args.subdir, changes)
+        changes = self.detect_changes_scm(self.args.subdir, changes)
         logging.debug("Detected changes:\n%s" % repr(changes))
         return changes
 
-    def detect_changes_scm(self, repodir, subdir, changes):
+    def detect_changes_scm(self, subdir, changes):
         sys.exit("changesgenerate not supported with %s SCM" % self.scm)
 
     def get_repocache_hash(self, subdir):
         """Calculate hash fingerprint for repository cache."""
         return hashlib.sha256(self.url).hexdigest()
 
-    def get_current_commit(self, clone_dir):
+    def get_current_commit(self):
         return None
 
     def get_repocachedir(self):
@@ -156,13 +162,13 @@ class scm():
 
         basename = os.path.basename(os.path.normpath(url_path))
         basename = prefix + basename
-        clone_dir = os.path.abspath(os.path.join(self.repodir, basename))
-        return clone_dir
+        self.clone_dir = os.path.abspath(os.path.join(self.repodir, basename))
+        logging.debug("CLONE_DIR: %s"%self.clone_dir)
 
-    def is_sslverify_enabled(self,kwargs):
+    def is_sslverify_enabled(self):
 	"""Returns ``True`` if the ``sslverify`` option has been enabled or
 	not been set (default enabled) ``False`` otherwise."""
-	return 'sslverify' not in kwargs or kwargs['sslverify']
+	return 'sslverify' not in self.args.__dict__ or self.args.__dict__['sslverify']
 
     def version_iso_cleanup(self, version):
         """Reformat timestamp value."""
@@ -172,3 +178,20 @@ class scm():
         version = re.sub(r'[-:]', '', version)
         return version
 
+    def prep_tree_for_archive(self, subdir, outdir, dstname):
+        """Prepare directory tree for creation of the archive by copying the
+        requested sub-directory to the top-level destination directory.
+        """
+        src = os.path.join(self.clone_dir, subdir)
+        if not os.path.exists(src):
+            raise Exception("%s: No such file or directory" % src)
+
+        dst = os.path.join(outdir, dstname)
+        if os.path.exists(dst) and \
+            (os.path.samefile(src, dst) or
+             os.path.samefile(os.path.dirname(src), dst)):
+            raise Exception("%s: src and dst refer to same file" % src)
+
+        shutil.copytree(src, dst, symlinks=True)
+
+	self.arch_dir = dst

@@ -31,24 +31,24 @@ class UnitTestCases(unittest.TestCase):
 
         for cd in clone_dirs:
             scm.url=cd
-            clone_dir = scm._calc_dir_to_clone_to("")
-            self.assertEqual(clone_dir, os.path.join(scm.repodir, 'repo'))
+            scm._calc_dir_to_clone_to("")
+            self.assertEqual(scm.clone_dir, os.path.join(scm.repodir, 'repo'))
 
     @patch('TarSCM.helpers.safe_run')
     def test__git_log_cmd_with_args(self, safe_run_mock):
         scm     = TarSCM.scm.git(self.cli,self.tasks)
-        new_cmd = scm._log_cmd(['-n1'], None, '')
+        new_cmd = scm._log_cmd(['-n1'],'')
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1'], cwd=None)
 
     @patch('TarSCM.helpers.safe_run')
     def test__git_log_cmd_without_args(self, safe_run_mock):
         scm     = TarSCM.scm.git(self.cli,self.tasks)
-        new_cmd = scm._log_cmd([], None, '')
+        new_cmd = scm._log_cmd([], '')
         safe_run_mock.assert_called_once_with(['git', 'log'], cwd=None)
 
     @patch('TarSCM.helpers.safe_run')
     def test__git_log_cmd_with_subdir(self, safe_run_mock):
         scm     = TarSCM.scm.git(self.cli,self.tasks)
-        new_cmd = scm._log_cmd(['-n1'], None, 'subdir')
+        new_cmd = scm._log_cmd(['-n1'], 'subdir')
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1',
                                                '--', 'subdir'], cwd=None)
