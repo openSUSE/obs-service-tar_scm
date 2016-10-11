@@ -85,7 +85,7 @@ class helpers():
     def get_timestamp(self, scm_object, args, clone_dir):
         """Returns the commit timestamp for checked-out repository."""
 
-        timestamp = scm_object.get_timestamp(args, clone_dir)
+        timestamp = scm_object.get_timestamp()
         logging.debug("COMMIT TIMESTAMP: %s (%s)", timestamp,
                       datetime.datetime.fromtimestamp(timestamp).strftime(
                           '%Y-%m-%d %H:%M:%S'))

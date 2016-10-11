@@ -68,7 +68,7 @@ show-python:
 
 clean:
 	find -name '*.pyc' -exec rm {} \;
-
+	rm -rf ./tests/tmp/
 compile:
 	find -name '*.py' -exec python -m py_compile {} \;
 

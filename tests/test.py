@@ -17,6 +17,7 @@ from bzrtests import BzrTests
 from testenv import TestEnvironment
 from unittestcases import UnitTestCases
 from tasks import TasksTestCases
+from scm import SCMBaseTestCases
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -28,12 +29,13 @@ if __name__ == '__main__':
     testclasses = [
         # If you are only interested in a particular VCS, you can
         # temporarily comment out any of these:
+        UnitTestCases,
+        TasksTestCases,
+        SCMBaseTestCases,
         SvnTests,
         GitTests,
         HgTests,
         BzrTests,
-        UnitTestCases,
-        TasksTestCases
     ]
 
     if len(sys.argv) == 1:
