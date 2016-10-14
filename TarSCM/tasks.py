@@ -21,7 +21,7 @@ class tasks():
         self.cleanup_dirs   = []
         self.helpers        = helpers()
         self.changes        = changes()
-	self.scm_object     = None
+        self.scm_object     = None
 
     def cleanup(self):
         """Cleaning temporary directories."""
@@ -31,11 +31,11 @@ class tasks():
             if not os.path.exists(d):
                 continue
             shutil.rmtree(d)
-	self.cleanup_dirs = []
+        self.cleanup_dirs = []
         # Unlock to prevent dead lock in cachedir if exception
         # gets raised
-	if self.scm_object:
-	    self.scm_object.unlock_cache()
+        if self.scm_object:
+            self.scm_object.unlock_cache()
 
     def generate_list(self,args):
 
@@ -93,7 +93,7 @@ class tasks():
         except:
             raise OptionsError("Please specify valid --scm=... options")
 
-	# self.scm_object is need to unlock cache in cleanup
+        # self.scm_object is need to unlock cache in cleanup
         # if exception occurs
         self.scm_object = scm_object   = scm_class(args, self)
         helpers      = scm_object.helpers
@@ -125,24 +125,16 @@ class tasks():
         # FIXME: Consolidate calling parameters and shrink to one call of create_archive
         if args.use_obs_scm:
             tmp_archive = archive.obscpio()
-            tmp_archive.create_archive(
-                    scm_object,
-                    basename,
-                    dstname,
-                    version,
-                    scm_object.get_current_commit(scm_object.clone_dir),
-                    args)
         else:
             tmp_archive = archive.tar()
-            tmp_archive.create_archive(
-                    scm_object,
-                    args.outdir,
-                    dstname=dstname,
-                    extension=args.extension,
-                    exclude=args.exclude,
-                    include=args.include,
-                    package_metadata=args.package_meta,
-                    timestamp=self.helpers.get_timestamp(scm_object, args, scm_object.clone_dir))
+
+        tmp_archive.create_archive(
+            scm_object,
+            basename  = basename,
+            dstname   = dstname,
+            version   = version,
+            cli       = args
+        )
 
         if changes:
             changesauthor = self.changes.get_changesauthor(args)
