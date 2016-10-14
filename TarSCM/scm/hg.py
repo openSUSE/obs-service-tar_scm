@@ -1,5 +1,6 @@
 import sys
 import re
+import os
 from base import scm
 class hg(scm):
     def switch_revision(self):
@@ -17,7 +18,8 @@ class hg(scm):
         command = ['hg', 'clone', self.url, self.clone_dir]
         if not self.is_sslverify_enabled():
             command += ['--insecure']
-        self.helpers.safe_run(command, self.repodir,
+        wd = os.path.abspath(os.path.join(self.clone_dir,os.pardir))
+        self.helpers.safe_run(command, wd,
                  interactive=sys.stdout.isatty())
 
     def update_cache(self):
