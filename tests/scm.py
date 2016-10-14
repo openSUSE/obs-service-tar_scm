@@ -41,14 +41,6 @@ class SCMBaseTestCases(unittest.TestCase):
         dir1     		= os.path.join(basedir,"test1")
 	scm_base.clone_dir 	= basedir
         os.makedirs(dir1)
-        self.assertRaisesRegexp(
-                Exception,
-                re.compile('src and dst refer to same file'),
-                scm_base.prep_tree_for_archive,
-                "test1",
-                basedir,
-                "test1"
-        )
 
         self.assertRaisesRegexp(
                 Exception,

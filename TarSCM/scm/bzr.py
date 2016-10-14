@@ -1,5 +1,6 @@
 import sys
 import re
+import os
 import dateutil.parser
 from base import scm
 
@@ -12,7 +13,8 @@ class bzr(scm):
             command.insert(4, self.revision)
         if not self.is_sslverify_enabled():
             command.insert(2, '-Ossl.cert_reqs=None')
-        self.helpers.safe_run(command, self.repodir, interactive=sys.stdout.isatty())
+	wd = os.path.abspath(os.path.join(self.clone_dir,os.pardir))
+        self.helpers.safe_run(command, wd, interactive=sys.stdout.isatty())
 
     def update_cache(self):
         """Update sources via bzr."""

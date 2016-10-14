@@ -47,53 +47,26 @@ class git(scm):
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for git."""
-        if self.args.jailed:
-            # FIXME: self.args.cachedir should not be used here
-            # gets calculated by get_repocachedir
-            lf = open(os.path.join(self.args.cachedir,'.lock'),'w')
-            fcntl.lockf(lf,fcntl.LOCK_EX)
-            reponame = self.url.split('/')[-1];
-            # FIXME: self.args.cachedir should not be used here
-            # gets calculated by get_repocachedir
-            clone_cache_dir = os.path.join(self.args.cachedir,reponame)
-            if not os.path.isfile(os.path.join(clone_cache_dir,'config')):
-                # clone if no .git dir exists
-                command = ['git', 'clone', '--mirror', self.url, clone_cache_dir]
-            else:
-                # "git fetch" is a blocking command
-                # so no race conditions should occur between multiple service processes
-                command = ['git', '-C', clone_cache_dir, 'fetch', '--tags', '--prune']
+	# clone if no .git dir exists
+	command = ['git', 'clone', self.url, self.clone_dir]
 
-            self.helpers.safe_run(command, cwd=self.repodir, interactive=sys.stdout.isatty())
-            fcntl.lockf(lf,fcntl.LOCK_UN)
-            lf.close()
+	if not self.is_sslverify_enabled():
+	    command += ['--config', 'http.sslverify=false']
 
-            # We use a temporary shared clone to avoid race conditions
-            # between multiple services
-            command = ['git','clone',clone_cache_dir,self.url,self.clone_dir]
-            use_reference = True
-            try:
-                if (self.args.package_meta):
-                    logging.info("Not using '--reference'")
-                    use_reference = False
-            except(KeyError):
-                pass
+	if self.repocachedir:
+	    command.insert(2,'--mirror')
 
-            if use_reference:
-                command.insert(2,'--reference')
-            self.helpers.safe_run(command, cwd=self.repodir, interactive=sys.stdout.isatty())
+        wd = os.path.abspath(os.path.join(self.repodir,os.pardir))
 
-        else:
-            command = ['git', 'clone', self.url, self.clone_dir]
+	self.helpers.safe_run(command, cwd=wd, interactive=sys.stdout.isatty())
 
-            if not self.is_sslverify_enabled():
-                command += ['--config', 'http.sslverify=false']
-            self.helpers.safe_run(command, cwd=self.repodir, interactive=sys.stdout.isatty())
-            # if the reference does not exist.
-            if self.revision and not self._ref_exists(self.revision):
-                # fetch reference from url and create locally
-                self.helpers.safe_run(['git', 'fetch', self.url, self.revision + ':' + self.revision],
-                         cwd=self.clone_dir, interactive=sys.stdout.isatty())
+	self.fetch_specific_revision()
+
+    def fetch_specific_revision(self):
+	if self.revision and not self._ref_exists(self.revision):
+	    # fetch reference from url and create locally
+	    self.helpers.safe_run(['git', 'fetch', self.url, self.revision + ':' + self.revision],
+		     cwd=self.clone_dir, interactive=sys.stdout.isatty())
 
     def fetch_submodules(self):
         """Recursively initialize git submodules."""
@@ -110,6 +83,8 @@ class git(scm):
                  cwd=self.clone_dir, interactive=sys.stdout.isatty())
         self.helpers.safe_run(['git', 'fetch'],
                  cwd=self.clone_dir, interactive=sys.stdout.isatty())
+
+	self.fetch_specific_revision()
 
     def detect_version(self,args):
         """Automatic detection of version number for checked-out GIT repository."""
@@ -195,4 +170,27 @@ class git(scm):
         changes['revision'] = current_rev
         changes['lines'] = lines.split('\n')
         return changes
-### END class TarSCM.git
+    
+    def prepare_working_copy(self):
+        if not self.repocachedir:
+            return
+
+        # We use a temporary shared clone to avoid race conditions
+        # between multiple services
+        org_clone_dir  = self.clone_dir
+        self.clone_dir = self.repodir
+        command = ['git','clone',self.repocachedir,self.url,self.clone_dir]
+        use_reference = True
+        try:
+            if (self.args.package_meta):
+                logging.info("Not using '--reference'")
+                use_reference = False
+        except(KeyError):
+            pass
+
+        if use_reference:
+            command = ['git','clone','--reference',org_clone_dir,self.url,self.clone_dir]
+        else:
+            command = ['git','clone',org_clone_dir,self.clone_dir]
+        wd = os.path.abspath(os.path.join(self.clone_dir,os.pardir))
+        self.helpers.safe_run(command, cwd=wd, interactive=sys.stdout.isatty())

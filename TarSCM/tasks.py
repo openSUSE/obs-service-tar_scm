@@ -24,6 +24,7 @@ class tasks():
         self.cleanup_dirs   = []
         self.helpers        = helpers()
         self.changes        = changes()
+	self.scm_object     = None
 
     def cleanup(self):
         """Cleaning temporary directories."""
@@ -33,6 +34,11 @@ class tasks():
             if not os.path.exists(d):
                 continue
             shutil.rmtree(d)
+	self.cleanup_dirs = []
+        # Unlock to prevent dead lock in cachedir if exception
+        # gets raised
+	if self.scm_object:
+	    self.scm_object.unlock_cache()
 
     def generate_list(self,args):
 
@@ -89,12 +95,11 @@ class tasks():
             scm_class    = getattr(scm, args.scm)
         except:
             raise OptionsError("Please specify valid --scm=... options")
-        scm_object   = scm_class(args, self)
+
+	# self.scm_object is need to unlock cache in cleanup
+        # if exception occurs
+        self.scm_object = scm_object   = scm_class(args, self)
         helpers      = scm_object.helpers
-
-        repocachedir = scm_object.get_repocachedir()
-
-        repodir      = scm_object.repodir
 
         scm_object.fetch_upstream()
 
@@ -158,15 +163,6 @@ class tasks():
                               changesversion, changesauthor)
             self.changes.write_changes_revision(args.url, args.outdir,
                                    changes['revision'])
-
-        # Populate cache
-        logging.debug("Using repocachedir: '%s'" % repocachedir)
-        if repocachedir and os.path.isdir(os.path.join(repocachedir, 'repo')):
-            repodir2 = os.path.join(repocachedir, 'repo', scm_object.repohash)
-            if repodir2 and not os.path.isdir(repodir2):
-                os.rename(repodir, repodir2)
-            elif not os.path.samefile(repodir, repodir2):
-                self.cleanup_dirs.append(repodir)
 
     def get_version(self, scm_object, args):
         version = args.version

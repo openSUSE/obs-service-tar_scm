@@ -6,6 +6,7 @@ import logging
 import re
 import hashlib
 import shutil
+import fcntl
 
 from urlparse import urlparse
 from ..helpers import helpers
@@ -13,7 +14,15 @@ from ..changes import changes
 
 class scm():
     def __init__(self,args,task):
-        self.scm          = self.__class__.__name__
+        # default settings
+        self.scm            = self.__class__.__name__
+	# arch_dir - Directory which is used for the archive
+	# e.g. myproject-2.0
+	self.arch_dir	    = None
+        self.repocachedir   = None
+        self.clone_dir      = None
+        self.lock_file      = None
+
         # mandatory arguments
         self.args           = args
         self.task           = task
@@ -26,13 +35,8 @@ class scm():
         self.helpers        = helpers()
         if self.args.changesgenerate:
             self.changes    = changes()
-        self.repocachedir   = self.get_repocachedir()
-        self.repodir        = self.prepare_repodir()
-        self.clone_dir      = None
 
-	# arch_dir - Directory which is used for the archive
-	# e.g. myproject-2.0
-	self.arch_dir	    = None
+        self._calc_repocachedir()
 
 
     def switch_revision(self):
@@ -51,6 +55,10 @@ class scm():
             clone_prefix = self.args.__dict__['clone_prefix']
 
         self._calc_dir_to_clone_to(clone_prefix)
+        logging.debug("CLONE_DIR: '%s'" % self.clone_dir)
+        self.prepare_clone_dir()
+
+        self.lock_cache()
 
         if not os.path.isdir(self.clone_dir):
             # initial clone
@@ -59,7 +67,9 @@ class scm():
         else:
             logging.info("Detected cached repository...")
             self.update_cache()
-        
+
+        self.prepare_working_copy()       
+ 
         # switch_to_revision
         self.switch_revision()
 
@@ -67,6 +77,8 @@ class scm():
         # submodules since they depend on the actual version of the selected
         # revision
         self.fetch_submodules()
+
+        self.unlock_cache()
 
     def fetch_submodules(self):
         """NOOP in other scm's than git"""
@@ -95,7 +107,7 @@ class scm():
     def get_current_commit(self):
         return None
 
-    def get_repocachedir(self):
+    def _calc_repocachedir(self):
         # check for enabled caches (1. local .cache, 2. environment, 3. user config, 4. system wide)
         repocachedir  = None
         cwd = os.getcwd()
@@ -114,41 +126,23 @@ class scm():
 
         if repocachedir:
             logging.debug("REPOCACHE: %s", repocachedir)
+            self.repohash = self.get_repocache_hash(self.args.subdir)
+            self.repocachedir = os.path.join(repocachedir, self.repohash)
 
-        return repocachedir
-
-    def prepare_repodir(self):
-        repocachedir = self.repocachedir
-        repodir = None
-        if not self.args.jailed:
-            # construct repodir (the parent directory of the checkout)
-            if repocachedir and os.path.isdir(repocachedir):
-                # construct subdirs on very first run
-                if not os.path.isdir(os.path.join(repocachedir, 'repo')):
-                    os.mkdir(os.path.join(repocachedir, 'repo'))
-                if not os.path.isdir(os.path.join(repocachedir, 'incoming')):
-                    os.mkdir(os.path.join(repocachedir, 'incoming'))
-
-                self.repohash = self.get_repocache_hash(self.args.subdir)
-                logging.debug("HASH: %s", self.repohash)
-                repodir = os.path.join(repocachedir, 'repo', self.repohash)
-
-            # if caching is enabled but we haven't cached something yet
-            if repodir and not os.path.isdir(repodir):
-                repodir = tempfile.mkdtemp(dir=os.path.join(repocachedir, 'incoming'))
-
-        if repodir is None:
-            repodir = tempfile.mkdtemp(dir=self.args.outdir)
-            self.task.cleanup_dirs.append(repodir)
+    def prepare_clone_dir(self):
 
         # special case when using osc and creating an obscpio, use current work
         # directory to allow the developer to work inside of the git repo and fetch
         # local changes
         if sys.argv[0].endswith("snapcraft") or \
            (self.args.use_obs_scm and os.getenv('OSC_VERSION')):
-            repodir = os.getcwd()
+            self.repodir = os.getcwd()
+            return 
 
-        return repodir
+    	# construct repodir (the parent directory of the checkout)
+        if self.repocachedir:
+            if not os.path.isdir(self.repocachedir):
+                os.makedirs(self.repocachedir)
 
     def _calc_dir_to_clone_to(self, prefix):
         # separate path from parameters etc.
@@ -160,9 +154,17 @@ class scm():
         # special handling for cloning bare repositories (../repo/.git/)
         url_path = url_path.rstrip('/')
 
-        basename = os.path.basename(os.path.normpath(url_path))
-        basename = prefix + basename
-        self.clone_dir = os.path.abspath(os.path.join(self.repodir, basename))
+        self.basename = os.path.basename(os.path.normpath(url_path))
+        self.basename = prefix + self.basename
+
+        tempdir = tempfile.mkdtemp(dir=self.args.outdir)
+        self.task.cleanup_dirs.append(tempdir)
+        self.repodir = os.path.join(tempdir,self.basename)
+
+	if self.repocachedir:
+            self.clone_dir = os.path.abspath(os.path.join(self.repocachedir, self.basename))
+	else:
+            self.clone_dir = os.path.abspath(self.repodir)
         logging.debug("CLONE_DIR: %s"%self.clone_dir)
 
     def is_sslverify_enabled(self):
@@ -178,6 +180,9 @@ class scm():
         version = re.sub(r'[-:]', '', version)
         return version
 
+    def prepare_working_copy(self):
+        pass
+
     def prep_tree_for_archive(self, subdir, outdir, dstname):
         """Prepare directory tree for creation of the archive by copying the
         requested sub-directory to the top-level destination directory.
@@ -186,12 +191,21 @@ class scm():
         if not os.path.exists(src):
             raise Exception("%s: No such file or directory" % src)
 
-        dst = os.path.join(outdir, dstname)
+        self.arch_dir = dst = os.path.join(outdir, dstname)
         if os.path.exists(dst) and \
             (os.path.samefile(src, dst) or
              os.path.samefile(os.path.dirname(src), dst)):
-            raise Exception("%s: src and dst refer to same file" % src)
+            return
 
         shutil.copytree(src, dst, symlinks=True)
 
-	self.arch_dir = dst
+    def lock_cache(self):
+        pd = os.path.join(self.clone_dir,os.pardir,'.lock')
+        self.lock_file = open(os.path.abspath(pd),'w')
+        fcntl.lockf(self.lock_file,fcntl.LOCK_EX)
+
+    def unlock_cache(self):
+        if self.lock_file and os.path.isfile(self.lock_file.name):
+            fcntl.lockf(self.lock_file,fcntl.LOCK_UN)
+            self.lock_file.close()
+            self.lock_file = None

@@ -14,7 +14,10 @@ class svn(scm):
             command.insert(4, '-r%s' % self.revision)
         if not self.is_sslverify_enabled():
             command.insert(3, '--trust-server-cert')
-        self.helpers.safe_run(command, self.repodir, interactive=sys.stdout.isatty())
+
+	wd = os.path.abspath(os.path.join(self.clone_dir,os.pardir))
+
+        self.helpers.safe_run(command, wd, interactive=sys.stdout.isatty())
 
     def update_cache(self):
         """Update sources via svn."""

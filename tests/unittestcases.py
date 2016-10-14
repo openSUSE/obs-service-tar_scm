@@ -37,7 +37,8 @@ class UnitTestCases(unittest.TestCase):
         for cd in clone_dirs:
             scm.url=cd
             scm._calc_dir_to_clone_to("")
-            self.assertEqual(scm.clone_dir, os.path.join(scm.repodir, 'repo'))
+            self.assertEqual(scm.clone_dir, os.path.join(scm.repodir))
+            self.tasks.cleanup()
 
     @patch('TarSCM.helpers.safe_run')
     def test__git_log_cmd_with_args(self, safe_run_mock):
