@@ -30,9 +30,18 @@ class archive():
 
 
     class obscpio():
-        def create_archive(self, scm_object, basename, dstname, version, commit, args):
+        def __init__(self):
+            self.helpers = helpers()
+
+        def create_archive(self, scm_object, **kwargs):
             """Create an OBS cpio archive of repodir in destination directory.
             """
+            basename = kwargs['basename']
+            dstname  = kwargs['dstname']
+            version  = kwargs['version']
+            args     = kwargs['cli']
+            commit   = scm_object.get_current_commit(scm_object.clone_dir)
+
             (workdir, topdir) = os.path.split(scm_object.arch_dir)
             extension = 'obscpio'
 
@@ -89,10 +98,21 @@ class archive():
 
 
     class tar():
-        def create_archive(self, scm_object, outdir, dstname, extension='tar',
-                       exclude=[], include=[], package_metadata=False, timestamp=0):
+        def __init__(self):
+            self.helpers = helpers()
+
+        def create_archive(self, scm_object, **kwargs):
             """Create a tarball of repodir in destination directory."""
             (workdir, topdir) = os.path.split(scm_object.arch_dir)
+
+            args                = kwargs['cli']
+            outdir              = args.outdir
+            dstname             = kwargs['dstname']
+            extension           = ( args.extension or 'tar' )
+            exclude             = args.exclude
+            include             = args.include
+            package_metadata    = args.package_meta
+            timestamp           = self.helpers.get_timestamp(scm_object, args, scm_object.clone_dir)
 
             incl_patterns = []
             excl_patterns = []
