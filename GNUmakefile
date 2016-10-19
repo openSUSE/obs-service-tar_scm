@@ -41,7 +41,15 @@ pep8: tar_scm.py
 .PHONY: test
 test:
 	: Running the test suite.  Please be patient - this takes a few minutes ...
-	PYTHONPATH=. $(PYTHON) tests/test.py
+	PYTHONPATH=. $(PYTHON) tests/test.py 2>&1|tee ./test.log
+
+test3:
+	: Running the test suite.  Please be patient - this takes a few minutes ...
+	PYTHONPATH=. python3 tests/test.py 2>&1|tee ./test3.log
+
+cover:
+	PYTHONPATH=. coverage2 run tests/test.py 2>&1|tee ./cover.log
+	coverage2 html --include=./TarSCM/*
 
 tar_scm: tar_scm.py
 	@echo "Creating $@ which uses $(PYTHON) ..."
@@ -69,6 +77,9 @@ show-python:
 clean:
 	find -name '*.pyc' -exec rm {} \;
 	rm -rf ./tests/tmp/
+	rm -f ./test.log
+	rm -f ./test3.log
+	rm -f ./cover.log
 compile:
 	find -name '*.py' -exec python -m py_compile {} \;
 

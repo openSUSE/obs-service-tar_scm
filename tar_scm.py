@@ -21,30 +21,7 @@ import TarSCM.tasks
 from TarSCM.exceptions import OptionsError
 
 def main():
-    cli = TarSCM.cli()
-    cli.parse_args(sys.argv[1:])
-
-    if os.path.basename(sys.argv[0]) == "tar":
-        cli.scm = "tar"
-    
-    if os.path.basename(sys.argv[0]) == "obs_scm":
-        cli.use_obs_scm = True
-
-    if  os.path.basename(sys.argv[0]) == "snapcraft":
-        cli.snapcraft = True
-
-    task_list = TarSCM.tasks()
-
-    task_list.generate_list(cli)
-
-    try:
-        task_list.process_list()
-    except OptionsError as e:
-        print(e)
-        sys.exit(1)
-
-    task_list.finalize(cli)
-
+   TarSCM.run()
 
 if __name__ == '__main__':
     main()

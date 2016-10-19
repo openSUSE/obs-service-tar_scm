@@ -30,10 +30,10 @@ if __name__ == '__main__':
         TasksTestCases,
         SCMBaseTestCases,
         #GitUnitTestCases,
-        SvnTests,
         GitTests,
+        SvnTests,
         HgTests,
-        BzrTests,
+        BzrTests
     ]
 
     if len(sys.argv) == 1:

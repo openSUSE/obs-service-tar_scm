@@ -106,7 +106,7 @@ class cli():
             sys.exit("--subdir path '%s' must stay within repo" % orig_subdir)
 
         if args.history_depth:
-            print "history-depth parameter is obsolete and will be ignored"
+            print("history-depth parameter is obsolete and will be ignored")
 
         # booleanize non-standard parameters
         if args.changesgenerate == 'enable':

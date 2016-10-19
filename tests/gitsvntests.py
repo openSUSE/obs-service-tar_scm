@@ -95,7 +95,7 @@ class GitSvnTests(CommonTests):
         with open(new_changes_file) as f:
             new_changes = f.read()
             self.assertNotEqual(orig_changes, new_changes)
-            print new_changes
+            print(new_changes)
             expected_changes_regexp += "(.*)"
             self.assertRegexpMatches(new_changes, expected_changes_regexp)
             m = re.match(expected_changes_regexp, new_changes, re.DOTALL)

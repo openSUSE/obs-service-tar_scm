@@ -2,7 +2,7 @@ import sys
 import os
 import logging
 import re
-from base import scm
+from TarSCM.scm.base import scm
 
 class git(scm):
     def switch_revision(self):
@@ -34,7 +34,7 @@ class git(scm):
                 else:
                     text = self.helpers.safe_run(['git', 'reset', '--hard', rev],
                                     cwd=self.clone_dir)[1]
-                print text.rstrip()
+                #print (text.rstrip())
                 break
 
         if found_revision is None:
@@ -47,26 +47,26 @@ class git(scm):
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for git."""
-	# clone if no .git dir exists
-	command = ['git', 'clone', self.url, self.clone_dir]
+        # clone if no .git dir exists
+        command = ['git', 'clone', self.url, self.clone_dir]
 
-	if not self.is_sslverify_enabled():
-	    command += ['--config', 'http.sslverify=false']
+        if not self.is_sslverify_enabled():
+            command += ['--config', 'http.sslverify=false']
 
-	if self.repocachedir:
-	    command.insert(2,'--mirror')
+        if self.repocachedir:
+            command.insert(2,'--mirror')
 
         wd = os.path.abspath(os.path.join(self.repodir,os.pardir))
 
-	self.helpers.safe_run(command, cwd=wd, interactive=sys.stdout.isatty())
+        self.helpers.safe_run(command, cwd=wd, interactive=sys.stdout.isatty())
 
-	self.fetch_specific_revision()
+        self.fetch_specific_revision()
 
     def fetch_specific_revision(self):
-	if self.revision and not self._ref_exists(self.revision):
-	    # fetch reference from url and create locally
-	    self.helpers.safe_run(['git', 'fetch', self.url, self.revision + ':' + self.revision],
-		     cwd=self.clone_dir, interactive=sys.stdout.isatty())
+        if self.revision and not self._ref_exists(self.revision):
+            # fetch reference from url and create locally
+            self.helpers.safe_run(['git', 'fetch', self.url, self.revision + ':' + self.revision],
+                cwd=self.clone_dir, interactive=sys.stdout.isatty())
 
     def fetch_submodules(self):
         """Recursively initialize git submodules."""
@@ -84,7 +84,7 @@ class git(scm):
         self.helpers.safe_run(['git', 'fetch'],
                  cwd=self.clone_dir, interactive=sys.stdout.isatty())
 
-	self.fetch_specific_revision()
+        self.fetch_specific_revision()
 
     def detect_version(self,args):
         """Automatic detection of version number for checked-out GIT repository."""

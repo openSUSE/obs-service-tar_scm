@@ -156,9 +156,9 @@ class TestAssertions(unittest.TestCase):
                    self.sslverify_false_args + 'true')
 
     def assertRanUpdate(self, logpath, loglines):
-	# exception for git - works different in cached mode
+        # exception for git - works different in cached mode
         should_not_find = self.initial_clone_command
-	if self.__class__.__name__ == 'GitTests':
+        if self.__class__.__name__ == 'GitTests':
             should_not_find = None
         self._find(logpath, loglines,
                    self.update_cache_command, should_not_find)

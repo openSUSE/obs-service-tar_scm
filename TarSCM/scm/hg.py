@@ -1,7 +1,7 @@
 import sys
 import re
 import os
-from base import scm
+from TarSCM.scm.base import scm
 class hg(scm):
     def switch_revision(self):
         """Switch sources to revision."""
@@ -27,7 +27,7 @@ class hg(scm):
         try:
             self.helpers.safe_run(['hg', 'pull'], cwd=self.clone_dir,
                      interactive=sys.stdout.isatty())
-        except SystemExit, e:
+        except SystemExit as e:
             # Contrary to the docs, hg pull returns exit code 1 when
             # there are no changes to pull, but we don't want to treat
             # this as an error.

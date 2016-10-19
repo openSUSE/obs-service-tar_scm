@@ -1,4 +1,6 @@
-from base import scm
+import glob
+import os
+from TarSCM.scm.base import scm
 
 class tar(scm):
     def fetch_upstream(self):
@@ -9,12 +11,19 @@ class tar(scm):
                 # or we refactor and loop about all on future
                 self.args.obsinfo = files[0]
         if self.args.obsinfo is None:
-            sys.exit("ERROR: no .obsinfo file found")
-        basename = self.clone_dir = self.read_from_obsinfo(args.obsinfo, "name")
-        self.clone_dir += "-" + self.read_from_obsinfo(args.obsinfo, "version")
+            raise SystemExit("ERROR: no .obsinfo file found in directory: '%s'"%os.getcwd())
+        basename = self.clone_dir = self.read_from_obsinfo(self.args.obsinfo, "name")
+        self.clone_dir += "-" + self.read_from_obsinfo(self.args.obsinfo, "version")
         if not os.path.exists(self.clone_dir):
             # not need in case of local osc build
-            os.rename(basename, self.clone_dir)
+            try:
+                os.rename(basename, self.clone_dir)
+            except OSError as e:
+                raise SystemExit(
+			"Error while moving from '%s' to '%s')\n"
+			"Current working directory: '%s'" % 
+			(basename, self.clone_dir,os.getcwd())
+		)
 
     def update_cache(self):
         """Update sources via tar."""

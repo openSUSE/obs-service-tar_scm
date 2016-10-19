@@ -116,8 +116,10 @@ class CommonTests(TestEnvironment, TestAssertions):
 
     def test_revision_lang_de(self):
         os.putenv('LANG', 'de_DE.UTF-8')
+        os.environ['LANG'] = 'de_DE.UTF-8'
         self._revision()
         os.unsetenv('LANG')
+        os.environ['LANG'] = ''
 
     def test_revision_no_cache(self):
         self._revision(use_cache=False)

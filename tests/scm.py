@@ -33,13 +33,13 @@ class SCMBaseTestCases(unittest.TestCase):
 
 
     def test_prep_tree_for_archive(self):
-	tasks	 		= TarSCM.tasks()
-        scm_base 		= scm(self.cli,tasks)
-        basedir  		= os.path.join(
-					self.tmp_dir,
-					self.__class__.__name__)
-        dir1     		= os.path.join(basedir,"test1")
-	scm_base.clone_dir 	= basedir
+        tasks                   = TarSCM.tasks()
+        scm_base                 = scm(self.cli,tasks)
+        basedir                  = os.path.join(
+                                        self.tmp_dir,
+                                        self.__class__.__name__)
+        dir1                     = os.path.join(basedir,"test1")
+        scm_base.clone_dir         = basedir
         os.makedirs(dir1)
 
         self.assertRaisesRegexp(
