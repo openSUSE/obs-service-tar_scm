@@ -3,3 +3,6 @@ tar_scm
 .*.sw?
 tmp/
 .coverage
+htmlcov/
+test*.log
+cover*.log

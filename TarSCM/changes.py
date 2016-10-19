@@ -1,4 +1,3 @@
-import ConfigParser
 import datetime
 import glob
 import logging
@@ -9,6 +8,8 @@ import tempfile
 import stat
 
 import TarSCM.cli
+from TarSCM.config import config
+
 
 class changes():
     def import_xml_parser(self):
@@ -206,15 +207,23 @@ class changes():
 
 
     def get_changesauthor(self, args):
+        # return changesauthor if given as cli option
         if args.changesauthor:
             return args.changesauthor
+        #
 
-        config = ConfigParser.RawConfigParser()
-        obs = 'https://api.opensuse.org'
-        config.add_section(obs)
-        config.set(obs, 'email', TarSCM.cli.DEFAULT_AUTHOR)
-        config.read(os.path.expanduser('~/.oscrc'))
-        changesauthor = config.get('https://api.opensuse.org', 'email')
+        # find changesauthor in $HOME/.oscrc
+        files = [os.path.join(os.environ['HOME'],'.oscrc')]
+        cfg = config(files,False)
+
+        changesauthor = None
+        section = cfg.get('general','apiurl')
+        if section:
+                changesauthor = cfg.get(section,'email')
+        if not changesauthor:
+                changesauthor = TarSCM.cli.DEFAULT_AUTHOR
+        #
 
         logging.debug("AUTHOR: %s", changesauthor)
+
         return changesauthor

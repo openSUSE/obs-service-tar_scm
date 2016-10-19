@@ -4,7 +4,7 @@ import re
 import dateutil.parser
 import os
 import logging
-from base import scm
+from TarSCM.scm.base import scm
 
 class svn(scm):
     def fetch_upstream_scm(self):
@@ -15,7 +15,7 @@ class svn(scm):
         if not self.is_sslverify_enabled():
             command.insert(3, '--trust-server-cert')
 
-	wd = os.path.abspath(os.path.join(self.clone_dir,os.pardir))
+        wd = os.path.abspath(os.path.join(self.clone_dir,os.pardir))
 
         self.helpers.safe_run(command, wd, interactive=sys.stdout.isatty())
 
@@ -53,7 +53,7 @@ class svn(scm):
         return int(timestamp)
 
     def detect_changes_scm(self, subdir, changes):
-        """Detect changes between GIT revisions."""
+        """Detect changes between SVN revisions."""
         last_rev = changes['revision']
         first_run = False
         if subdir:

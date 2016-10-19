@@ -1,9 +1,13 @@
 import datetime
-import ConfigParser
 import os
-import StringIO
 import logging
 import subprocess
+
+# python3 renaming of StringIO
+try:
+     import StringIO
+except:
+     from io import StringIO
 
 class helpers():
     def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False):
@@ -30,9 +34,10 @@ class helpers():
             stdout_lines = []
             while proc.poll() is None:
                 for line in proc.stdout:
-                    print line.rstrip()
+                    print (line.rstrip())
                     stdout_lines.append(line.rstrip())
             output = '\n'.join(stdout_lines)
+            output = output
         else:
             output = proc.communicate()[0]
 
@@ -41,6 +46,7 @@ class helpers():
             raise SystemExit("Command failed(%d): %s" % (proc.returncode, repr(output)))
         else:
             logging.debug("RESULT(%d): %s", proc.returncode, repr(output))
+
         return (proc.returncode, output)
 
     def safe_run(self, cmd, cwd, interactive=False):
@@ -48,39 +54,6 @@ class helpers():
         value. If the command returns non-zero raise a SystemExit exception.
         """
         return self.run_cmd(cmd, cwd, interactive, raisesysexit=True)
-
-    def get_config_options(self):
-	"""Read user-specific and system-wide service configuration files, if not
-	in test-mode. This function returns an instance of ConfigParser.
-	"""
-	config = ConfigParser.RawConfigParser()
-	config.optionxform = str
-
-	# We're in test-mode, so don't let any local site-wide
-	# or per-user config impact the test suite.
-	if os.getenv('DEBUG_TAR_SCM'):
-	    logging.info("Ignoring config files: test-mode detected")
-	    return config
-
-	# fake a section header for configuration files
-	for fname in ['/etc/obs/services/tar_scm',
-		      os.path.expanduser('~/.obs/tar_scm')]:
-	    try:
-		tmp_fp = StringIO.StringIO()
-		tmp_fp.write('[tar_scm]\n')
-		tmp_fp.write(open(fname, 'r').read())
-		tmp_fp.seek(0, os.SEEK_SET)
-		config.readfp(tmp_fp)
-	    except (OSError, IOError):
-		continue
-
-	# strip quotes from pathname
-	if config.has_section('tar_scm'):
-	    for opt in config.options('tar_scm'):
-		config.set('tar_scm', opt, re.sub(r'"(.*)"', r'\1',
-						  config.get('tar_scm', opt)))
-
-	return config
 
     def get_timestamp(self, scm_object, args, clone_dir):
         """Returns the commit timestamp for checked-out repository."""

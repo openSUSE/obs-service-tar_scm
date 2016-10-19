@@ -2,7 +2,7 @@ import sys
 import os
 import logging
 import re
-from base import scm
+from TarSCM.scm.base import scm
 
 class git(scm):
     def switch_revision(self):
@@ -34,7 +34,7 @@ class git(scm):
                 else:
                     text = self.helpers.safe_run(['git', 'reset', '--hard', rev],
                                     cwd=self.clone_dir)[1]
-                print text.rstrip()
+                #print (text.rstrip())
                 break
 
         if found_revision is None:
@@ -80,7 +80,7 @@ class git(scm):
         self.helpers.safe_run(['git', 'fetch'],
                  cwd=self.clone_dir, interactive=sys.stdout.isatty())
 
-	self.fetch_specific_revision()
+        self.fetch_specific_revision()
 
     def detect_version(self,args):
         """Automatic detection of version number for checked-out GIT repository."""

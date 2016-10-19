@@ -7,11 +7,11 @@ import shutil
 import sys
 import re
 
-import scm
-from archive import archive
-from helpers import helpers
-from changes import changes
-from exceptions import OptionsError
+import TarSCM.scm
+import TarSCM.archive
+from TarSCM.helpers import helpers
+from TarSCM.changes import changes
+from TarSCM.exceptions import OptionsError
 import yaml
 
 
@@ -89,7 +89,7 @@ class tasks():
 
         # create objects for TarSCM.<scm> and TarSCM.helpers
         try:
-            scm_class    = getattr(scm, args.scm)
+            scm_class    = getattr(TarSCM.scm, args.scm)
         except:
             raise OptionsError("Please specify valid --scm=... options")
 
@@ -118,17 +118,14 @@ class tasks():
         scm_object.prep_tree_for_archive(args.subdir, args.outdir, dstname=dstname)
         self.cleanup_dirs.append(scm_object.arch_dir)
 
-        arch = archive()
+        if args.use_obs_scm:
+            arch = TarSCM.archive.obscpio()
+        else:
+            arch = TarSCM.archive.tar()
 
         arch.extract_from_archive(scm_object.arch_dir, args.extract, args.outdir)
 
-        # FIXME: Consolidate calling parameters and shrink to one call of create_archive
-        if args.use_obs_scm:
-            tmp_archive = archive.obscpio()
-        else:
-            tmp_archive = archive.tar()
-
-        tmp_archive.create_archive(
+        arch.create_archive(
             scm_object,
             basename  = basename,
             dstname   = dstname,

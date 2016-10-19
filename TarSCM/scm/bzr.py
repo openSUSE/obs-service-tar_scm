@@ -2,7 +2,7 @@ import sys
 import re
 import os
 import dateutil.parser
-from base import scm
+from TarSCM.scm.base import scm
 
 class bzr(scm):
     def fetch_upstream_scm(self):
@@ -13,7 +13,7 @@ class bzr(scm):
             command.insert(4, self.revision)
         if not self.is_sslverify_enabled():
             command.insert(2, '-Ossl.cert_reqs=None')
-	wd = os.path.abspath(os.path.join(self.clone_dir,os.pardir))
+        wd = os.path.abspath(os.path.join(self.clone_dir,os.pardir))
         self.helpers.safe_run(command, wd, interactive=sys.stdout.isatty())
 
     def update_cache(self):

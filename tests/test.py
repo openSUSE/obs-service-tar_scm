@@ -32,10 +32,10 @@ if __name__ == '__main__':
         UnitTestCases,
         TasksTestCases,
         SCMBaseTestCases,
-        SvnTests,
         GitTests,
+        SvnTests,
         HgTests,
-        BzrTests,
+        BzrTests
     ]
 
     if len(sys.argv) == 1:

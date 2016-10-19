@@ -37,7 +37,7 @@ class Fixtures:
         return stdout, stderr, exitcode
 
     def setup(self):
-        print self.__class__.__name__ + ": setting up fixtures"
+        print(self.__class__.__name__ + ": setting up fixtures")
         self.init_fixtures_dir()
         self.init()
 
@@ -59,7 +59,7 @@ class Fixtures:
         orig_wd = os.getcwd()
         os.chdir(wd)
 
-        for i in xrange(0, num_commits):
+        for i in range(0, num_commits):
             new_rev = self.create_commit(wd, subdir=subdir)
         self.record_rev(wd, new_rev)
 

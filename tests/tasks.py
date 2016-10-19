@@ -41,14 +41,14 @@ class TasksTestCases(unittest.TestCase):
         try:
             os.chdir(os.path.join(self.basedir,'fixtures', cl_name, fn_name))
         except(OSError) as e:
-            print "current working directory: %s" % os.getcwd()
+            print ( "current working directory: %s" % os.getcwd() )
             raise(e)
 
     def _restore_cwd(self):
         try:
             os.chdir(self.basedir)
         except(OSError) as e:
-            print "failed to restore : failed to restore : current working directory: %s" % os.getcwd()
+            print ( "failed to restore : current working directory: %s" % os.getcwd() )
             raise(e)
 
     def test_generate_task_list_single_task(self):
@@ -65,8 +65,8 @@ class TasksTestCases(unittest.TestCase):
         self.assertEqual(len(tasks.task_list),1)
         
     def test_generate_task_list_multi_tasks(self):
-        expected        = [
-            {
+        expected        = {
+            'libpipeline' : {
                 'changesgenerate': False,
                 'clone_prefix': '_obs_',
                 'filename': 'libpipeline',
@@ -77,7 +77,7 @@ class TasksTestCases(unittest.TestCase):
                 'url': 'lp:~mterry/libpipeline/printf',
                 'use_obs_scm': True
             },
-            {
+            'kanku' : {
                 'changesgenerate': False,
                 'clone_prefix': '_obs_',
                 'filename': 'kanku',
@@ -88,20 +88,19 @@ class TasksTestCases(unittest.TestCase):
                 'url': 'git@github.com:M0ses/kanku',
                 'use_obs_scm': True
             },
-        ]
+        }
         self._cd_fixtures_dir()
         tasks           = TarSCM.tasks()
         tasks.generate_list(self.cli)
-        i = 0
         # test values in the objects instead of objects
         for got in tasks.task_list:
-            for k in expected[i].keys():
-                self.assertEqual(got.__dict__[k],expected[i][k])
-            i += 1
+            gf = got.__dict__['filename']
+            for k in expected[gf].keys():
+                self.assertEqual(got.__dict__[k],expected[gf][k])
         self._restore_cwd()
 
     def test_tasks_finalize(self):
-	expected = '''apps:
+        expected = '''apps:
   pipelinetest:
     command: ./bin/test
 description: 'This is an example package of an autotools project built with snapcraft
@@ -130,9 +129,9 @@ version: 1.0
         tasks.finalize(self.cli)
         i = 0
         self._restore_cwd()
-	sf  = open(os.path.join(self.cli.outdir,'_service:snapcraft:snapcraft.yaml'),'r')
-	got = sf.read()
-	sf.close()
+        sf  = open(os.path.join(self.cli.outdir,'_service:snapcraft:snapcraft.yaml'),'r')
+        got = sf.read()
+        sf.close()
         self.assertEqual(got,expected)
 
     def test_cleanup(self):

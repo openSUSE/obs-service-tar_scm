@@ -1,5 +1,4 @@
 import os
-import ConfigParser
 import tempfile
 import sys
 import logging
@@ -8,17 +7,22 @@ import hashlib
 import shutil
 import fcntl
 
-from urlparse import urlparse
-from ..helpers import helpers
-from ..changes import changes
+if sys.version_info[0] < 3:
+    from urlparse       import urlparse
+else:
+    import urllib
+
+from TarSCM.helpers import helpers
+from TarSCM.changes import changes
+from TarSCM.config  import config
 
 class scm():
     def __init__(self,args,task):
         # default settings
         self.scm            = self.__class__.__name__
-	# arch_dir - Directory which is used for the archive
-	# e.g. myproject-2.0
-	self.arch_dir	    = None
+        # arch_dir - Directory which is used for the archive
+        # e.g. myproject-2.0
+        self.arch_dir            = None
         self.repocachedir   = None
         self.clone_dir      = None
         self.lock_file      = None
@@ -101,7 +105,9 @@ class scm():
 
     def get_repocache_hash(self, subdir):
         """Calculate hash fingerprint for repository cache."""
-        return hashlib.sha256(self.url).hexdigest()
+        u_url = self.url
+        u_url = u_url.encode("utf-8")
+        return hashlib.sha256(u_url).hexdigest()
 
     def get_current_commit(self):
         return None
@@ -121,11 +127,7 @@ class scm():
             repocachedir = os.getenv('CACHEDIRECTORY')
 
         if repocachedir is None:
-            config = self.helpers.get_config_options()
-            try:
-                repocachedir = config.get('tar_scm', 'CACHEDIRECTORY')
-            except ConfigParser.Error:
-                pass
+            repocachedir = config().get('tar_scm', 'CACHEDIRECTORY')
 
         if repocachedir:
             logging.debug("REPOCACHE: %s", repocachedir)
@@ -142,14 +144,17 @@ class scm():
             self.repodir = os.getcwd()
             return 
 
-    	# construct repodir (the parent directory of the checkout)
+        # construct repodir (the parent directory of the checkout)
         if self.repocachedir:
             if not os.path.isdir(self.repocachedir):
                 os.makedirs(self.repocachedir)
 
     def _calc_dir_to_clone_to(self, prefix):
         # separate path from parameters etc.
-        url_path = urlparse(self.url)[2].rstrip('/')
+        try:
+            url_path = urlparse(self.url)[2].rstrip('/')
+        except:
+            url_path = urllib.parse.urlparse(self.url)[2].rstrip('/')
 
         # remove trailing scm extension
         url_path = re.sub(r'\.%s$' % self.scm, '', url_path)
@@ -164,16 +169,17 @@ class scm():
         self.task.cleanup_dirs.append(tempdir)
         self.repodir = os.path.join(tempdir,self.basename)
 
-	if self.repocachedir:
+        if self.repocachedir:
             self.clone_dir = os.path.abspath(os.path.join(self.repocachedir, self.basename))
-	else:
+        else:
             self.clone_dir = os.path.abspath(self.repodir)
+
         logging.debug("CLONE_DIR: %s"%self.clone_dir)
 
     def is_sslverify_enabled(self):
-	"""Returns ``True`` if the ``sslverify`` option has been enabled or
-	not been set (default enabled) ``False`` otherwise."""
-	return 'sslverify' not in self.args.__dict__ or self.args.__dict__['sslverify']
+        """Returns ``True`` if the ``sslverify`` option has been enabled or
+        not been set (default enabled) ``False`` otherwise."""
+        return 'sslverify' not in self.args.__dict__ or self.args.__dict__['sslverify']
 
     def version_iso_cleanup(self, version):
         """Reformat timestamp value."""
