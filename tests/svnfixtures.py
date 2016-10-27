@@ -42,7 +42,7 @@ class SvnFixtures(Fixtures):
         f.close()
         st = os.stat(hook)
         os.chmod(hook, st.st_mode | stat.S_IEXEC)
-        print "created repo", self.repo_path
+        print("created repo %s" % self.repo_path)
 
     def checkout_repo(self):
         mkfreshdir(self.wd_path)

@@ -70,11 +70,12 @@ class ScmInvocationLogs:
         if os.path.exists(self.current_log_path):
             raise RuntimeError("%s already existed?!" % self.current_log_path)
         os.putenv('SCM_INVOCATION_LOG', self.current_log_path)
+        os.environ['SCM_INVOCATION_LOG'] = self.current_log_path
 
     def annotate(self, msg):
         log = open(self.current_log_path, 'a')
         log.write('# ' + msg + "\n")
-        print msg
+        print (msg)
         log.close()
 
     def read(self):
