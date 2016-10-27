@@ -29,7 +29,7 @@ class tar(scm):
         """Update sources via tar."""
         pass
 
-    def detect_version(self):
+    def detect_version(self,args):
         """Read former stored version."""
         return self.read_from_obsinfo(self.args.obsinfo, "version")
 
