@@ -18,7 +18,7 @@ from bzrtests import BzrTests
 from testenv import TestEnvironment
 from unittestcases import UnitTestCases
 from tasks import TasksTestCases
-from gitunit import GitUnitTestCases
+#from gitunit import GitUnitTestCases
 from scm import SCMBaseTestCases
 
 if __name__ == '__main__':

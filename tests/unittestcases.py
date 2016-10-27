@@ -273,7 +273,7 @@ class UnitTestCases(unittest.TestCase):
         # just to make coverage happy
         scm_object.update_cache()
         ts      = scm_object.get_timestamp()
-        ver     = scm_object.detect_version()
+        ver     = scm_object.detect_version(self.cli)
         empty   = scm_object.read_from_obsinfo(info,"nonexistantkey")
 
         self.assertTrue(os.path.isdir(os.path.join(wd,"test-0.1.1")))
