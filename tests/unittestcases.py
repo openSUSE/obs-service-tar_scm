@@ -35,6 +35,8 @@ class UnitTestCases(unittest.TestCase):
                                              self.__class__.__name__)
 
         self.cli.parse_args(['--outdir','.'])
+        os.environ['CACHEDIRECTORY'] = ''
+
     def test_calc_dir_to_clone_to(self):
         scm = 'git'
         outdir = '/out/'
