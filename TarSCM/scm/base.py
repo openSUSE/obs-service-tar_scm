@@ -6,6 +6,7 @@ import re
 import hashlib
 import shutil
 import fcntl
+import time
 
 if sys.version_info[0] < 3:
     from urlparse       import urlparse
@@ -167,6 +168,10 @@ class scm():
         self.repodir = os.path.join(tempdir,self.basename)
 
         if self.repocachedir:
+            # Update atime and mtime of repocachedir to make it easier
+            # for cleanup script
+            if os.path.isdir(self.repocachedir):
+                os.utime(self.repocachedir,(time.time(),time.time()))
             self.clone_dir = os.path.abspath(os.path.join(self.repocachedir, self.basename))
         else:
             self.clone_dir = os.path.abspath(self.repodir)
