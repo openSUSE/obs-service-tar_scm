@@ -6,7 +6,7 @@ import textwrap
 
 from gitsvntests import GitSvnTests
 from svnfixtures import SvnFixtures
-from utils       import run_svn
+from utils import run_svn
 
 
 class SvnTests(GitSvnTests):
@@ -18,9 +18,9 @@ class SvnTests(GitSvnTests):
     """
 
     scm = 'svn'
-    initial_clone_command = 'svn (co|checkout) '
-    update_cache_command  = 'svn up(date)?'
-    sslverify_false_args  = '--trust-server-cert'
+    initial_clone_command = 'svn .*(co|checkout) '
+    update_cache_command = 'svn .*up(date)?'
+    sslverify_false_args = '--trust-server-cert'
     fixtures_class = SvnFixtures
 
     def default_version(self):
