@@ -128,10 +128,10 @@ class TestAssertions(unittest.TestCase):
 
         if dirents[0][-4:] == '.tar':
             tar = dirents[0]
-            wd  = dirents[1]
+            wd = dirents[1]
         elif dirents[1][-4:] == '.tar':
             tar = dirents[1]
-            wd  = dirents[0]
+            wd = dirents[0]
         else:
             self.fail('no .tar found in ' + self.outdir)
 
@@ -151,9 +151,8 @@ class TestAssertions(unittest.TestCase):
 
     def assertSSLVerifyFalse(self, logpath, loglines):
         self._find(logpath, loglines,
-                   self.initial_clone_command +
-                   '.*' + self.sslverify_false_args,
-                   self.sslverify_false_args + 'true')
+                   self.initial_clone_command,
+                   self.sslverify_false_args)
 
     def assertRanUpdate(self, logpath, loglines):
         self._find(logpath, loglines,
