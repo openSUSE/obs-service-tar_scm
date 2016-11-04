@@ -213,13 +213,17 @@ class changes():
         #
 
         # find changesauthor in $HOME/.oscrc
-        files = [os.path.join(os.environ['HOME'],'.oscrc')]
-        cfg = config(files,False)
+        try:
+            files = [os.path.join(os.environ['HOME'],'.oscrc')]
+            cfg = config(files,False)
 
-        changesauthor = None
-        section = cfg.get('general','apiurl')
-        if section:
-                changesauthor = cfg.get(section,'email')
+            changesauthor = None
+            section = cfg.get('general','apiurl')
+            if section:
+                    changesauthor = cfg.get(section,'email')
+        except KeyError:
+            pass
+
         if not changesauthor:
                 changesauthor = TarSCM.cli.DEFAULT_AUTHOR
         #

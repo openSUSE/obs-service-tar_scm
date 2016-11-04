@@ -20,13 +20,15 @@ except:
 class config():
     def __init__(
         self,
-        files=[
-            '/etc/obs/services/tar_scm',
-            os.path.join(os.environ['HOME'],'.obs','tar_scm')
-        ],
+        files=['/etc/obs/services/tar_scm'],
         fakeheader=True
     ):
-	
+	try:
+             rc_file = os.path.join(os.environ['HOME'],'.obs','tar_scm')
+             files.append(rc_file)
+        except KeyError:
+            pass
+
 	self.configs            = []
         self.default_section    = 'tar_scm'
         self.fakeheader         = fakeheader
