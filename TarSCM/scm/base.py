@@ -167,7 +167,15 @@ class scm():
         self.basename = prefix + self.basename
 
         tempdir = tempfile.mkdtemp(dir=self.args.outdir)
-        self.task.cleanup_dirs.append(tempdir)
+        osc_version = 0
+
+        try:
+            osc_version = os.environ['OSC_VERSION']
+        except:
+            pass
+
+        if osc_version == 0:
+            self.task.cleanup_dirs.append(tempdir)
         self.repodir = os.path.join(tempdir, self.basename)
 
         if self.repocachedir:
