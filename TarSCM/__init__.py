@@ -8,6 +8,7 @@ from TarSCM.archive    import tar
 from TarSCM.archive    import obscpio
 from TarSCM.exceptions import OptionsError
 
+
 def run():
     _cli = cli()
     _cli.parse_args(sys.argv[1:])
@@ -18,7 +19,7 @@ def run():
     if os.path.basename(sys.argv[0]) == "obs_scm":
         _cli.use_obs_scm = True
 
-    if  os.path.basename(sys.argv[0]) == "snapcraft":
+    if os.path.basename(sys.argv[0]) == "snapcraft":
         _cli.snapcraft = True
 
     task_list = tasks()

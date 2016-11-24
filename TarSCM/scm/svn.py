@@ -6,16 +6,18 @@ import os
 import logging
 from TarSCM.scm.base import scm
 
+
 class svn(scm):
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for svn."""
-        command = ['svn', 'checkout', '--non-interactive', self.url, self.clone_dir]
+        command = ['svn', 'checkout', '--non-interactive', self.url,
+                   self.clone_dir]
         if self.revision:
             command.insert(4, '-r%s' % self.revision)
         if not self.is_sslverify_enabled():
             command.insert(3, '--trust-server-cert')
 
-        wd = os.path.abspath(os.path.join(self.clone_dir,os.pardir))
+        wd = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
 
         self.helpers.safe_run(command, wd, interactive=sys.stdout.isatty())
 
@@ -24,10 +26,13 @@ class svn(scm):
         command = ['svn', 'update']
         if self.revision:
             command.insert(3, "-r%s" % self.revision)
-        self.helpers.safe_run(command, cwd=self.clone_dir, interactive=sys.stdout.isatty())
+        self.helpers.safe_run(command, cwd=self.clone_dir,
+                              interactive=sys.stdout.isatty())
 
     def detect_version(self, args):
-        """Automatic detection of version number for checked-out SVN repository."""
+        """
+        Automatic detection of version number for checked-out SVN repository.
+        """
         versionformat = args['versionformat']
         if versionformat is None:
             versionformat = '%r'
@@ -41,7 +46,8 @@ class svn(scm):
         return re.sub('%r', version, versionformat)
 
     def get_timestamp(self):
-        svn_info = self.helpers.safe_run(['svn', 'info', '-rHEAD'], self.clone_dir)[1]
+        svn_info = self.helpers.safe_run(['svn', 'info', '-rHEAD'],
+                                         self.clone_dir)[1]
 
         match = re.search('Last Changed Date: (.*)', svn_info, re.MULTILINE)
         if not match:
@@ -84,18 +90,17 @@ class svn(scm):
         changes['lines'] = lines
         return changes
 
-    def get_repocache_hash(self,subdir):
+    def get_repocache_hash(self, subdir):
         """Calculate hash fingerprint for repository cache."""
-        return hashlib.sha256(self.url+'/' + subdir).hexdigest()
-
+        return hashlib.sha256(self.url + '/' + subdir).hexdigest()
 
     def _get_log(self, clone_dir, revision1, revision2):
         new_lines = []
 
         xml_lines = self.helpers.safe_run(
-                ['svn', 'log', '-r%s:%s' % (revision1, revision2), '--xml'],
-                clone_dir
-                )[1]
+            ['svn', 'log', '-r%s:%s' % (revision1, revision2), '--xml'],
+            clone_dir
+        )[1]
 
         lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
 
@@ -105,14 +110,16 @@ class svn(scm):
 
         return new_lines
 
-
     def _get_rev(self, clone_dir, num_commits):
-        revisions = self.helpers.safe_run(['svn', 'log', '-l%d' % num_commits, '-q',
-                             '--incremental'], cwd=clone_dir)[1].split('\n')
+        revisions = self.helpers.safe_run(
+            ['svn', 'log', '-l%d' % num_commits, '-q',
+             '--incremental'], cwd=clone_dir
+        )[1].split('\n')
         # remove blank entry on end
         revisions.pop()
         # return last entry
         revision = revisions[-1]
         # retrieve the revision number and remove r
-        revision = re.search(r'^r[0-9]*', revision, re.M).group().replace("r", "")
+        revision = re.search(r'^r[0-9]*', revision, re.M).group().replace("r",
+                                                                          "")
         return revision

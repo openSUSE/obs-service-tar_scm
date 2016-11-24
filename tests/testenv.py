@@ -5,19 +5,17 @@ import os
 import shutil
 import sys
 import logging
+from utils import mkfreshdir, run_cmd
+from scmlogs import ScmInvocationLogs
+import TarSCM
 
 try:
     from StringIO import StringIO
 except:
     from io import StringIO
 
-from utils   import mkfreshdir, run_cmd
-from scmlogs import ScmInvocationLogs
-
-import TarSCM
 
 class TestEnvironment:
-
     """Framework for testing tar_scm.
 
     This class provides methods for:
@@ -26,10 +24,9 @@ class TestEnvironment:
         'osc service' would provide, and
       - running tar_scm inside that environment.
     """
-
-    tests_dir   = os.path.abspath(os.path.dirname(__file__))  # os.getcwd()
-    tmp_dir     = os.path.join(tests_dir, 'tmp')
-    is_setup    = False
+    tests_dir = os.path.abspath(os.path.dirname(__file__))  # os.getcwd()
+    tmp_dir   = os.path.join(tests_dir, 'tmp')
+    is_setup  = False
 
     @classmethod
     def tar_scm_bin(cls):
@@ -176,7 +173,7 @@ class TestEnvironment:
         os.chdir(self.pkgdir)
 
         cmdargs = args + ['--outdir', self.outdir]
-        sys.argv = [ self.tar_scm_bin() ] +  cmdargs
+        sys.argv = [self.tar_scm_bin()] + cmdargs
 
         old_stdout = sys.stdout
         mystdout   = StringIO()
@@ -202,7 +199,7 @@ class TestEnvironment:
                 sys.stderr.write(e.code)
                 ret = 1
                 succeeded = False
-        except (NameError,AttributeError) as e:
+        except (NameError, AttributeError) as e:
             sys.stderr.write(e)
             ret = 1
             succeeded = False
@@ -214,9 +211,9 @@ class TestEnvironment:
             sys.stdout = old_stdout
             sys.stderr = old_stderr
 
-        stdout = mystdout.getvalue()        
-        stderr = mystderr.getvalue()        
-   
+        stdout = mystdout.getvalue()
+        stderr = mystderr.getvalue()
+
         if stdout:
             print("--v-v-- begin STDOUT from tar_scm --v-v--")
             print(stdout)

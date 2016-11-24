@@ -9,8 +9,6 @@ import shutil
 import sys
 import unittest
 
-
-
 from gittests import GitTests
 from svntests import SvnTests
 from hgtests  import HgTests
@@ -18,7 +16,6 @@ from bzrtests import BzrTests
 from testenv import TestEnvironment
 from unittestcases import UnitTestCases
 from tasks import TasksTestCases
-#from gitunit import GitUnitTestCases
 from scm import SCMBaseTestCases
 
 if __name__ == '__main__':
@@ -29,7 +26,6 @@ if __name__ == '__main__':
         UnitTestCases,
         TasksTestCases,
         SCMBaseTestCases,
-        #GitUnitTestCases,
         GitTests,
         SvnTests,
         HgTests,
@@ -47,10 +43,11 @@ if __name__ == '__main__':
         #
         #   suite.addTest(HgTests('test_version_versionformat'))
         #   suite.addTest(HgTests('test_versionformat_dateYYYYMMDD'))
-        #test_class = GitTests
-        #test_class = TasksTestCases
+        #
+        # test_class = GitTests
+        # test_class = TasksTestCases
+        # test_class = GitUnitTestCases
         test_class = UnitTestCases
-        #test_class = GitUnitTestCases
         to_run = {}
         for arg in sys.argv[1:]:
             m = re.match('^/(.+)/$', arg)

@@ -56,7 +56,6 @@ class changes():
 
         return xml_parser
 
-
     def parse_servicedata_xml(self, srcdir):
         """Parses the XML in _servicedata.  Returns None if the file doesn't
         exist or is empty, or the ElementTree on successful parsing, or
@@ -79,7 +78,6 @@ class changes():
                 return None
             raise
 
-
     def extract_tar_scm_service(self, root, url):
         """Returns an object representing the <service name="tar_scm">
         element referencing the given URL.
@@ -96,7 +94,6 @@ class changes():
                 if param.text == url:
                     return service
 
-
     def get_changesrevision(self, tar_scm_service):
         """Returns an object representing the <param name="changesrevision">
         element, or None, if it doesn't exist.
@@ -109,11 +106,11 @@ class changes():
                                'elements in _servicedata.')
         return params[0]
 
-
     def read_changes_revision(self, url, srcdir, outdir):
-        """Reads the _servicedata file and returns a dictionary with 'revision' on
-        success. As a side-effect it creates the _servicedata file if it doesn't
-        exist. 'revision' is None in that case.
+        """
+        Reads the _servicedata file and returns a dictionary with 'revision' on
+        success. As a side-effect it creates the _servicedata file if it
+        doesn't exist. 'revision' is None in that case.
         """
         write_servicedata = False
 
@@ -151,7 +148,6 @@ class changes():
             change_data['revision'] = changesrevision_element.text
         return change_data
 
-
     def write_changes_revision(self, url, outdir, new_revision):
         """Updates the changesrevision in the _servicedata file."""
         logging.debug("Updating %s", os.path.join(outdir, '_servicedata'))
@@ -160,7 +156,8 @@ class changes():
         root = xml_tree.getroot()
         tar_scm_service = self.extract_tar_scm_service(root, url)
         if tar_scm_service is None:
-            sys.exit("File _servicedata is missing tar_scm with URL '%s'" % url)
+            sys.exit("File _servicedata is missing tar_scm with URL '%s'" %
+                     url)
 
         changed = False
         element = self.get_changesrevision(tar_scm_service)
@@ -177,7 +174,6 @@ class changes():
         if changed:
             xml_tree.write(os.path.join(outdir, "_servicedata"))
 
-
     def write_changes(self, changes_filename, changes, version, author):
         """Add changes to given *.changes file."""
         if changes is None:
@@ -186,7 +182,8 @@ class changes():
         logging.debug("Writing changes file %s", changes_filename)
 
         tmp_fp = tempfile.NamedTemporaryFile(delete=False)
-        os.chmod(tmp_fp.name,stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+        os.chmod(tmp_fp.name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP |
+                 stat.S_IROTH)
         tmp_fp.write('-' * 67 + '\n')
         tmp_fp.write("%s - %s\n" % (
             datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y'),
@@ -205,7 +202,6 @@ class changes():
 
         shutil.move(tmp_fp.name, changes_filename)
 
-
     def get_changesauthor(self, args):
         # return changesauthor if given as cli option
         if args.changesauthor:
@@ -214,13 +210,13 @@ class changes():
 
         # find changesauthor in $HOME/.oscrc
         try:
-            files = [os.path.join(os.environ['HOME'],'.oscrc')]
-            cfg = config(files,False)
+            files = [os.path.join(os.environ['HOME'], '.oscrc')]
+            cfg = config(files, False)
 
             changesauthor = None
-            section = cfg.get('general','apiurl')
+            section = cfg.get('general', 'apiurl')
             if section:
-                    changesauthor = cfg.get(section,'email')
+                    changesauthor = cfg.get(section, 'email')
         except KeyError:
             pass
 
