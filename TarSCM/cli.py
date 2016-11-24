@@ -5,13 +5,15 @@ import sys
 
 class cli():
     DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
+
     def __init__(self):
-        self.use_obs_scm    = False
-        self.snapcraft      = False
+        self.use_obs_scm = False
+        self.snapcraft   = False
 
     def parse_args(self, options):
         parser = argparse.ArgumentParser(description='Git Tarballs')
-        parser.add_argument('-v', '--verbose', action='store_true', default=False,
+        parser.add_argument('-v', '--verbose', action='store_true',
+                            default=False,
                             help='Enable verbose output')
         parser.add_argument('--scm',
                             help='Specify SCM',
@@ -25,10 +27,10 @@ class cli():
                                  'Defaults to automatically detected value '
                                  'formatted by versionformat parameter.')
         parser.add_argument('--versionformat',
-                            help='Auto-generate version from checked out source '
-                                 'using this format string.  This parameter is '
-                                 'used if the \'version\' parameter is not '
-                                 'specified.')
+                            help='Auto-generate version from checked out '
+                                 'source using this format string. '
+                                 'This parameter is used if the \'version\' '
+                                 'parameter is not specified.')
         parser.add_argument('--versionprefix',
                             help='Specify a base version as prefix.')
         parser.add_argument('--parent-tag',
@@ -39,8 +41,8 @@ class cli():
                             help='Extract a file directly. Useful for build'
                                  'descriptions')
         parser.add_argument('--filename',
-                            help='Name of package - used together with version '
-                                 'to determine tarball name')
+                            help='Name of package - used together with version'
+                                 ' to determine tarball name')
         parser.add_argument('--extension', default='tar',
                             help='suffix name of package - used together with '
                                  'filename to determine tarball name')
@@ -77,9 +79,10 @@ class cli():
                            default=[], metavar='REGEXP',
                            help='Specifies excludes when creating the '
                                 'tarball (can be repeated)')
-        parser.add_argument('--package-meta', choices=['yes', 'no'], default='no',
-                            help='Package the meta data of SCM to allow the user '
-                                 'or OBS to update after un-tar')
+        parser.add_argument('--package-meta',
+                            choices=['yes', 'no'], default='no',
+                            help='Package the meta data of SCM to allow the '
+                                 'user or OBS to update after un-tar')
         parser.add_argument('--outdir', required=True,
                             help='osc service parameter for internal use only '
                                  '(determines where generated files go before '

@@ -1,5 +1,5 @@
 import glob
-import copy 
+import copy
 import atexit
 import logging
 import os
@@ -37,10 +37,11 @@ class tasks():
         if self.scm_object:
             self.scm_object.unlock_cache()
 
-    def generate_list(self,args):
+    def generate_list(self, args):
 
-        if  args.snapcraft:
-            # we read the SCM config from snapcraft.yaml instead from _service file
+        if args.snapcraft:
+            # we read the SCM config from snapcraft.yaml instead from _service
+            # file
             f = open('snapcraft.yaml')
             self.dataMap = yaml.safe_load(f)
             f.close()
@@ -51,7 +52,7 @@ class tasks():
                 if 'source-type' not in self.dataMap['parts'][part].keys():
                     continue
                 pep8_1 = self.dataMap['parts'][part]['source-type']
-                pep8_2 = ['git','tar','svn','bzr','hg']
+                pep8_2 = ['git', 'tar', 'svn', 'bzr', 'hg']
                 if pep8_1 not in pep8_2:
                     continue
                 # avoid conflicts with files
@@ -69,18 +70,20 @@ class tasks():
         for task in self.task_list:
             self._process_single_task(task)
 
-    def finalize(self,args):
-        if  args.snapcraft:
+    def finalize(self, args):
+        if args.snapcraft:
             # write the new snapcraft.yaml file
-            # we prefix our own here to be sure to not overwrite user files, if he
-            # is using us in "disabled" mode
+            # we prefix our own here to be sure to not overwrite user files,
+            # if he is using us in "disabled" mode
             new_file = args.outdir + '/_service:snapcraft:snapcraft.yaml'
             with open(new_file, 'w') as outfile:
-                outfile.write(yaml.dump(self.dataMap, default_flow_style=False))
+                outfile.write(yaml.dump(self.dataMap,
+                                        default_flow_style=False))
 
-    def _process_single_task(self,args):
+    def _process_single_task(self, args):
         FORMAT  = "%(message)s"
-        logging.basicConfig(format=FORMAT, stream=sys.stderr, level=logging.INFO)
+        logging.basicConfig(format=FORMAT, stream=sys.stderr,
+                            level=logging.INFO)
         if args.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
 
@@ -115,7 +118,8 @@ class tasks():
 
         changes = scm_object.detect_changes()
 
-        scm_object.prep_tree_for_archive(args.subdir, args.outdir, dstname=dstname)
+        scm_object.prep_tree_for_archive(args.subdir, args.outdir,
+                                         dstname=dstname)
         self.cleanup_dirs.append(scm_object.arch_dir)
 
         if args.use_obs_scm:
@@ -123,7 +127,8 @@ class tasks():
         else:
             arch = TarSCM.archive.tar()
 
-        arch.extract_from_archive(scm_object.arch_dir, args.extract, args.outdir)
+        arch.extract_from_archive(scm_object.arch_dir, args.extract,
+                                  args.outdir)
 
         arch.create_archive(
             scm_object,
@@ -146,9 +151,9 @@ class tasks():
                 new_changes_file = os.path.join(args.outdir, filename)
                 shutil.copy(filename, new_changes_file)
                 self.changes.write_changes(new_changes_file, changes['lines'],
-                              changesversion, changesauthor)
+                                           changesversion, changesauthor)
             self.changes.write_changes_revision(args.url, args.outdir,
-                                   changes['revision'])
+                                                changes['revision'])
 
     def get_version(self, scm_object, args):
         version = args.version

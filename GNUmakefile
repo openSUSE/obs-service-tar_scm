@@ -31,18 +31,25 @@ endif
 mylibdir = $(PREFIX)/lib/obs/service
 mycfgdir = $(SYSCFG)/obs/services
 
+LIST_PY_FILES=git ls-tree --name-only -r HEAD | grep '\.py$$'
+PY_FILES=$(shell $(LIST_PY_FILES))
+
 default: check
 
 .PHONY: check
 check: pep8 test
 
+.PHONY: list-py-files
+list-py-files:
+	@$(LIST_PY_FILES)
+
 .PHONY: pep8
-pep8: tar_scm.py
+pep8: $(PY_FILES)
 	@if ! which pep8 >/dev/null 2>&1; then \
 		echo "pep8 not installed!  Cannot check PEP8 compliance; aborting." >&2; \
 		exit 1; \
 	fi
-	find -name \*.py | xargs pep8 --ignore=E221,E272,E241,E731 $<
+	$(LIST_PY_FILES) | xargs pep8 --ignore=E221,E251,E272,E241,E731
 
 .PHONY: test
 test:

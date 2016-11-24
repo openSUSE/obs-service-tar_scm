@@ -7,18 +7,18 @@ import hashlib
 import shutil
 import fcntl
 import time
+from TarSCM.helpers import helpers
+from TarSCM.changes import changes
+from TarSCM.config import config
 
 if sys.version_info[0] < 3:
-    from urlparse       import urlparse
+    from urlparse import urlparse
 else:
     import urllib
 
-from TarSCM.helpers import helpers
-from TarSCM.changes import changes
-from TarSCM.config  import config
 
 class scm():
-    def __init__(self,args,task):
+    def __init__(self, args, task):
         # default settings
         self.scm            = self.__class__.__name__
         # arch_dir - Directory which is used for the archive
@@ -42,7 +42,6 @@ class scm():
             self.changes    = changes()
 
         self._calc_repocachedir()
-
 
     def switch_revision(self):
         '''Switch sources to revision. Dummy implementation for version control
@@ -72,12 +71,13 @@ class scm():
             logging.info("Detected cached repository...")
             self.update_cache()
 
-        self.prepare_working_copy()       
- 
+        self.prepare_working_copy()
+
         # switch_to_revision
         self.switch_revision()
 
-        # git specific: after switching to desired revision its necessary to update
+        # git specific: after switching to desired revision its necessary to
+        # update
         # submodules since they depend on the actual version of the selected
         # revision
         self.fetch_submodules()
@@ -93,7 +93,8 @@ class scm():
         if (not self.args.changesgenerate):
             return None
 
-        changes = self.changes.read_changes_revision(self.url, os.getcwd(), self.args.outdir)
+        changes = self.changes.read_changes_revision(self.url, os.getcwd(),
+                                                     self.args.outdir)
 
         logging.debug("CHANGES: %s" % repr(changes))
 
@@ -136,14 +137,13 @@ class scm():
             self.repocachedir = os.path.join(repocachedir, self.repohash)
 
     def prepare_clone_dir(self):
-
-        # special case when using osc and creating an obscpio, use current work
-        # directory to allow the developer to work inside of the git repo and fetch
-        # local changes
+        # special case when using osc and creating an obscpio, use
+        # current work directory to allow the developer to work inside
+        # of the git repo and fetch local changes
         if sys.argv[0].endswith("snapcraft") or \
            (self.args.use_obs_scm and os.getenv('OSC_VERSION')):
             self.repodir = os.getcwd()
-            return 
+            return
 
         # construct repodir (the parent directory of the checkout)
         if self.repocachedir:
@@ -168,23 +168,26 @@ class scm():
 
         tempdir = tempfile.mkdtemp(dir=self.args.outdir)
         self.task.cleanup_dirs.append(tempdir)
-        self.repodir = os.path.join(tempdir,self.basename)
+        self.repodir = os.path.join(tempdir, self.basename)
 
         if self.repocachedir:
             # Update atime and mtime of repocachedir to make it easier
             # for cleanup script
             if os.path.isdir(self.repocachedir):
-                os.utime(self.repocachedir,(time.time(),time.time()))
-            self.clone_dir = os.path.abspath(os.path.join(self.repocachedir, self.basename))
+                os.utime(self.repocachedir, (time.time(), time.time()))
+            self.clone_dir = os.path.abspath(os.path.join(self.repocachedir,
+                                                          self.basename))
         else:
             self.clone_dir = os.path.abspath(self.repodir)
 
-        logging.debug("CLONE_DIR: %s"%self.clone_dir)
+        logging.debug("CLONE_DIR: %s" % self.clone_dir)
 
     def is_sslverify_enabled(self):
         """Returns ``True`` if the ``sslverify`` option has been enabled or
         not been set (default enabled) ``False`` otherwise."""
-        return 'sslverify' not in self.args.__dict__ or self.args.__dict__['sslverify']
+        return \
+            'sslverify' not in self.args.__dict__ or \
+            self.args.__dict__['sslverify']
 
     def version_iso_cleanup(self, version):
         """Reformat timestamp value."""
@@ -214,12 +217,12 @@ class scm():
         shutil.copytree(src, dst, symlinks=True)
 
     def lock_cache(self):
-        pd = os.path.join(self.clone_dir,os.pardir,'.lock')
-        self.lock_file = open(os.path.abspath(pd),'w')
-        fcntl.lockf(self.lock_file,fcntl.LOCK_EX)
+        pd = os.path.join(self.clone_dir, os.pardir, '.lock')
+        self.lock_file = open(os.path.abspath(pd), 'w')
+        fcntl.lockf(self.lock_file, fcntl.LOCK_EX)
 
     def unlock_cache(self):
         if self.lock_file and os.path.isfile(self.lock_file.name):
-            fcntl.lockf(self.lock_file,fcntl.LOCK_UN)
+            fcntl.lockf(self.lock_file, fcntl.LOCK_UN)
             self.lock_file.close()
             self.lock_file = None

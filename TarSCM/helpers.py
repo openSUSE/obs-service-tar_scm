@@ -5,16 +5,18 @@ import subprocess
 
 # python3 renaming of StringIO
 try:
-     import StringIO
+    import StringIO
 except:
-     from io import StringIO
+    from io import StringIO
+
 
 class helpers():
     def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False):
-        """Execute the command cmd in the working directory cwd and check return
+        """
+        Execute the command cmd in the working directory cwd and check return
         value. If the command returns non-zero and raisesysexit is True raise a
-        SystemExit exception otherwise return a tuple of return code and command
-        output.
+        SystemExit exception otherwise return a tuple of return code and
+        command output.
         """
         logging.debug("COMMAND: %s", cmd)
 
@@ -34,7 +36,7 @@ class helpers():
             stdout_lines = []
             while proc.poll() is None:
                 for line in proc.stdout:
-                    print (line.rstrip())
+                    print(line.rstrip())
                     stdout_lines.append(line.rstrip())
             output = '\n'.join(stdout_lines)
             output = output
@@ -43,7 +45,9 @@ class helpers():
 
         if proc.returncode and raisesysexit:
             logging.info("ERROR(%d): %s", proc.returncode, repr(output))
-            raise SystemExit("Command failed(%d): %s" % (proc.returncode, repr(output)))
+            raise SystemExit(
+                "Command failed(%d): %s" % (proc.returncode, repr(output))
+            )
         else:
             logging.debug("RESULT(%d): %s", proc.returncode, repr(output))
 

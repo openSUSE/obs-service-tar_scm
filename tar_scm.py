@@ -11,20 +11,19 @@
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
 # See http://www.gnu.org/licenses/gpl-2.0.html for full license text.
+
 import os
 import sys
 
-
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # noqa
 
 import TarSCM
 import TarSCM.tasks
 from TarSCM.exceptions import OptionsError
 
+
 def main():
-   TarSCM.run()
+    TarSCM.run()
 
 if __name__ == '__main__':
     main()

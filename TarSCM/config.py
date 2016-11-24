@@ -1,14 +1,12 @@
-#import datetime
 import os
 import logging
 import re
-#import subprocess
 
 # python3 renaming of StringIO
 try:
-     from StringIO import StringIO
+    from StringIO import StringIO
 except:
-     from io import StringIO
+    from io import StringIO
 
 # python3 renaming of ConfigParser
 try:
@@ -23,13 +21,13 @@ class config():
         files=['/etc/obs/services/tar_scm'],
         fakeheader=True
     ):
-	try:
-             rc_file = os.path.join(os.environ['HOME'],'.obs','tar_scm')
-             files.append(rc_file)
+        try:
+            rc_file = os.path.join(os.environ['HOME'], '.obs', 'tar_scm')
+            files.append(rc_file)
         except KeyError:
             pass
 
-	self.configs            = []
+        self.configs            = []
         self.default_section    = 'tar_scm'
         self.fakeheader         = fakeheader
         # We're in test-mode, so don't let any local site-wide
@@ -53,21 +51,20 @@ class config():
                         section,
                         opt,
                         re.sub(
-                            r'"(.*)"', 
+                            r'"(.*)"',
                             r'\1',
                             config.get(section, opt)
                         )
                     )
 
-
-    def _init_config(self,fname):
+    def _init_config(self, fname):
         config = configparser.RawConfigParser()
         config.optionxform = str
-        
+
         if self.fakeheader:
             print("Using fakeheader for file '%s'" % fname)
             tmp_fp = StringIO()
-            tmp_fp.write('['+self.default_section+']\n')
+            tmp_fp.write('[' + self.default_section + ']\n')
             tmp_fp.write(open(fname, 'r').read())
             tmp_fp.seek(0, os.SEEK_SET)
             config.readfp(tmp_fp)
@@ -75,21 +72,21 @@ class config():
             config.read(fname)
 
         return config
-    
-    def get(self,section,option):
+
+    def get(self, section, option):
         value = None
         # We're in test-mode, so don't let any local site-wide
         # or per-user config impact the test suite.
         if os.getenv('DEBUG_TAR_SCM'):
             return value
 
-        if section == None and self.fakeheader:
+        if section is None and self.fakeheader:
             section = self.default_section
 
         print("SECTION: %s" % section)
         for config in self.configs:
             try:
-                value = config.get(section,option)
+                value = config.get(section, option)
             except:
                 pass
 

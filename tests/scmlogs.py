@@ -75,7 +75,7 @@ class ScmInvocationLogs:
     def annotate(self, msg):
         log = open(self.current_log_path, 'a')
         log.write('# ' + msg + "\n")
-        print (msg)
+        print(msg)
         log.close()
 
     def read(self):

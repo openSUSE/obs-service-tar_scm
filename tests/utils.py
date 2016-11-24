@@ -31,9 +31,9 @@ def run_cmd(cmd):
 def quietrun(cmd):
     (stdout, stderr, ret) = run_cmd(cmd)
     if ret != 0:
-        print (cmd, " failed!")
-        print (stdout)
-        print (stderr)
+        print(cmd, " failed!")
+        print(stdout)
+        print(stderr)
     return (stdout, stderr, ret)
 
 
