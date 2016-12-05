@@ -92,7 +92,7 @@ show-python:
 	@echo "$(PYTHON)"
 
 clean:
-	find -name '*.pyc' -exec rm {} \;
+	find -name '*.pyc' -exec rm -f {} \;
 	rm -rf ./tests/tmp/
 	rm -f ./test.log
 	rm -f ./test3.log
