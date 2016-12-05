@@ -63,8 +63,12 @@ install: tar_scm compile
 	mkdir -p $(DESTDIR)$(mycfgdir)
 	install -m 0755 tar_scm $(DESTDIR)$(mylibdir)/tar_scm
 	install -m 0644 tar_scm.rc $(DESTDIR)$(mycfgdir)/tar_scm
+	# Recreate links, otherwise reinstalling would fail
+	[ ! -L $(DESTDIR)$(mylibdir)/obs_scm ] || rm $(DESTDIR)$(mylibdir)/obs_scm
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/obs_scm
+	[ ! -L $(DESTDIR)$(mylibdir)/tar ] || rm $(DESTDIR)$(mylibdir)/tar
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/tar
+	[ ! -L $(DESTDIR)$(mylibdir)/snapcraft ] || rm $(DESTDIR)$(mylibdir)/snapcraft
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/snapcraft
 	install -m 0644 tar.service $(DESTDIR)$(mylibdir)/tar.service
 	install -m 0644 snapcraft.service $(DESTDIR)$(mylibdir)/snapcraft.service

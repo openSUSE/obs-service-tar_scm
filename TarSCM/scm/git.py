@@ -17,6 +17,7 @@ class git(scm):
         - explicit ref: refs/heads/master, refs/tags/v1.2.3,
           refs/changes/49/11249/1
         """
+        logging.debug("[switch_revision] Starting ...")
         if self.revision is None:
             self.revision = 'master'
 
@@ -33,6 +34,7 @@ class git(scm):
                         cwd=self.clone_dir
                     )[1]
                     if stash_text != "No local changes to save\n":
+                        logging.debug("[switch_revision] GIT STASHING")
                         text += self.helpers.safe_run(['git', 'stash', 'pop'],
                                                       cwd=self.clone_dir)[1]
                 else:

@@ -59,13 +59,16 @@ class scm():
             clone_prefix = self.args.__dict__['clone_prefix']
 
         self._calc_dir_to_clone_to(clone_prefix)
-        logging.debug("CLONE_DIR: '%s'" % self.clone_dir)
         self.prepare_clone_dir()
 
         self.lock_cache()
 
         if not os.path.isdir(self.clone_dir):
             # initial clone
+            logging.debug(
+                "[fetch_upstream] Initial checkout/clone to directory: '%s'" %
+                self.clone_dir
+            )
             os.mkdir(self.clone_dir)
             self.fetch_upstream_scm()
         else:
@@ -145,9 +148,9 @@ class scm():
         if sys.argv[0].endswith("snapcraft") or \
            (self.args.use_obs_scm and os.getenv('OSC_VERSION')):
             self.repodir = os.getcwd()
-            return
 
         # construct repodir (the parent directory of the checkout)
+        logging.debug("REPOCACHEDIR = '%s'" % self.repocachedir)
         if self.repocachedir:
             if not os.path.isdir(self.repocachedir):
                 os.makedirs(self.repocachedir)
@@ -168,7 +171,6 @@ class scm():
         self.basename = os.path.basename(os.path.normpath(url_path))
         self.basename = prefix + self.basename
 
-        tempdir = tempfile.mkdtemp(dir=self.args.outdir)
 
         osc_version = 0
 
@@ -179,7 +181,11 @@ class scm():
 
 
         if osc_version == 0:
+            tempdir = tempfile.mkdtemp(dir=self.args.outdir)
             self.task.cleanup_dirs.append(tempdir)
+        else:
+            tempdir =  os.getcwd()
+
         self.repodir = os.path.join(tempdir, self.basename)
 
         if self.repocachedir:
@@ -192,7 +198,7 @@ class scm():
         else:
             self.clone_dir = os.path.abspath(self.repodir)
 
-        logging.debug("CLONE_DIR: %s" % self.clone_dir)
+        logging.debug("[_calc_dir_to_clone_to] CLONE_DIR: %s" % self.clone_dir)
 
     def is_sslverify_enabled(self):
         """Returns ``True`` if the ``sslverify`` option has been enabled or
