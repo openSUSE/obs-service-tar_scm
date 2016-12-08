@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tarfile
 import shutil
-
+import logging
 from TarSCM.helpers import helpers
 
 try:
@@ -80,8 +80,9 @@ class obscpio(BaseArchive):
             files = [f for f in files if re.match(includes, f)]
 
             for name in dirs:
-                proc.stdin.write(name)
-                proc.stdin.write("\n")
+                if not METADATA_PATTERN.match(name):
+                    proc.stdin.write(name)
+                    proc.stdin.write("\n")
 
             for name in files:
                 if not METADATA_PATTERN.match(name):
