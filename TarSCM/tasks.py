@@ -163,6 +163,9 @@ class tasks():
         version = args.version
         if version == '_auto_' or args.versionformat:
             version = self.detect_version(scm_object, args)
+        if args.versionrewrite_pattern:
+            regex = re.compile(args.versionrewrite_pattern)
+            version = regex.sub(args.versionrewrite_replacement, version)
         if args.versionprefix:
             version = "%s.%s" % (args.versionprefix, version)
 

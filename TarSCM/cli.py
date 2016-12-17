@@ -31,6 +31,17 @@ class cli():
                                  'source using this format string. '
                                  'This parameter is used if the \'version\' '
                                  'parameter is not specified.')
+        parser.add_argument('--versionrewrite-pattern',
+                            help='Regex used to rewrite the version which is '
+                                 'applied post versionformat. For example, to '
+                                 'remove a tag prefix of "v" the regex "v(.*)" '
+                                 'could be used. See the '
+                                 'versionrewrite-replacement parameter.')
+        parser.add_argument('--versionrewrite-replacement',
+                            default=r'\1',
+                            help='Replacement applied to rewrite pattern. '
+                                 'Typically backreferences are useful and as '
+                                 'such defaults to \\1.')
         parser.add_argument('--versionprefix',
                             help='Specify a base version as prefix.')
         parser.add_argument('--parent-tag',
