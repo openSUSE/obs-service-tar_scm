@@ -1,0 +1,5 @@
+[general]
+apiurl = http://api.example.com
+
+[http://api.example.com]
+email = devel@example.com

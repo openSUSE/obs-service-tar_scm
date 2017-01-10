@@ -25,7 +25,7 @@ class BzrFixtures(Fixtures):
         self.safe_run('init')
         self.safe_run('whoami "%s"' % self.name_and_email)
         self.wd = self.repo_path
-        print "created repo", self.repo_path
+        print("created repo %s" % self.repo_path)
 
     def record_rev(self, wd, rev_num):
         self.revs[rev_num] = str(rev_num)

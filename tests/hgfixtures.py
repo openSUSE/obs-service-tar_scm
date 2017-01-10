@@ -33,7 +33,7 @@ class HgFixtures(Fixtures):
         c.write("[ui]\nusername = %s\n" % self.name_and_email)
         c.close()
         self.wd = self.repo_path
-        print "created repo", self.repo_path
+        print("created repo %s" % self.repo_path)
 
     def get_metadata(self, formatstr):
         return self.safe_run('log -l1 --template "%s"' % formatstr)[0]

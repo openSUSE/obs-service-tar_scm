@@ -156,8 +156,12 @@ class TestAssertions(unittest.TestCase):
                    self.sslverify_false_args + 'true')
 
     def assertRanUpdate(self, logpath, loglines):
+        # exception for git - works different in cached mode
+        should_not_find = self.initial_clone_command
+        if self.__class__.__name__ == 'GitTests':
+            should_not_find = None
         self._find(logpath, loglines,
-                   self.update_cache_command, self.initial_clone_command)
+                   self.update_cache_command, should_not_find)
 
     def _find(self, logpath, loglines, should_find, should_not_find):
         found = False
@@ -167,7 +171,8 @@ class TestAssertions(unittest.TestCase):
                 "Shouldn't find /%s/ in %s; log was:\n" \
                 "----\n%s\n----\n" \
                 % (should_not_find, logpath, "".join(loglines))
-            self.assertNotRegexpMatches(line, should_not_find, msg)
+            if should_not_find:
+                self.assertNotRegexpMatches(line, should_not_find, msg)
             if regexp.search(line):
                 found = True
         msg = \
