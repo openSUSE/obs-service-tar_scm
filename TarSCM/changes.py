@@ -210,8 +210,8 @@ class changes():
 
         # find changesauthor in $HOME/.oscrc
         try:
-            files = [os.path.join(os.environ['HOME'], '.oscrc')]
-            cfg = config(files, False)
+            files = [[os.path.join(os.environ['HOME'], '.oscrc'), False]]
+            cfg = config(files)
 
             changesauthor = None
             section = cfg.get('general', 'apiurl')

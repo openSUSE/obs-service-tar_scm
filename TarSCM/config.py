@@ -18,33 +18,35 @@ except:
 class config():
     def __init__(
         self,
-        files=['/etc/obs/services/tar_scm'],
-        fakeheader=True
+        files=[['/etc/obs/services/tar_scm', True]]
     ):
         try:
-            rc_file = os.path.join(os.environ['HOME'], '.obs', 'tar_scm')
+            rc_file = [
+                os.path.join(os.environ['HOME'], '.obs', 'tar_scm'),
+                True
+            ]
             files.append(rc_file)
         except KeyError:
             pass
 
         self.configs            = []
         self.default_section    = 'tar_scm'
-        self.fakeheader         = fakeheader
         # We're in test-mode, so don't let any local site-wide
         # or per-user config impact the test suite.
         if os.getenv('DEBUG_TAR_SCM'):
             logging.info("Ignoring config files: test-mode detected")
 
         # fake a section header for configuration files
-        for fname in files:
+        for tmp in files:
+            fname = tmp[0]
+            self.fakeheader = tmp[1]
             if not os.path.isfile(fname):
-                print("Config file not found: %s" % fname)
+                logging.debug("Config file not found: %s" % fname)
                 continue
             self.configs.append(self._init_config(fname))
 
         # strip quotes from pathname
         for config in self.configs:
-            print(config)
             for section in config.sections():
                 for opt in config.options(section):
                     config.set(
@@ -62,7 +64,7 @@ class config():
         config.optionxform = str
 
         if self.fakeheader:
-            print("Using fakeheader for file '%s'" % fname)
+            logging.debug("Using fakeheader for file '%s'" % fname)
             tmp_fp = StringIO()
             tmp_fp.write('[' + self.default_section + ']\n')
             tmp_fp.write(open(fname, 'r').read())
@@ -83,7 +85,7 @@ class config():
         if section is None and self.fakeheader:
             section = self.default_section
 
-        print("SECTION: %s" % section)
+        logging.debug("SECTION: %s" % section)
         for config in self.configs:
             try:
                 value = config.get(section, option)

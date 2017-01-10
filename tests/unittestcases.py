@@ -89,18 +89,20 @@ class UnitTestCases(unittest.TestCase):
     def test_TarSCM_config_files_ordering(self):
         tc_name = inspect.stack()[0][3]
         files = [
-            os.path.join(self.fixtures_dir, tc_name, 'a.cfg'),
-            os.path.join(self.fixtures_dir, tc_name, 'b.cfg'),
+            [os.path.join(self.fixtures_dir, tc_name, 'a.cfg'), True],
+            [os.path.join(self.fixtures_dir, tc_name, 'b.cfg'), True],
         ]
         var = config(files).get(None, 'var')
         self.assertEqual(var, 'b')
 
     def test_TarSCM_config_no_faked_header(self):
         tc_name = inspect.stack()[0][3]
-        files   = [os.path.join(self.fixtures_dir, tc_name, 'test.ini')]
-        var     = config(files, False).get('general', 'apiurl')
+        files   = [
+            [os.path.join(self.fixtures_dir, tc_name, 'test.ini'), False]
+        ]
+        var     = config(files).get('general', 'apiurl')
         self.assertEqual(var, 'http://api.example.com')
-        var     = config(files, False).get(var, 'email')
+        var     = config(files).get(var, 'email')
         self.assertEqual(var, 'devel@example.com')
 
     def test_TarSCM_config_debug_tar_scm(self):
@@ -113,7 +115,7 @@ class UnitTestCases(unittest.TestCase):
 
         os.environ['DEBUG_TAR_SCM'] = "1"
 
-        files = [os.path.join(self.fixtures_dir, tc_name, 'test.rc')]
+        files = [[os.path.join(self.fixtures_dir, tc_name, 'test.rc'), True]]
         var = config(files).get(None, 'var')
         self.assertEqual(var, None)
 
@@ -146,6 +148,15 @@ class UnitTestCases(unittest.TestCase):
         ca                  = c.get_changesauthor(self.cli)
         os.environ['HOME']  = home
         self.assertEqual(ca, 'opensuse-packaging@opensuse.org')
+
+    def test_TarSCM_changes_get_changesauthor_from_home_rc(self):
+        tc_name             = inspect.stack()[0][3]
+        home                = os.environ['HOME']
+        os.environ['HOME']  = os.path.join(self.fixtures_dir, tc_name)
+        c                   = changes()
+        ca                  = c.get_changesauthor(self.cli)
+        os.environ['HOME']  = home
+        self.assertEqual(ca, 'devel@example.com')
 
     def test_git_get_repocache_hash_without_subdir(self):
         scm_object = git(self.cli, self.tasks)
