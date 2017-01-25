@@ -70,6 +70,13 @@
       computing @TAG_OFFSET@.
     </description>
   </parameter>
+  <parameter name="stripversionprefix">
+    <description>
+       Strip the prefix string from the git tag.
+       Useful when using @PARENT_TAG@ and upstream prefixes "v" or "release"
+       to the tag, and the generated package version should not include them.
+    </description>
+  </parameter>
   <parameter name="revision">
     <description>
        Specify revision of source to check out.
