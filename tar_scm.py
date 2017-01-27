@@ -555,7 +555,7 @@ class TarSCM:
     ### END class TarSCM.tar
 
     class helpers():
-        def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False):
+        def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False, env=None):
             """Execute the command cmd in the working directory cwd and check return
             value. If the command returns non-zero and raisesysexit is True raise a
             SystemExit exception otherwise return a tuple of return code and command
@@ -563,9 +563,10 @@ class TarSCM:
             """
             logging.debug("COMMAND: %s", cmd)
 
+            if env is None:
+                env = os.environ.copy()
             # Ensure we get predictable results when parsing the output of commands
             # like 'git branch'
-            env = os.environ.copy()
             env['LANG'] = 'C'
 
             proc = subprocess.Popen(cmd,
