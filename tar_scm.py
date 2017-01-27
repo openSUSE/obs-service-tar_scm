@@ -29,6 +29,9 @@ import sys
 import tarfile
 import tempfile
 import dateutil.parser
+# pipes.quote() is deprecated, use shlex.quote with python >= 3.3
+# http://bugs.python.org/issue9723
+from pipes import quote
 
 try:
     # not possible to test this on travis atm
@@ -106,6 +109,9 @@ class TarSCM:
 
         def get_current_commit(self, clone_dir):
             return None
+
+        def verify_repo(self, repodir, verify_key):
+            sys.exit("GPG verification not supported with %s SCM" % self.scm)
 
         def get_repocachedir(self):
             # check for enabled caches in this order (first wins):
@@ -265,6 +271,45 @@ class TarSCM:
 
         def get_current_commit(self, clone_dir):
             return  self.helpers.safe_run(['git', 'rev-parse', 'HEAD'], clone_dir)[1]
+
+        def verify_repo(self, repodir, key):
+            """Verify GPG signature carried in the source tag at HEAD against the
+            provided public key.
+            """
+            git_cmd = ['git', 'describe', '--exact-match', 'HEAD']
+            (ret, output) = self.helpers.safe_run(git_cmd, cwd=repodir)
+            # HEAD corresponds to a tag, verify it
+
+            tag = quote(output.strip())
+            key = quote(key)
+            if tag[0] == '-' or key[0] == '-':
+                sys.exit("invalid verification parameter, tag: '%s' key '%s'" \
+                         % tag, key)
+
+            # create a tempdir to use as GPGHOME for key import and verification
+            tmp_dir = tempfile.mkdtemp()
+
+            gpg_cmd = ['gpg', '--homedir', tmp_dir, '--import', key]
+            git_cmd = ['git', 'verify-tag', tag]
+            # set GNUPGHOME env to override GPG key directory for git verify-tag
+            env = os.environ.copy()
+            env['GNUPGHOME'] = tmp_dir
+
+            try:
+                (ret, output) = self.helpers.run_cmd(gpg_cmd, cwd=tmp_dir,
+                                                     interactive=False,
+                                                     raisesysexit=True)
+                logging.debug("GPG import: %s" % output)
+                (ret, output) = self.helpers.run_cmd(git_cmd, cwd=repodir,
+                                                     interactive=False,
+                                                     raisesysexit=True, env=env)
+                logging.debug("Git verify: %s" % output)
+            except SystemExit, e:
+                shutil.rmtree(tmp_dir)
+                sys.exit("GPG verification process failed for '%s'" % repodir)
+
+            shutil.rmtree(tmp_dir)
+            # tag verified!
 
         def _ref_exists(self, clone_dir, revision):
             rc, _ = self.helpers.run_cmd(['git', 'rev-parse', '--verify', '--quiet', revision],
