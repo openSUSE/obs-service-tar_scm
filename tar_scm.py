@@ -1213,11 +1213,19 @@ def parse_args():
     parser.add_argument('--history-depth',
                         help='Obsolete osc service parameter that does '
                              'nothing')
+    parser.add_argument('--verify-revision-key', default='',
+                        help='Specify GPG public key to use for verification'
+			     'of the source revision')
     args = parser.parse_args()
 
     # basic argument validation
     if not os.path.isdir(args.outdir):
         sys.exit("%s: No such directory" % args.outdir)
+
+    if (args.verify_revision_key
+                      and not (os.path.isfile(args.verify_revision_key)
+                               or os.path.isabs(args.verify_revision_key))):
+        sys.exit("%s: Missing or relative key path" % args.verify_revision_key)
 
     args.outdir = os.path.abspath(args.outdir)
     orig_subdir = args.subdir
@@ -1340,6 +1348,9 @@ def singletask(use_obs_scm, args):
         repodir = os.getcwd()
 
     clone_dir = scm_object.fetch_upstream(out_dir=repodir, **args.__dict__)
+
+    if args.verify_revision_key:
+	    scm_object.verify_repo(clone_dir, args.verify_revision_key)
 
     if args.filename:
         dstname = basename = args.filename
