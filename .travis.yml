@@ -6,4 +6,4 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq bzr git mercurial subversion
 install: pip install pep8 lxml mock python-dateutil
-script: make check
+script: make test
