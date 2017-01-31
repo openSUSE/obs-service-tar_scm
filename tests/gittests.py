@@ -226,3 +226,62 @@ class GitTests(GitHgTests, GitSvnTests):
         fix.safe_run('checkout tag2')
         fix.create_commits(3)
         fix.safe_run('tag -a -m some_message detached_tag')
+
+    def test_verify_tag(self):
+        fix = self.fixtures
+        (gpg_dir, gpg_key_id) = fix.create_gpg_key()
+        # GPG state now initialised, tags after this point will be signed
+        fix.create_commits(1)
+        pubkey = gpg_dir + "/pubring.gpg"
+        self.tar_scm_std("--revision", 'tag3',
+                         "--versionformat", "@PARENT_TAG@",
+                         '--submodules', 'disable',
+                         "--verify-revision-key", pubkey)
+        self.assertTarOnly(self.basename(version="tag3"))
+
+    def test_verify_unsigned_tag(self):
+        fix = self.fixtures
+        # tag2 created before GPG state init, so tag is unsigned
+        (gpg_dir, gpg_key_id) = fix.create_gpg_key()
+        pubkey = gpg_dir + "/pubring.gpg"
+
+        self.tar_scm_std_fail("--revision", 'tag2',
+                              "--versionformat", "@PARENT_TAG@",
+                              '--submodules', 'disable',
+                              "--verify-revision-key", pubkey)
+
+    def test_verify_bad_tag(self):
+        fix = self.fixtures
+        (gpg_dir, gpg_key_id) = fix.create_gpg_key()
+        # create and tag commit using old key before key regeneration
+        fix.create_commits(1)
+        fix.delete_gpg_key()
+        (gpg_dir, gpg_key_id) = fix.create_gpg_key()
+        pubkey = gpg_dir + "/pubring.gpg"
+        self.tar_scm_std_fail("--revision", 'tag3',
+                              "--versionformat", "@PARENT_TAG@",
+                              '--submodules', 'disable',
+                              "--verify-revision-key", pubkey)
+        # next tag should be signed new key
+        fix.create_commits(1)
+        self.tar_scm_std("--revision", 'tag4',
+                         "--versionformat", "@PARENT_TAG@",
+                         '--submodules', 'disable',
+                         "--verify-revision-key", pubkey)
+        self.assertTarOnly(self.basename(version="tag4"))
+
+    def test_verify_relative(self):
+        fix = self.fixtures
+
+        (gpg_dir, gpg_key_id) = fix.create_gpg_key()
+        # GPG state now initialised, tags after this point will be signed
+        fix.create_commits(1)
+        # check whether we can use a relative path for the public key
+        print 'changing from %s to %s' % (os.getcwd(), gpg_dir)
+        os.chdir(gpg_dir)
+        pubkey = "./pubring.gpg"
+
+        self.tar_scm_std_fail("--revision", 'tag3',
+                              "--versionformat", "@PARENT_TAG@",
+                              '--submodules', 'disable',
+                              "--verify-revision-key", pubkey)
