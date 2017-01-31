@@ -14,8 +14,6 @@ class GitFixtures(Fixtures):
     """
 
     def init(self):
-        self.user_name  = 'test'
-        self.user_email = 'test@test.com'
         self.create_repo(self.repo_path)
         self.wd = self.repo_path
         self.submodules_path = self.container_dir + '/submodules'

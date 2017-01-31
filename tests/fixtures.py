@@ -21,6 +21,8 @@ class Fixtures:
     COMMITTER_DATE = int(1234567890)
 
     def __init__(self, container_dir, scmlogs):
+        self.user_name  = 'test'
+        self.user_email = 'test@test.com'
         self.container_dir = container_dir
         self.scmlogs       = scmlogs
         self.repo_path     = self.container_dir + '/repo'
