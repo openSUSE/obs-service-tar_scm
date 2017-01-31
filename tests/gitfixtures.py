@@ -45,7 +45,12 @@ class GitFixtures(Fixtures):
 
     def record_rev(self, wd, rev_num):
         tag = 'tag' + str(rev_num)
-        self.safe_run('tag ' + tag)
+        if self.gpg_dir:
+            args = 'tag -s --local-user=%s -m tag-message %s' \
+                    % (self.gpg_key_id, tag)
+        else:
+            args = 'tag %s' % (tag)
+        self.safe_run(args)
 
         for d in (self.revs, self.timestamps, self.sha1s):
             if wd not in d:
@@ -55,8 +60,9 @@ class GitFixtures(Fixtures):
         self.timestamps[wd][tag] = self.get_metadata('%ct')
         self.sha1s[wd][tag]      = self.get_metadata('%H')
         self.scmlogs.annotate(
-            "Recorded rev %d: id %s, timestamp %s, SHA1 %s in %s" %
-            (rev_num,
+            "Recorded %srev %d: id %s, timestamp %s, SHA1 %s in %s" %
+            ('signed ' if self.gpg_dir else '',
+             rev_num,
              tag,
              self.timestamps[wd][tag],
              self.sha1s[wd][tag],
