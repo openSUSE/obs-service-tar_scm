@@ -261,6 +261,9 @@ class TarSCM:
         def get_timestamp(self, args, repodir):
             d = {"parent_tag": None, "versionformat": "%ct"}
             timestamp = self.detect_version(d, repodir)
+            # avoid future times due to broken commits
+            if datetime.datetime.fromtimestamp(timestamp) > datetime.datetime.now():
+                  timestamp = datetime.datetime.now()
             return int(timestamp)
 
         def get_current_commit(self, clone_dir):
