@@ -234,6 +234,8 @@ class TarSCM:
                     parent_tag = output.strip()
             if re.match('.*@PARENT_TAG@.*', versionformat):
                 if parent_tag:
+                    if args.get('tagpattern') and args.get('tagrepl'):
+                        parent_tag = re.sub(args['tagpattern'], args['tagrepl'], parent_tag)
                     versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
                 else:
                     sys.exit("\033[31mNo parent tag present for the checked out "
@@ -1109,6 +1111,12 @@ def parse_args():
                              'using this format string.  This parameter is '
                              'used if the \'version\' parameter is not '
                              'specified.')
+    parser.add_argument('--tagpattern',
+                        help='re.sub pattern to match and group version '
+                             'in @PARENT_TAG@')
+    parser.add_argument('--tagrepl',
+                        help='re.sub repl to replace matched '
+                             'in @PARENT_TAG@')
     parser.add_argument('--versionprefix',
                         help='Specify a base version as prefix.')
     parser.add_argument('--parent-tag',
