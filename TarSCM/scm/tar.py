@@ -1,4 +1,8 @@
+import glob
+import os
+import sys
 from base import scm
+
 
 class tar(scm):
     def fetch_upstream(self, clone_dir, cwd, kwargs):
@@ -10,8 +14,8 @@ class tar(scm):
                 kwargs.obsinfo = files[0]
         if kwargs.obsinfo is None:
             sys.exit("ERROR: no .obsinfo file found")
-        basename = clone_dir = self.read_from_obsinfo(args.obsinfo, "name")
-        clone_dir += "-" + self.read_from_obsinfo(args.obsinfo, "version")
+        basename = clone_dir = self.read_from_obsinfo(kwargs.obsinfo, "name")
+        clone_dir += "-" + self.read_from_obsinfo(kwargs.obsinfo, "version")
         if not os.path.exists(clone_dir):
             # not need in case of local osc build
             os.rename(basename, clone_dir)
@@ -38,4 +42,3 @@ class tar(scm):
                 return k[1].strip()
             line = infofile.readline()
         return ""
-

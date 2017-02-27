@@ -14,14 +14,12 @@
 import os
 import sys
 
-
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # noqa
 
 import TarSCM
 import TarSCM.tasks
 from TarSCM.exceptions import OptionsError
+
 
 def main():
     cli = TarSCM.cli()
@@ -29,11 +27,11 @@ def main():
 
     if os.path.basename(sys.argv[0]) == "tar":
         cli.scm = "tar"
-    
+
     if os.path.basename(sys.argv[0]) == "obs_scm":
         cli.use_obs_scm = True
 
-    if  os.path.basename(sys.argv[0]) == "snapcraft":
+    if os.path.basename(sys.argv[0]) == "snapcraft":
         cli.snapcraft = True
 
     task_list = TarSCM.tasks()

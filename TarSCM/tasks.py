@@ -1,11 +1,10 @@
 import glob
-import copy 
+import copy
 import atexit
 import logging
 import os
 import shutil
 import sys
-import re
 
 import scm
 from archive import archive
@@ -17,6 +16,7 @@ try:
     import yaml
 except ImportError:
     pass
+
 
 class tasks():
     def __init__(self):
@@ -34,9 +34,9 @@ class tasks():
                 continue
             shutil.rmtree(d)
 
-    def generate_list(self,args):
+    def generate_list(self, args):
 
-        if  args.snapcraft:
+        if args.snapcraft:
             # we read the SCM config from snapcraft.yaml instead from _service file
             f = open('snapcraft.yaml')
             self.dataMap = yaml.safe_load(f)
@@ -48,7 +48,7 @@ class tasks():
                 if 'source-type' not in self.dataMap['parts'][part].keys():
                     continue
                 pep8_1 = self.dataMap['parts'][part]['source-type']
-                pep8_2 = ['git','tar','svn','bzr','hg']
+                pep8_2 = ['git', 'tar', 'svn', 'bzr', 'hg']
                 if pep8_1 not in pep8_2:
                     continue
                 # avoid conflicts with files
@@ -66,8 +66,8 @@ class tasks():
         for task in self.task_list:
             self._process_single_task(task)
 
-    def finalize(self,args):
-        if  args.snapcraft:
+    def finalize(self, args):
+        if args.snapcraft:
             # write the new snapcraft.yaml file
             # we prefix our own here to be sure to not overwrite user files, if he
             # is using us in "disabled" mode
@@ -93,8 +93,7 @@ class tasks():
 
         return dst
 
-
-    def _process_single_task(self,args):
+    def _process_single_task(self, args):
         FORMAT  = "%(message)s"
         logging.basicConfig(format=FORMAT, stream=sys.stderr, level=logging.INFO)
         if args.verbose:
@@ -130,10 +129,10 @@ class tasks():
 
         logging.debug("DST: %s", dstname)
 
-        changes = scm_object.detect_changes(args,clone_dir)
+        changes = scm_object.detect_changes(args, clone_dir)
 
         tar_dir = self.prep_tree_for_archive(clone_dir, args.subdir, args.outdir,
-                                        dstname=dstname)
+                                             dstname=dstname)
         self.cleanup_dirs.append(tar_dir)
 
         arch = archive()
@@ -144,25 +143,25 @@ class tasks():
         if args.use_obs_scm:
             tmp_archive = archive.obscpio()
             tmp_archive.create_archive(
-                    scm_object,
-                    tar_dir,
-                    basename,
-                    dstname,
-                    version,
-                    scm_object.get_current_commit(clone_dir),
-                    args)
+                scm_object,
+                tar_dir,
+                basename,
+                dstname,
+                version,
+                scm_object.get_current_commit(clone_dir),
+                args)
         else:
             tmp_archive = archive.tar()
             tmp_archive.create_archive(
-                    scm_object,
-                    tar_dir,
-                    args.outdir,
-                    dstname=dstname,
-                    extension=args.extension,
-                    exclude=args.exclude,
-                    include=args.include,
-                    package_metadata=args.package_meta,
-                    timestamp=self.helpers.get_timestamp(scm_object, args, clone_dir))
+                scm_object,
+                tar_dir,
+                args.outdir,
+                dstname=dstname,
+                extension=args.extension,
+                exclude=args.exclude,
+                include=args.include,
+                package_metadata=args.package_meta,
+                timestamp=self.helpers.get_timestamp(scm_object, args, clone_dir))
 
         if changes:
             changesauthor = self.changes.get_changesauthor(args)
@@ -177,9 +176,9 @@ class tasks():
                 new_changes_file = os.path.join(args.outdir, filename)
                 shutil.copy(filename, new_changes_file)
                 self.changes.write_changes(new_changes_file, changes['lines'],
-                              changesversion, changesauthor)
+                                           changesversion, changesauthor)
             self.changes.write_changes_revision(args.url, args.outdir,
-                                   changes['revision'])
+                                                changes['revision'])
 
         # Populate cache
         logging.debug("Using repocachedir: '%s'" % repocachedir)

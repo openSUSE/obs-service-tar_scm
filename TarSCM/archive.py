@@ -1,6 +1,7 @@
 import fnmatch
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -8,6 +9,7 @@ import tarfile
 from helpers import helpers
 
 METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn).*')
+
 
 class archive():
     def __init__(self):
@@ -26,8 +28,6 @@ class archive():
 
             if shutil.copy(src, outdir):
                 sys.exit("%s: Failed to copy file" % src)
-
-
 
     class obscpio():
         def create_archive(self, scm_object, repodir, basename, dstname, version, commit, args):
@@ -87,10 +87,9 @@ class archive():
 
             os.chdir(cwd)
 
-
     class tar():
         def create_archive(self, scm_object, repodir, outdir, dstname, extension='tar',
-                       exclude=[], include=[], package_metadata=False, timestamp=0):
+                           exclude=[], include=[], package_metadata=False, timestamp=0):
             """Create a tarball of repodir in destination directory."""
             (workdir, topdir) = os.path.split(repodir)
 
@@ -154,7 +153,4 @@ class archive():
                     # Python 2.6 compatibility
                     tar.add(entry, exclude=tar_exclude)
             tar.close()
-
             os.chdir(cwd)
-
-

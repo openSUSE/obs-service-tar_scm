@@ -6,6 +6,7 @@ import os
 import logging
 from base import scm
 
+
 class svn(scm):
     def fetch_upstream_scm(self, clone_dir, kwargs):
         """SCM specific version of fetch_uptream for svn."""
@@ -14,17 +15,19 @@ class svn(scm):
             command.insert(4, '-r%s' % self.revision)
         if not self.is_sslverify_enabled(kwargs):
             command.insert(3, '--trust-server-cert')
-        self.helpers.safe_run(command, self.repodir, interactive=sys.stdout.isatty())
+        self.helpers.safe_run(command, self.repodir,
+                              interactive=sys.stdout.isatty())
 
     def update_cache(self, clone_dir):
         """Update sources via svn."""
         command = ['svn', 'update']
         if self.revision:
             command.insert(3, "-r%s" % self.revision)
-        self.helpers.safe_run(command, cwd=clone_dir, interactive=sys.stdout.isatty())
+        self.helpers.safe_run(command, cwd=clone_dir,
+                              interactive=sys.stdout.isatty())
 
     def detect_version(self, args, repodir):
-        """Automatic detection of version number for checked-out SVN repository."""
+        """Detection of version number for checked-out SVN repository."""
         versionformat = args['versionformat']
         if versionformat is None:
             versionformat = '%r'
@@ -79,16 +82,16 @@ class svn(scm):
         changes['lines'] = lines
         return changes
 
-    def get_repocache_hash(self,subdir):
+    def get_repocache_hash(self, subdir):
         """Calculate hash fingerprint for repository cache."""
-        return hashlib.sha256(self.url+'/' + subdir).hexdigest()
-
+        return hashlib.sha256(self.url + '/' + subdir).hexdigest()
 
     def _get_log(self, repodir, revision1, revision2):
         new_lines = []
 
-        xml_lines = self.helpers.safe_run(['svn', 'log', '-r%s:%s' % (revision1,
-                             revision2), '--xml'], repodir)[1]
+        xml_lines = self.helpers.safe_run(['svn', 'log', '-r%s:%s' %
+                                           (revision1, revision2), '--xml'],
+                                          repodir)[1]
         lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
 
         for line in lines:
@@ -97,15 +100,14 @@ class svn(scm):
 
         return new_lines
 
-
     def _get_rev(self, repodir, num_commits):
-        revisions = self.helpers.safe_run(['svn', 'log', '-l%d' % num_commits, '-q',
-                             '--incremental'], cwd=repodir)[1].split('\n')
+        revisions = self.helpers.safe_run(['svn', 'log', '-l%d' %
+                                          num_commits, '-q', '--incremental'],
+                                          cwd=repodir)[1].split('\n')
         # remove blank entry on end
         revisions.pop()
         # return last entry
         revision = revisions[-1]
         # retrieve the revision number and remove r
-        revision = re.search(r'^r[0-9]*', revision, re.M).group().replace("r", "")
-        return revision
-### END class TarSCM.svn
+        revision = re.search(r'^r[0-9]*', revision, re.M).group()
+        return revision.replace("r", "")

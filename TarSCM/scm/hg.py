@@ -1,14 +1,17 @@
 import sys
 import re
 from base import scm
+
+
 class hg(scm):
-    def switch_revision(self,clone_dir):
+    def switch_revision(self, clone_dir):
         """Switch sources to revision."""
         if self.revision is None:
             self.revision = 'tip'
 
-        rc, _  = self.helpers.run_cmd(['hg', 'update', self.revision], cwd=clone_dir,
-                         interactive=sys.stdout.isatty())
+        rc, _  = self.helpers.run_cmd(['hg', 'update', self.revision],
+                                      cwd=clone_dir,
+                                      interactive=sys.stdout.isatty())
         if rc:
             sys.exit('%s: No such revision' % self.revision)
 
@@ -18,13 +21,13 @@ class hg(scm):
         if not self.is_sslverify_enabled(kwargs):
             command += ['--insecure']
         self.helpers.safe_run(command, self.repodir,
-                 interactive=sys.stdout.isatty())
+                              interactive=sys.stdout.isatty())
 
     def update_cache(self, clone_dir):
         """Update sources via hg."""
         try:
             self.helpers.safe_run(['hg', 'pull'], cwd=clone_dir,
-                     interactive=sys.stdout.isatty())
+                                  interactive=sys.stdout.isatty())
         except SystemExit, e:
             # Contrary to the docs, hg pull returns exit code 1 when
             # there are no changes to pull, but we don't want to treat
@@ -33,8 +36,7 @@ class hg(scm):
                 raise
 
     def detect_version(self, args, repodir):
-        """Automatic detection of version number for checked-out HG repository."""
-        parent_tag = args['parent_tag']
+        """Detection of version number for checked-out HG repository."""
         versionformat = args['versionformat']
         if versionformat is None:
             versionformat = '{rev}'
@@ -67,8 +69,10 @@ class hg(scm):
         # 'sub(...)' which is only available since 2.4 (first introduced
         # in openSUSE 12.3).
 
-        version = self.helpers.safe_run(['hg', 'log', '-l1', "-r%s" % version.strip(),
-                            '--template', versionformat], repodir)[1]
+        version = self.helpers.safe_run(['hg', 'log', '-l1', "-r%s" %
+                                        version.strip(),
+                                        '--template', versionformat],
+                                        repodir)[1]
         return self.version_iso_cleanup(version)
 
     def get_timestamp(self, args, repodir):
@@ -76,5 +80,3 @@ class hg(scm):
         timestamp = self.detect_version(d, repodir)
         timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
         return int(timestamp)
-### END class TarSCM.hg
-

@@ -1,6 +1,5 @@
 import ConfigParser
 import datetime
-import glob
 import logging
 import os
 import shutil
@@ -10,32 +9,35 @@ import stat
 
 import TarSCM.cli
 
+"""
+There are some important differences in behaviour, which also
+depend on the Python version being used:
+
+| Python    | 2.6            | 2.6         | 2.7            | 2.7         |
+|-----------+----------------+-------------+----------------+-------------|
+| module    | lxml.etree     | xml.etree   | lxml.etree     | xml.etree   |
+|-----------+----------------+-------------+----------------+-------------|
+| empty     | XMLSyntaxError | ExpatError  | XMLSyntaxError | ParseError  |
+| doc       | "Document is   | "no element | "Document is   | "no element |
+|           | empty"         | found"      | empty          | found"      |
+|-----------+----------------+-------------+----------------+-------------|
+| syntax    | XMLSyntaxError | ExpatError  | XMLSyntaxError | ParseError  |
+| error     | "invalid       | "not well-  | "invalid       | "not well-  |
+|           | element name"  | formed"     | element name"  | formed"     |
+|-----------+----------------+-------------+----------------+-------------|
+| e.message | deprecated     | deprecated  | yes            | yes         |
+|-----------+----------------+-------------+----------------+-------------|
+| str()     | yes            | yes         | yes            | yes         |
+|-----------+----------------+-------------+----------------+-------------|
+| @attr     | yes            | no          | yes            | yes         |
+| selection |                |             |                |             |
+"""
+
+
 class changes():
     def import_xml_parser(self):
         """Import the best XML parser available.  Currently prefers lxml and
         falls back to xml.etree.
-
-        There are some important differences in behaviour, which also
-        depend on the Python version being used:
-
-        | Python    | 2.6            | 2.6         | 2.7            | 2.7         |
-        |-----------+----------------+-------------+----------------+-------------|
-        | module    | lxml.etree     | xml.etree   | lxml.etree     | xml.etree   |
-        |-----------+----------------+-------------+----------------+-------------|
-        | empty     | XMLSyntaxError | ExpatError  | XMLSyntaxError | ParseError  |
-        | doc       | "Document is   | "no element | "Document is   | "no element |
-        |           | empty"         | found"      | empty          | found"      |
-        |-----------+----------------+-------------+----------------+-------------|
-        | syntax    | XMLSyntaxError | ExpatError  | XMLSyntaxError | ParseError  |
-        | error     | "invalid       | "not well-  | "invalid       | "not well-  |
-        |           | element name"  | formed"     | element name"  | formed"     |
-        |-----------+----------------+-------------+----------------+-------------|
-        | e.message | deprecated     | deprecated  | yes            | yes         |
-        |-----------+----------------+-------------+----------------+-------------|
-        | str()     | yes            | yes         | yes            | yes         |
-        |-----------+----------------+-------------+----------------+-------------|
-        | @attr     | yes            | no          | yes            | yes         |
-        | selection |                |             |                |             |
         """
         global ET
 
@@ -54,7 +56,6 @@ class changes():
                     raise RuntimeError("Couldn't load XML parser error class")
 
         return xml_parser
-
 
     def parse_servicedata_xml(self, srcdir):
         """Parses the XML in _servicedata.  Returns None if the file doesn't
@@ -78,7 +79,6 @@ class changes():
                 return None
             raise
 
-
     def extract_tar_scm_service(self, root, url):
         """Returns an object representing the <service name="tar_scm">
         element referencing the given URL.
@@ -95,7 +95,6 @@ class changes():
                 if param.text == url:
                     return service
 
-
     def get_changesrevision(self, tar_scm_service):
         """Returns an object representing the <param name="changesrevision">
         element, or None, if it doesn't exist.
@@ -107,7 +106,6 @@ class changes():
             raise RuntimeError('Found multiple <param name="changesrevision"> '
                                'elements in _servicedata.')
         return params[0]
-
 
     def read_changes_revision(self, url, srcdir, outdir):
         """Reads the _servicedata file and returns a dictionary with 'revision' on
@@ -150,7 +148,6 @@ class changes():
             change_data['revision'] = changesrevision_element.text
         return change_data
 
-
     def write_changes_revision(self, url, outdir, new_revision):
         """Updates the changesrevision in the _servicedata file."""
         logging.debug("Updating %s", os.path.join(outdir, '_servicedata'))
@@ -176,7 +173,6 @@ class changes():
         if changed:
             xml_tree.write(os.path.join(outdir, "_servicedata"))
 
-
     def write_changes(self, changes_filename, changes, version, author):
         """Add changes to given *.changes file."""
         if changes is None:
@@ -185,7 +181,7 @@ class changes():
         logging.debug("Writing changes file %s", changes_filename)
 
         tmp_fp = tempfile.NamedTemporaryFile(delete=False)
-        os.chmod(tmp_fp.name,stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+        os.chmod(tmp_fp.name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
         tmp_fp.write('-' * 67 + '\n')
         tmp_fp.write("%s - %s\n" % (
             datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y'),
@@ -203,7 +199,6 @@ class changes():
         tmp_fp.close()
 
         shutil.move(tmp_fp.name, changes_filename)
-
 
     def get_changesauthor(self, args):
         if args.changesauthor:

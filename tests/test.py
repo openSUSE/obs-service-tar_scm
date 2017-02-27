@@ -9,8 +9,6 @@ import shutil
 import sys
 import unittest
 
-
-
 from gittests import GitTests
 from svntests import SvnTests
 from hgtests  import HgTests
@@ -44,8 +42,6 @@ if __name__ == '__main__':
         #   suite.addTest(HgTests('test_version_versionformat'))
         #   suite.addTest(HgTests('test_versionformat_dateYYYYMMDD'))
         test_class = GitTests
-        #test_class = TasksTestCases
-        #test_class = UnitTestCases
         to_run = {}
         for arg in sys.argv[1:]:
             m = re.match('^/(.+)/$', arg)

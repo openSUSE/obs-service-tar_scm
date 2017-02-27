@@ -5,14 +5,15 @@ import sys
 
 class cli():
     DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
+
     def __init__(self):
         self.use_obs_scm    = False
         self.snapcraft      = False
 
     def parse_args(self, options):
         parser = argparse.ArgumentParser(description='Git Tarballs')
-        parser.add_argument('-v', '--verbose', action='store_true', default=False,
-                            help='Enable verbose output')
+        parser.add_argument('-v', '--verbose', action='store_true',
+                            default=False, help='Enable verbose output')
         parser.add_argument('--scm',
                             help='Specify SCM',
                             choices=['git', 'hg', 'bzr', 'svn', 'tar'])
