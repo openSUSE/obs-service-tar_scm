@@ -61,6 +61,13 @@
       For bzr and svn, '%r' is expanded to the revision, and is the default.
     </description>
   </parameter>
+  <parameter name="tag-abbrev">
+    <description>To what length should git describe --tags be abbreviated?
+                 Default: 0
+                 Common other parameter would be 7, which is the 'default'
+                 for "git describe --tags".
+    </description>
+  </param>
   <parameter name="versionprefix">
     <description>Specify a base version as prefix.</description>
   </parameter>
