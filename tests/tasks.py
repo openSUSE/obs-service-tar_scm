@@ -68,6 +68,25 @@ class TasksTestCases(unittest.TestCase):
             self.assertEqual(tasks.task_list[0].__dict__[k], expected[k])
         self.assertEqual(len(tasks.task_list), 1)
 
+    def test_generate_task_list_single_task_appimage(self):
+        self.cli.snapcraft = False
+        self.cli.appimage = True
+        expected = {
+            'scm': 'git', 'appimage': True,
+            'revision': None,
+            'url': 'https://github.com/probonopd/QtQuickApp.git',
+            'use_obs_scm': True,
+            'outdir': self.cli.outdir,
+            'changesgenerate': False
+        }
+        self._cd_fixtures_dir()
+        tasks = TarSCM.tasks()
+        tasks.generate_list(self.cli)
+        self._restore_cwd()
+        for k in expected.keys():
+            self.assertEqual(tasks.task_list[0].__dict__[k], expected[k])
+        self.assertEqual(len(tasks.task_list), 1)
+
     def test_generate_task_list_multi_tasks(self):
         expected = {
             'libpipeline': {
