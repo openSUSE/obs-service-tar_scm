@@ -9,6 +9,7 @@ class cli():
     def __init__(self):
         self.use_obs_scm = False
         self.snapcraft   = False
+        self.appimage    = False
 
     def parse_args(self, options):
         parser = argparse.ArgumentParser(description='Git Tarballs')

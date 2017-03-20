@@ -42,10 +42,25 @@ class tasks():
             self.scm_object.unlock_cache()
 
     def generate_list(self, args):
+        scms = ['git', 'tar', 'svn', 'bzr', 'hg']
 
-        if args.snapcraft:
-            # we read the SCM config from snapcraft.yaml instead from _service
-            # file
+        if args.appimage:
+            # we read the SCM config from appimage.yml
+            f = open('appimage.yml')
+            self.dataMap = yaml.safe_load(f)
+            f.close()
+            args.use_obs_scm = True
+            # run for each scm an own task
+            for scm in scms:
+               if scm not in self.dataMap['build'].keys():
+                   continue
+               for url in self.dataMap['build'][scm]:
+                   args.url = url
+                   args.scm = scm
+                   self.task_list.append(copy.copy(args))
+
+        elif args.snapcraft:
+            # we read the SCM config from snapcraft.yaml instead getting it via parameters
             f = open('snapcraft.yaml')
             self.dataMap = yaml.safe_load(f)
             f.close()
@@ -56,8 +71,7 @@ class tasks():
                 if 'source-type' not in self.dataMap['parts'][part].keys():
                     continue
                 pep8_1 = self.dataMap['parts'][part]['source-type']
-                pep8_2 = ['git', 'tar', 'svn', 'bzr', 'hg']
-                if pep8_1 not in pep8_2:
+                if pep8_1 not in scms:
                     continue
                 # avoid conflicts with files
                 args.clone_prefix = "_obs_"
@@ -115,7 +129,8 @@ class tasks():
         version = self.get_version(scm_object, args)
         changesversion = version
         if version and not sys.argv[0].endswith("/tar") \
-           and not sys.argv[0].endswith("/snapcraft"):
+           and not sys.argv[0].endswith("/snapcraft") \
+           and not sys.argv[0].endswith("/appimage"):
             dstname += '-' + version
 
         logging.debug("DST: %s", dstname)
