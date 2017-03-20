@@ -1220,7 +1220,19 @@ def main():
     if sys.argv[0].endswith("obs_scm"):
         use_obs_scm = True
 
-    if sys.argv[0].endswith("snapcraft"):
+    if sys.argv[0].endswith("appimage"):
+        # we read the SCM config from snapcraft.yaml instead from _service file
+        f = open('appimage.yml')
+        dataMap = yaml.safe_load(f)
+        f.close()
+        # run for each scm an own task
+        for url in dataMap['build']['git']:
+            args.clone_prefix = "_obs_"
+            args.url = url
+            args.scm = "git"
+            singletask(True, args)
+
+    elif sys.argv[0].endswith("snapcraft"):
         # we read the SCM config from snapcraft.yaml instead from _service file
         f = open('snapcraft.yaml')
         dataMap = yaml.safe_load(f)

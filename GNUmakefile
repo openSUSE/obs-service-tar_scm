@@ -55,9 +55,11 @@ install: tar_scm
 	install -m 0644 tar_scm.rc $(DESTDIR)$(mycfgdir)/tar_scm
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/obs_scm
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/tar
+	ln -s tar_scm $(DESTDIR)$(mylibdir)/appimage
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/snapcraft
-	install -m 0644 tar.service $(DESTDIR)$(mylibdir)/tar.service
-	install -m 0644 snapcraft.service $(DESTDIR)$(mylibdir)/snapcraft.service
+	install -m 0644 tar.service $(DESTDIR)$(mylibdir)/
+	install -m 0644 snapcraft.service $(DESTDIR)$(mylibdir)/
+	install -m 0644 appimage.service $(DESTDIR)$(mylibdir)/
 	sed -e '/^===OBS_ONLY/,/^===/d' -e '/^===/d' tar_scm.service.in > $(DESTDIR)$(mylibdir)/tar_scm.service
 	sed -e '/^===TAR_ONLY/,/^===/d' -e '/^===/d' tar_scm.service.in > $(DESTDIR)$(mylibdir)/obs_scm.service
 
