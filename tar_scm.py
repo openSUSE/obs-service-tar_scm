@@ -262,7 +262,7 @@ class TarSCM:
             d = {"parent_tag": None, "versionformat": "%ct"}
             timestamp = self.detect_version(d, repodir)
             # avoid future times due to broken commits
-            if datetime.datetime.fromtimestamp(timestamp) > datetime.datetime.now():
+            if datetime.datetime.fromtimestamp(float(timestamp)) > datetime.datetime.now():
                   timestamp = datetime.datetime.now()
             return int(timestamp)
 
@@ -1227,7 +1227,6 @@ def main():
         f.close()
         # run for each scm an own task
         for url in dataMap['build']['git']:
-            args.clone_prefix = "_obs_"
             args.url = url
             args.scm = "git"
             singletask(True, args)
@@ -1318,7 +1317,7 @@ def singletask(use_obs_scm, args):
     version = get_version(scm_object, args, clone_dir)
     changesversion = version
     if version and not sys.argv[0].endswith("/tar") \
-       and not sys.argv[0].endswith("/snapcraft"):
+       and not sys.argv[0].endswith("/snapcraft") and not sys.argv[0].endswith("/appimage"):
         dstname += '-' + version
 
     logging.debug("DST: %s", dstname)
