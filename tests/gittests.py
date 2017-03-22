@@ -226,3 +226,12 @@ class GitTests(GitHgTests, GitSvnTests):
         fix.safe_run('checkout tag2')
         fix.create_commits(3)
         fix.safe_run('tag -a -m some_message detached_tag')
+
+    def test_versionrewrite(self):
+        fix = self.fixtures
+        fix.create_commits(2)
+        self.tar_scm_std("--revision", 'tag2',
+                         "--versionrewrite-pattern", 'tag(\d+)',
+                         "--versionrewrite-replacement", '\\1-test',
+                         "--versionformat", "@PARENT_TAG@")
+        self.assertTarOnly(self.basename(version="2-test"))

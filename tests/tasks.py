@@ -182,6 +182,17 @@ version: 1.0
         v       = tasks.get_version(scm, self.cli)
         self.assertEqual(v, 'r.0.0.1')
 
+    def test_get_version_with_versionrewrite(self):
+        class FakeSCM():
+            def detect_version(self, args):
+                return 'v0.0.1'
+        self.cli.versionrewrite_pattern = 'v(\d[\d\.]*)'
+        self.cli.versionrewrite_replacement = '\\1-stable'
+        scm     = FakeSCM()
+        tasks   = TarSCM.tasks()
+        v       = tasks.get_version(scm, self.cli)
+        self.assertEqual(v, '0.0.1-stable')
+
     def test_process_list(self):
         tasks   = TarSCM.tasks()
         self.cli.snapcraft = False
