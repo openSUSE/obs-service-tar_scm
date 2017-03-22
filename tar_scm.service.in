@@ -77,6 +77,12 @@
   <parameter name="versionprefix">
     <description>Specify a base version as prefix.</description>
   </parameter>
+  <parameter name="match-tag">
+    <description>
+      With this parameter you can specifiy a glob pattern to filter relevant
+      tags in your project e.g. if you use @PARENT_TAG@
+    </description>
+  </parameter>
   <parameter name="parent-tag">
     <description>
       This parameter allows overriding the tag that is being used for
