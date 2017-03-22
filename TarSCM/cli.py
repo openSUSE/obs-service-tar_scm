@@ -35,8 +35,8 @@ class cli():
         parser.add_argument('--versionrewrite-pattern',
                             help='Regex used to rewrite the version which is '
                                  'applied post versionformat. For example, to '
-                                 'remove a tag prefix of "v" the regex "v(.*)" '
-                                 'could be used. See the '
+                                 'remove a tag prefix of "v" the regex "v(.*)"'
+                                 ' could be used. See the '
                                  'versionrewrite-replacement parameter.')
         parser.add_argument('--versionrewrite-replacement',
                             default=r'\1',

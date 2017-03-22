@@ -69,7 +69,8 @@ class TasksTestCases(unittest.TestCase):
         self.cli.appimage = True
         expected = {
             'scm': 'git', 'appimage': True,
-            'revision': None, 'url': 'https://github.com/probonopd/QtQuickApp.git',
+            'revision': None,
+            'url': 'https://github.com/probonopd/QtQuickApp.git',
             'use_obs_scm': True,
             'jailed': 0, 'outdir': self.cli.outdir, 'changesgenerate': False}
         self._cd_fixtures_dir()
@@ -121,9 +122,9 @@ class TasksTestCases(unittest.TestCase):
         expected = '''apps:
   pipelinetest:
     command: ./bin/test
-description: 'This is an example package of an autotools project built with snapcraft
+description: 'This is an example package of an autotools project built
 
-  using a remote source.
+  with snapcraft using a remote source.
 
   '
 name: pipelinetest

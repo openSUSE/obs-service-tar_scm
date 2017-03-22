@@ -85,15 +85,17 @@ class UnitTestCases(unittest.TestCase):
     def test_TarSCM_config_files_ordering(self):
         tc_name = inspect.stack()[0][3]
         files = [
-            [os.path.join(self.fixtures_dir, tc_name, 'a.cfg'),True],
-            [os.path.join(self.fixtures_dir, tc_name, 'b.cfg'),True],
+            [os.path.join(self.fixtures_dir, tc_name, 'a.cfg'), True],
+            [os.path.join(self.fixtures_dir, tc_name, 'b.cfg'), True],
         ]
         var = config(files).get(None, 'var')
         self.assertEqual(var, 'b')
 
     def test_TarSCM_config_no_faked_header(self):
         tc_name = inspect.stack()[0][3]
-        files   = [[os.path.join(self.fixtures_dir, tc_name, 'test.ini'),False]]
+        files   = [
+            [os.path.join(self.fixtures_dir, tc_name, 'test.ini'), False]
+        ]
         var     = config(files).get('general', 'apiurl')
         self.assertEqual(var, 'http://api.example.com')
         var     = config(files).get(var, 'email')
@@ -109,7 +111,7 @@ class UnitTestCases(unittest.TestCase):
 
         os.environ['DEBUG_TAR_SCM'] = "1"
 
-        files = [[os.path.join(self.fixtures_dir, tc_name, 'test.rc'),True]]
+        files = [[os.path.join(self.fixtures_dir, tc_name, 'test.rc'), True]]
         var = config(files).get(None, 'var')
         self.assertEqual(var, None)
 

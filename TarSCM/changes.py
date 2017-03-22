@@ -14,29 +14,29 @@ from TarSCM.config import config
 class changes():
     def import_xml_parser(self):
         """Import the best XML parser available.  Currently prefers lxml and
-        falls back to xml.etree.
+falls back to xml.etree.
 
-        There are some important differences in behaviour, which also
-        depend on the Python version being used:
+There are some important differences in behaviour, which also
+depend on the Python version being used:
 
-        | Python    | 2.6            | 2.6         | 2.7            | 2.7         |
-        |-----------+----------------+-------------+----------------+-------------|
-        | module    | lxml.etree     | xml.etree   | lxml.etree     | xml.etree   |
-        |-----------+----------------+-------------+----------------+-------------|
-        | empty     | XMLSyntaxError | ExpatError  | XMLSyntaxError | ParseError  |
-        | doc       | "Document is   | "no element | "Document is   | "no element |
-        |           | empty"         | found"      | empty          | found"      |
-        |-----------+----------------+-------------+----------------+-------------|
-        | syntax    | XMLSyntaxError | ExpatError  | XMLSyntaxError | ParseError  |
-        | error     | "invalid       | "not well-  | "invalid       | "not well-  |
-        |           | element name"  | formed"     | element name"  | formed"     |
-        |-----------+----------------+-------------+----------------+-------------|
-        | e.message | deprecated     | deprecated  | yes            | yes         |
-        |-----------+----------------+-------------+----------------+-------------|
-        | str()     | yes            | yes         | yes            | yes         |
-        |-----------+----------------+-------------+----------------+-------------|
-        | @attr     | yes            | no          | yes            | yes         |
-        | selection |                |             |                |             |
+| Python    | 2.6            | 2.6         | 2.7            | 2.7         |
+|-----------+----------------+-------------+----------------+-------------|
+| module    | lxml.etree     | xml.etree   | lxml.etree     | xml.etree   |
+|-----------+----------------+-------------+----------------+-------------|
+| empty     | XMLSyntaxError | ExpatError  | XMLSyntaxError | ParseError  |
+| doc       | "Document is   | "no element | "Document is   | "no element |
+|           | empty"         | found"      | empty          | found"      |
+|-----------+----------------+-------------+----------------+-------------|
+| syntax    | XMLSyntaxError | ExpatError  | XMLSyntaxError | ParseError  |
+| error     | "invalid       | "not well-  | "invalid       | "not well-  |
+|           | element name"  | formed"     | element name"  | formed"     |
+|-----------+----------------+-------------+----------------+-------------|
+| e.message | deprecated     | deprecated  | yes            | yes         |
+|-----------+----------------+-------------+----------------+-------------|
+| str()     | yes            | yes         | yes            | yes         |
+|-----------+----------------+-------------+----------------+-------------|
+| @attr     | yes            | no          | yes            | yes         |
+| selection |                |             |                |             |
         """
         global ET
 
@@ -210,7 +210,7 @@ class changes():
 
         # find changesauthor in $HOME/.oscrc
         try:
-            files = [[os.path.join(os.environ['HOME'], '.oscrc'),False]]
+            files = [[os.path.join(os.environ['HOME'], '.oscrc'), False]]
             cfg = config(files)
 
             changesauthor = None

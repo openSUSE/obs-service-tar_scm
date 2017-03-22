@@ -143,8 +143,8 @@ class scm():
     def prepare_clone_dir(self):
 
         # special case when using osc and creating an obscpio, use current work
-        # directory to allow the developer to work inside of the git repo and fetch
-        # local changes
+        # directory to allow the developer to work inside of the git repo and
+        # fetch local changes
         if sys.argv[0].endswith("snapcraft") or \
            (self.args.use_obs_scm and os.getenv('OSC_VERSION')):
             self.repodir = os.getcwd()
@@ -171,20 +171,18 @@ class scm():
         self.basename = os.path.basename(os.path.normpath(url_path))
         self.basename = prefix + self.basename
 
-
         osc_version = 0
 
         try:
             osc_version = os.environ['OSC_VERSION']
         except:
-          pass
-
+            pass
 
         if osc_version == 0:
             tempdir = tempfile.mkdtemp(dir=self.args.outdir)
             self.task.cleanup_dirs.append(tempdir)
         else:
-            tempdir =  os.getcwd()
+            tempdir = os.getcwd()
 
         self.repodir = os.path.join(tempdir, self.basename)
 
@@ -203,7 +201,10 @@ class scm():
     def is_sslverify_enabled(self):
         """Returns ``True`` if the ``sslverify`` option has been enabled or
         not been set (default enabled) ``False`` otherwise."""
-        return 'sslverify' not in self.args.__dict__ or self.args.__dict__['sslverify']
+        return (
+            'sslverify' not in self.args.__dict__ or
+            self.args.__dict__['sslverify']
+        )
 
     def version_iso_cleanup(self, version):
         """Reformat timestamp value."""

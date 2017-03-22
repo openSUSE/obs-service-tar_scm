@@ -18,10 +18,12 @@ except:
 class config():
     def __init__(
         self,
-        files=[['/etc/obs/services/tar_scm',True]]
+        files=[['/etc/obs/services/tar_scm', True]]
     ):
         try:
-            rc_file = [os.path.join(os.environ['HOME'], '.obs', 'tar_scm'),True]
+            rc_file = [
+                os.path.join(os.environ['HOME'], '.obs', 'tar_scm'), True
+            ]
             files.append(rc_file)
         except KeyError:
             pass

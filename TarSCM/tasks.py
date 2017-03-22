@@ -52,15 +52,16 @@ class tasks():
             args.use_obs_scm = True
             # run for each scm an own task
             for scm in scms:
-               if scm not in self.dataMap['build'].keys():
-                   continue
-               for url in self.dataMap['build'][scm]:
-                   args.url = url
-                   args.scm = scm
-                   self.task_list.append(copy.copy(args))
+                if scm not in self.dataMap['build'].keys():
+                    continue
+                for url in self.dataMap['build'][scm]:
+                    args.url = url
+                    args.scm = scm
+                    self.task_list.append(copy.copy(args))
 
         elif args.snapcraft:
-            # we read the SCM config from snapcraft.yaml instead getting it via parameters
+            # we read the SCM config from snapcraft.yaml instead getting it via
+            # parameters
             f = open('snapcraft.yaml')
             self.dataMap = yaml.safe_load(f)
             f.close()
