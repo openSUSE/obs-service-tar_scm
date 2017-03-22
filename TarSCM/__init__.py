@@ -19,6 +19,9 @@ def run():
     if os.path.basename(sys.argv[0]) == "obs_scm":
         _cli.use_obs_scm = True
 
+    if os.path.basename(sys.argv[0]) == "appimage":
+        _cli.appimage = True
+
     if os.path.basename(sys.argv[0]) == "snapcraft":
         _cli.snapcraft = True
 
