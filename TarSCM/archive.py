@@ -13,7 +13,7 @@ try:
 except:
     from StringIO import StringIO
 
-METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn).*')
+METADATA_PATTERN = re.compile(r'.*/\.(bzr|git(ignore)?|hg|svn)(\/.*|$)')
 
 
 class BaseArchive():
