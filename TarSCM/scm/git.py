@@ -126,10 +126,14 @@ class git(scm):
             versionformat = '%ct.%h'
 
         if not parent_tag:
-            rc, output = self.helpers.run_cmd(
-                ['git', 'describe', '--tags', '--abbrev=0'],
-                self.clone_dir
-            )
+            cmd = ['git', 'describe', '--tags', '--abbrev=0']
+            try:
+                if args['match_tag']:
+                    cmd.append("--match=%s" % args['match_tag'])
+            except KeyError:
+                pass
+            rc, output = self.helpers.run_cmd(cmd, self.clone_dir)
+
             if rc == 0:
                 # strip to remove newlines
                 parent_tag = output.strip()

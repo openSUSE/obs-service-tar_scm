@@ -47,6 +47,8 @@ class cli():
                             help='Specify a base version as prefix.')
         parser.add_argument('--parent-tag',
                             help='Override base commit for @TAG_OFFSET@')
+        parser.add_argument('--match-tag',
+                            help='tag must match glob(7)')
         parser.add_argument('--revision',
                             help='Specify revision to package')
         parser.add_argument('--extract', action='append',
