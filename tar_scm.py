@@ -226,27 +226,36 @@ class TarSCM:
             if versionformat is None:
                 versionformat = '%ct.%h'
 
+            abbrev = args['tag_abbrev']
+            if abbrev is None:
+                abbrev = 0
+
+            version = version_iso_cleanup(safe_run(['git', 'log', '-n1',
+                                                    '--date=short',
+                                                    "--pretty=format:%s" %
+                                                    versionformat],
+                                                    repodir)[1])
+
             if not parent_tag:
-                rc, output = self.helpers.run_cmd(['git', 'describe', '--tags', '--abbrev=0'],
-                                     repodir)
+                rc, output = self.helpers.run_cmd(['git', 'describe', '--tags',
+                                                   '--abbrev={0}'.format(abbrev)], repodir)
                 if rc == 0:
                     # strip to remove newlines
                     parent_tag = output.strip()
-            if re.match('.*@PARENT_TAG@.*', versionformat):
+            if re.match('.*@PARENT_TAG@.*', version):
                 if parent_tag:
-                    versionformat = re.sub('@PARENT_TAG@', parent_tag, versionformat)
+                    version = re.sub('@PARENT_TAG@', parent_tag, version)
                 else:
                     sys.exit("\033[31mNo parent tag present for the checked out "
                              "revision, thus @PARENT_TAG@ cannot be expanded.\033[0m")
 
-            if re.match('.*@TAG_OFFSET@.*', versionformat):
+            if re.match('.*@TAG_OFFSET@.*', version):
                 if parent_tag:
                     rc, output = self.helpers.run_cmd(['git', 'rev-list', '--count',
                                           parent_tag + '..HEAD'], repodir)
                     if not rc:
                         tag_offset = output.strip()
-                        versionformat = re.sub('@TAG_OFFSET@', tag_offset,
-                                               versionformat)
+                        version = re.sub('@TAG_OFFSET@', tag_offset, version)
                     else:
                         sys.exit("\033[31m@TAG_OFFSET@ can not be expanded: " +
                                  output + "\033[0m")
@@ -256,10 +265,10 @@ class TarSCM:
 
             version = self.helpers.safe_run(['git', 'log', '-n1', '--date=short',
                                 "--pretty=format:%s" % versionformat], repodir)[1]
-            return version_iso_cleanup(version)
+            return version_iso_cleanup(version, '.')
 
         def get_timestamp(self, args, repodir):
-            d = {"parent_tag": None, "versionformat": "%ct"}
+            d = {"parent_tag": None, "versionformat": "%ct", "tag_abbrev": 0}
             timestamp = self.detect_version(d, repodir)
             return int(timestamp)
 
@@ -799,12 +808,12 @@ def cleanup(dirs):
         shutil.rmtree(d)
 
 
-def version_iso_cleanup(version):
+def version_iso_cleanup(version, char=''):
     """Reformat timestamp value."""
     version = re.sub(r'([0-9]{4})-([0-9]{2})-([0-9]{2}) +'
                      r'([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?'
                      r'( +[-+][0-9]{3,4})', r'\1\2\3T\4\6\8', version)
-    version = re.sub(r'[-:]', '', version)
+    version = re.sub(r'[-:]', char, version)
     return version
 
 
@@ -1109,6 +1118,8 @@ def parse_args():
                              'using this format string.  This parameter is '
                              'used if the \'version\' parameter is not '
                              'specified.')
+    parser.add_argument('--tag-abbrev',
+                        help='Abbreviate @PARENT_TAG@')
     parser.add_argument('--versionprefix',
                         help='Specify a base version as prefix.')
     parser.add_argument('--parent-tag',
