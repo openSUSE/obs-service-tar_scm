@@ -15,6 +15,7 @@ from hgtests  import HgTests
 from bzrtests import BzrTests
 from testenv import TestEnvironment
 from unittestcases import UnitTestCases
+from tasks import TasksTestCases
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
@@ -25,7 +26,8 @@ if __name__ == '__main__':
         GitTests,
         HgTests,
         BzrTests,
-        UnitTestCases
+        UnitTestCases,
+        TasksTestCases
     ]
 
     if len(sys.argv) == 1:
