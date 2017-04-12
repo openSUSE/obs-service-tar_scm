@@ -7,7 +7,6 @@ import os
 import re
 import shutil
 import sys
-import unittest
 
 
 
@@ -19,6 +18,11 @@ from testenv import TestEnvironment
 from unittestcases import UnitTestCases
 from snapcraft import SnapcraftTestCases
 
+
+if sys.version_info < (2, 7):
+    import unittest2 as unittest
+else:
+    import unittest
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
@@ -69,10 +73,9 @@ if __name__ == '__main__':
         # 'verbosity' : 2,
     }
     major, minor, micro, releaselevel, serial = sys.version_info
-    if major > 2 or (major == 2 and minor >= 7):
-        # New in 2.7
-        runner_args['buffer'] = True
-        # runner_args['failfast'] = True
+    # New in 2.7 but available in earlier versions via unittest2
+    runner_args['buffer'] = True
+    # runner_args['failfast'] = True
 
     runner = unittest.TextTestRunner(**runner_args)
     result = runner.run(suite)

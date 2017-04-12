@@ -1,6 +1,5 @@
 #!/usr/bin/env python2
 
-import unittest
 import sys
 import os
 from mock import patch
@@ -8,6 +7,11 @@ from mock import patch
 import TarSCM
 import argparse
 
+
+if sys.version_info < (2, 7):
+    import unittest2 as unittest
+else:
+    import unittest
 class UnitTestCases(unittest.TestCase):
 
     def test_calc_dir_to_clone_to(self):

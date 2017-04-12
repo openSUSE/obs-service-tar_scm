@@ -1,4 +1,3 @@
-import unittest
 import sys
 import os
 import argparse
@@ -8,6 +7,10 @@ from mock import patch
 
 from tar_scm import TarSCM
 
+if sys.version_info < (2, 7):
+    import unittest2 as unittest
+else:
+    import unittest
 
 class SnapcraftTestCases(unittest.TestCase):
     def setUp(self):
