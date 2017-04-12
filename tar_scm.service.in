@@ -61,6 +61,23 @@
       For bzr and svn, '%r' is expanded to the revision, and is the default.
     </description>
   </parameter>
+  <parameter name="tagpattern">
+    <description>
+      Format @PARENT_TAG@ after it was received from git.
+      tagpattern is a patern parameter for re.sub and tagrepl is repl parameter for it.
+      please check Python re.sub documentation for the details.
+      Example:
+        tag: V2.5-dev-15
+        tagpattern: \S(\d).(\d)-dev-(\d+)
+        tagrepl: \1.\2~dev\3
+        result: 2.5~dev15
+    </description>
+  </parameter>
+  <parameter name="tagrepl">
+    <description>
+      Second parameter for re.sub to format @PARENT_TAG@, should be used with tagpattern.
+    </description>
+  </parameter>
   <parameter name="versionprefix">
     <description>Specify a base version as prefix.</description>
   </parameter>

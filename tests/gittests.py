@@ -96,6 +96,13 @@ class GitTests(GitHgTests, GitSvnTests):
         self.tar_scm_std('--versionformat', "@PARENT_TAG@.1")
         self.assertTarOnly(self.basename(version=self.rev(2)) + '.1')
 
+    def test_versionformat_parenttag_format(self):
+        self.tar_scm_std('--parent-tag', 'V2.5-dev-15',
+                         '--versionformat', '@PARENT_TAG@',
+                         '--tagpattern', r'\S(\d).(\d)-dev-(\d+)',
+                         '--tagrepl', r'\1.\2~dev\3')
+        self.assertTarOnly(self.basename(version="2.5~dev15"))
+
     def test_versionformat_tagoffset(self):
         self.tar_scm_std('--versionformat', "@PARENT_TAG@.@TAG_OFFSET@")
         self.assertTarOnly(self.basename(version=self.rev(2) + ".0"))
