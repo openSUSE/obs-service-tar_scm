@@ -198,6 +198,8 @@ class UnitTestCases(unittest.TestCase):
             repohash,
             'b9761648b96f105d82a97b8a81f1ca060b015a3f882ef9a55ae6b5bf7be0d48a')
 
+    @unittest.skip("Broken test, relies on a fixture set which is a .git file"
+                   " which is excluded while package building")
     def test_obscpio_create_archive(self):
         tc_name              = inspect.stack()[0][3]
         cl_name              = self.__class__.__name__
