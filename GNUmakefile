@@ -62,6 +62,14 @@ flake8: $(PY_FILES)
 	fi
 	$(LIST_PY_FILES) | xargs flake8 --ignore=E221,E241,E251,E272,E731
 
+.PHONY: pylint
+pylint: $(PY_FILES)
+	@if ! which pylint >/dev/null 2>&1; then \
+		echo "pylint not installed!  Aborting." >&2; \
+		exit 1; \
+	fi
+	$(LIST_PY_FILES) | xargs pylint
+
 .PHONY: test
 test:
 	: Running the test suite.  Please be patient - this takes a few minutes ...

@@ -2,6 +2,7 @@ flake8
 lxml
 mock
 pep8
+pylint
 python-dateutil
 PyYAML
 unittest2
