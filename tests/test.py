@@ -7,7 +7,6 @@ import os
 import re
 import shutil
 import sys
-import unittest
 
 from gittests import GitTests
 from svntests import SvnTests
@@ -15,17 +14,26 @@ from hgtests  import HgTests
 from bzrtests import BzrTests
 from testenv import TestEnvironment
 from unittestcases import UnitTestCases
+from tasks import TasksTestCases
+from scm import SCMBaseTestCases
+
+if sys.version_info < (2, 7):
+    import unittest2 as unittest
+else:
+    import unittest
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     testclasses = [
         # If you are only interested in a particular VCS, you can
         # temporarily comment out any of these:
-        SvnTests,
+        UnitTestCases,
+        TasksTestCases,
+        SCMBaseTestCases,
         GitTests,
+        SvnTests,
         HgTests,
-        BzrTests,
-        UnitTestCases
+        BzrTests
     ]
 
     if len(sys.argv) == 1:
@@ -40,6 +48,8 @@ if __name__ == '__main__':
         #   suite.addTest(HgTests('test_version_versionformat'))
         #   suite.addTest(HgTests('test_versionformat_dateYYYYMMDD'))
         test_class = GitTests
+        # test_class = TasksTestCases
+        # test_class = UnitTestCases
         to_run = {}
         for arg in sys.argv[1:]:
             m = re.match('^/(.+)/$', arg)
@@ -62,10 +72,9 @@ if __name__ == '__main__':
         # 'verbosity' : 2,
     }
     major, minor, micro, releaselevel, serial = sys.version_info
-    if major > 2 or (major == 2 and minor >= 7):
-        # New in 2.7
-        runner_args['buffer'] = True
-        # runner_args['failfast'] = True
+    # New in 2.7 but available in earlier versions via unittest2
+    runner_args['buffer'] = True
+    # runner_args['failfast'] = True
 
     runner = unittest.TextTestRunner(**runner_args)
     result = runner.run(suite)

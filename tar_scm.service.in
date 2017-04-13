@@ -61,8 +61,27 @@
       For bzr and svn, '%r' is expanded to the revision, and is the default.
     </description>
   </parameter>
+  <parameter name="versionrewrite-pattern">
+    <description>
+      Regex used to rewrite the version which is applied post versionformat. For
+      example, to remove a tag prefix of "v" the regex "v(.*)" could be used.
+      See the versionrewrite-replacement parameter.
+    </description>
+  </parameter>
+  <parameter name="versionrewrite-replacement">
+    <description>
+      Replacement applied to rewrite pattern. Typically backreferences are
+      useful and as such defaults to \1.
+    </description>
+  </parameter>
   <parameter name="versionprefix">
     <description>Specify a base version as prefix.</description>
+  </parameter>
+  <parameter name="match-tag">
+    <description>
+      With this parameter you can specifiy a glob pattern to filter relevant
+      tags in your project e.g. if you use @PARENT_TAG@
+    </description>
   </parameter>
   <parameter name="parent-tag">
     <description>

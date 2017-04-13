@@ -40,7 +40,7 @@ class GitFixtures(Fixtures):
         self.safe_run('init')
         self.safe_run('config user.name  ' + self.user_name)
         self.safe_run('config user.email ' + self.user_email)
-        print "created repo", repo_path
+        print("created repo %s" % repo_path)
 
     def get_metadata(self, formatstr):
         return self.safe_run('log -n1 --pretty=format:"%s"' % formatstr)[0]

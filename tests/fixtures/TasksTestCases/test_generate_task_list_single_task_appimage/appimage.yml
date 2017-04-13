@@ -1,0 +1,9 @@
+app: QtQuickApp
+
+build:
+  packages:
+    - linuxdeployqt
+    - pkgconfig(Qt5Quick)
+  git:
+    - https://github.com/probonopd/QtQuickApp.git
+

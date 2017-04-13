@@ -4,13 +4,18 @@ import datetime
 import os
 import shutil
 import sys
-
-from utils   import mkfreshdir, run_cmd
+import logging
+from utils import mkfreshdir, run_cmd
 from scmlogs import ScmInvocationLogs
+import TarSCM
+
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO
 
 
 class TestEnvironment:
-
     """Framework for testing tar_scm.
 
     This class provides methods for:
@@ -19,10 +24,9 @@ class TestEnvironment:
         'osc service' would provide, and
       - running tar_scm inside that environment.
     """
-
-    tests_dir   = os.path.abspath(os.path.dirname(__file__))  # os.getcwd()
-    tmp_dir     = os.path.join(tests_dir, 'tmp')
-    is_setup    = False
+    tests_dir = os.path.abspath(os.path.dirname(__file__))  # os.getcwd()
+    tmp_dir   = os.path.join(tests_dir, 'tmp')
+    is_setup  = False
 
     @classmethod
     def tar_scm_bin(cls):
@@ -41,6 +45,7 @@ class TestEnvironment:
         print("--v-v-- begin setupClass for %s --v-v--" % cls.__name__)
         ScmInvocationLogs.setup_bin_wrapper(cls.scm, cls.tmp_dir)
         os.putenv('DEBUG_TAR_SCM', 'yes')
+        os.environ['DEBUG_TAR_SCM'] = 'yes'
         cls.is_setup = True
         print("--^-^-- end   setupClass for %s --^-^--" % cls.__name__)
         print
@@ -82,6 +87,7 @@ class TestEnvironment:
         self.scmlogs.annotate('Starting %s test' % self.test_name)
 
         os.putenv('CACHEDIRECTORY', self.cachedir)
+        os.environ['CACHEDIRECTORY'] = self.cachedir
         print("--^-^-- end   setUp for %s --^-^--" % self.test_name)
 
     def initDirs(self):
@@ -94,12 +100,14 @@ class TestEnvironment:
 
         # Tests should not depend on the contents of $HOME
         os.putenv('HOME', self.homedir)
+        os.environ['HOME'] = self.homedir
 
         for subdir in ('repo', 'repourl', 'incoming'):
             mkfreshdir(os.path.join(self.cachedir, subdir))
 
     def disableCache(self):
         os.unsetenv('CACHEDIRECTORY')
+        os.environ['CACHEDIRECTORY'] = ""
 
     def tearDown(self):
         print
@@ -165,26 +173,62 @@ class TestEnvironment:
         os.chdir(self.pkgdir)
 
         cmdargs = args + ['--outdir', self.outdir]
-        quotedargs = ["'%s'" % arg for arg in cmdargs]
-        cmdstr = " ".join([sys.executable, self.tar_scm_bin()] + quotedargs)
-        print
-        print ">>>>>>>>>>>"
-        print "Running", cmdstr
-        print
-        (stdout, stderr, ret) = run_cmd(cmdstr)
+        sys.argv = [self.tar_scm_bin()] + cmdargs
+
+        old_stdout = sys.stdout
+        mystdout   = StringIO()
+        sys.stdout = mystdout
+
+        old_stderr = sys.stderr
+        mystderr   = StringIO()
+        sys.stderr = mystderr
+
+        cmdstr = " ".join(sys.argv)
+        print()
+        print(">>>>>>>>>>>")
+        print("Running %s" % cmdstr)
+        print()
+
+        try:
+            TarSCM.run()
+        except SystemExit as e:
+            if e.code == 0:
+                ret = 0
+                succeeded = True
+            else:
+                sys.stderr.write(e.code)
+                ret = 1
+                succeeded = False
+        except (NameError, AttributeError) as e:
+            sys.stderr.write(e)
+            ret = 1
+            succeeded = False
+        except Exception as e:
+            sys.stderr.write(e.message)
+            ret = 1
+            succeeded = False
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+
+        stdout = mystdout.getvalue()
+        stderr = mystderr.getvalue()
+
         if stdout:
-            print "--v-v-- begin STDOUT from tar_scm --v-v--"
-            print stdout,
-            print "--^-^-- end   STDOUT from tar_scm --^-^--"
+            print("--v-v-- begin STDOUT from tar_scm --v-v--")
+            print(stdout)
+            print("--^-^-- end   STDOUT from tar_scm --^-^--")
+
         if stderr:
-            print "\n"
-            print "--v-v-- begin STDERR from tar_scm --v-v--"
-            print stderr,
-            print "--^-^-- end   STDERR from tar_scm --^-^--"
-        succeeded = ret == 0
+            print("\n")
+            print("--v-v-- begin STDERR from tar_scm --v-v--")
+            print(stderr)
+            print("--^-^-- end   STDERR from tar_scm --^-^--")
+
         self.assertEqual(succeeded, should_succeed,
                          "expected tar_scm to " +
                          ("succeed" if should_succeed else "fail"))
+
         return (stdout, stderr, ret)
 
     def rev(self, rev):

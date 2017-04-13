@@ -226,3 +226,58 @@ class GitTests(GitHgTests, GitSvnTests):
         fix.safe_run('checkout tag2')
         fix.create_commits(3)
         fix.safe_run('tag -a -m some_message detached_tag')
+
+    def test_versionrewrite(self):
+        fix = self.fixtures
+        fix.create_commits(2)
+        self.tar_scm_std("--revision", 'tag2',
+                         "--versionrewrite-pattern", 'tag(\d+)',
+                         "--versionrewrite-replacement", '\\1-test',
+                         "--versionformat", "@PARENT_TAG@")
+        self.assertTarOnly(self.basename(version="2-test"))
+
+    def test_match_tag(self):
+        fix = self.fixtures
+        fix.create_commits(2)
+        fix.safe_run('tag latest')
+        repo_path = fix.repo_path
+        os.chdir(repo_path)
+        self.tar_scm_std("--match-tag", 'tag*',
+                         "--versionformat", "@PARENT_TAG@")
+        self.assertTarOnly(self.basename(version="tag4"))
+        self.tar_scm_std("--versionformat", "@PARENT_TAG@")
+        self.assertTarOnly(self.basename(version="latest"))
+
+    def test_gitlab_github_files(self):
+        fix = self.fixtures
+        fix.create_commits(2)
+        fix.safe_run('tag latest')
+        repo_path = fix.repo_path
+        os.chdir(repo_path)
+        os.makedirs("./.gitlab")
+        os.makedirs("./.github")
+        fh = open('./.gitlab/test', 'a')
+        fh.close()
+        fh = open('./.github/test', 'a')
+        fh.close()
+        fix.safe_run('add .')
+        fix.safe_run('commit -a -m "github/gitlab"')
+        fix.safe_run('tag gitlab_hub')
+        self.tar_scm_std("--revision", "gitlab_hub", "--match-tag",
+                         'gitlab_hub', "--versionformat", "@PARENT_TAG@")
+        tar_path = os.path.join(self.outdir,
+                                self.basename(version='gitlab_hub') + '.tar')
+        th = tarfile.open(tar_path)
+        submod_path = os.path.join(self.basename(version='gitlab_hub'))
+        print("...... th: %s" % th)
+        print("...... submod_path: %s" % submod_path)
+        self.assertTarMemberContains(th, os.path.join(
+            submod_path,
+            '.github/test'),
+            ''
+        )
+        self.assertTarMemberContains(th, os.path.join(
+            submod_path,
+            '.gitlab/test'),
+            ''
+        )

@@ -1,0 +1,6 @@
+lxml
+mock
+pep8
+python-dateutil
+PyYAML
+unittest2
