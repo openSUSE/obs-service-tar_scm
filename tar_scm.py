@@ -261,6 +261,9 @@ class TarSCM:
         def get_timestamp(self, args, repodir):
             d = {"parent_tag": None, "versionformat": "%ct"}
             timestamp = self.detect_version(d, repodir)
+            # avoid future times due to broken commits
+            if datetime.datetime.fromtimestamp(float(timestamp)) > datetime.datetime.now():
+                  timestamp = datetime.datetime.now()
             return int(timestamp)
 
         def get_current_commit(self, clone_dir):
@@ -1217,7 +1220,18 @@ def main():
     if sys.argv[0].endswith("obs_scm"):
         use_obs_scm = True
 
-    if sys.argv[0].endswith("snapcraft"):
+    if sys.argv[0].endswith("appimage"):
+        # we read the SCM config from snapcraft.yaml instead from _service file
+        f = open('appimage.yml')
+        dataMap = yaml.safe_load(f)
+        f.close()
+        # run for each scm an own task
+        for url in dataMap['build']['git']:
+            args.url = url
+            args.scm = "git"
+            singletask(True, args)
+
+    elif sys.argv[0].endswith("snapcraft"):
         # we read the SCM config from snapcraft.yaml instead from _service file
         f = open('snapcraft.yaml')
         dataMap = yaml.safe_load(f)
@@ -1303,7 +1317,7 @@ def singletask(use_obs_scm, args):
     version = get_version(scm_object, args, clone_dir)
     changesversion = version
     if version and not sys.argv[0].endswith("/tar") \
-       and not sys.argv[0].endswith("/snapcraft"):
+       and not sys.argv[0].endswith("/snapcraft") and not sys.argv[0].endswith("/appimage"):
         dstname += '-' + version
 
     logging.debug("DST: %s", dstname)
