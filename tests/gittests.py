@@ -4,12 +4,10 @@ import datetime
 import os
 import re
 import tarfile
-import textwrap
 
 from githgtests  import GitHgTests
 from gitsvntests import GitSvnTests
 from gitfixtures import GitFixtures
-from utils       import run_git
 
 
 class GitTests(GitHgTests, GitSvnTests):

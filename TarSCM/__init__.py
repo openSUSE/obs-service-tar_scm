@@ -2,10 +2,7 @@ import sys
 import os
 
 from TarSCM.tasks      import tasks
-from TarSCM.helpers    import helpers
 from TarSCM.cli        import cli
-from TarSCM.archive    import tar
-from TarSCM.archive    import obscpio
 from TarSCM.exceptions import OptionsError
 
 

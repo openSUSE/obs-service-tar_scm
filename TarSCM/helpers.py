@@ -3,12 +3,6 @@ import os
 import logging
 import subprocess
 
-# python3 renaming of StringIO
-try:
-    import StringIO
-except:
-    from io import StringIO
-
 
 class helpers():
     def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False):

@@ -2,11 +2,9 @@
 
 import os
 import re
-import textwrap
 
 from gitsvntests import GitSvnTests
 from svnfixtures import SvnFixtures
-from utils       import run_svn
 
 
 class SvnTests(GitSvnTests):

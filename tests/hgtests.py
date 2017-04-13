@@ -5,7 +5,6 @@ import time
 
 from githgtests import GitHgTests
 from hgfixtures import HgFixtures
-from utils      import run_hg
 
 
 class HgTests(GitHgTests):

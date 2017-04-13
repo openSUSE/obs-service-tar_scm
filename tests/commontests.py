@@ -2,7 +2,7 @@
 
 import os
 
-from pprint         import pprint, pformat
+from pprint         import pformat
 
 from testassertions import TestAssertions
 from testenv        import TestEnvironment

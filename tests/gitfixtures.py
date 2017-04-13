@@ -3,7 +3,7 @@
 import os
 
 from fixtures import Fixtures
-from utils    import mkfreshdir, run_git
+from utils    import run_git
 
 
 class GitFixtures(Fixtures):

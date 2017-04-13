@@ -1,11 +1,6 @@
-import sys
 import os
-import argparse
-import inspect
-import re
-import copy
 import shutil
-from mock import MagicMock
+import sys
 
 from TarSCM.scm.base import scm
 
@@ -19,12 +14,12 @@ else:
 
 class SCMBaseTestCases(unittest.TestCase):
     def setUp(self):
-        self.basedir        = os.path.abspath(os.path.dirname(__file__))
+        self.basedir = os.path.abspath(os.path.dirname(__file__))
         # os.getcwd()
-        self.tests_dir      = os.path.abspath(os.path.dirname(__file__))
-        self.tmp_dir        = os.path.join(self.tests_dir, 'tmp')
-        self.outdir         = os.path.join(self.tmp_dir,
-                                           self.__class__.__name__, 'out')
+        self.tests_dir = os.path.abspath(os.path.dirname(__file__))
+        self.tmp_dir = os.path.join(self.tests_dir, 'tmp')
+        self.outdir = os.path.join(self.tmp_dir,
+                                   self.__class__.__name__, 'out')
         self._prepare_cli()
 
     def tearDown(self):
@@ -36,7 +31,7 @@ class SCMBaseTestCases(unittest.TestCase):
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
         self.cli.parse_args(['--outdir', self.outdir, '--scm', 'git'])
-        self.cli.snapcraft  = True
+        self.cli.snapcraft = True
 
     def test_prep_tree_for_archive(self):
         tasks = TarSCM.tasks()

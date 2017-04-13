@@ -37,7 +37,10 @@ PY_FILES=$(shell $(LIST_PY_FILES))
 default: check
 
 .PHONY: check
-check: pep8 test
+check: lint test
+
+.PHONY: lint
+lint: pep8 flake8
 
 .PHONY: list-py-files
 list-py-files:
@@ -49,7 +52,15 @@ pep8: $(PY_FILES)
 		echo "pep8 not installed!  Cannot check PEP8 compliance; aborting." >&2; \
 		exit 1; \
 	fi
-	$(LIST_PY_FILES) | xargs pep8 --ignore=E221,E251,E272,E241,E731
+	$(LIST_PY_FILES) | xargs pep8 --ignore=E221,E241,E251,E272,E731
+
+.PHONY: flake8
+flake8: $(PY_FILES)
+	@if ! which flake8 >/dev/null 2>&1; then \
+		echo "flake8 not installed!  Aborting." >&2; \
+		exit 1; \
+	fi
+	$(LIST_PY_FILES) | xargs flake8 --ignore=E221,E241,E251,E272,E731
 
 .PHONY: test
 test:

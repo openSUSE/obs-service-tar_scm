@@ -41,7 +41,6 @@ class hg(scm):
         """
         Automatic detection of version number for checked-out HG repository.
         """
-        parent_tag      = args['parent_tag']
         versionformat   = args['versionformat']
         if versionformat is None:
             versionformat = '{rev}'

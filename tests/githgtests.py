@@ -1,9 +1,6 @@
 #!/usr/bin/env python2
 
-import os
-
 from commontests import CommonTests
-from utils       import run_hg
 
 
 class GitHgTests(CommonTests):

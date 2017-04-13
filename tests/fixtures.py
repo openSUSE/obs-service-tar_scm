@@ -56,7 +56,6 @@ class Fixtures:
 
         if wd is None:
             wd = self.wd
-        orig_wd = os.getcwd()
         os.chdir(wd)
 
         for i in range(0, num_commits):

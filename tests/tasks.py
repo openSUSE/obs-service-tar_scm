@@ -1,9 +1,6 @@
 import sys
 import os
-import argparse
 import inspect
-import re
-import copy
 import shutil
 from mock import MagicMock
 
@@ -151,7 +148,6 @@ version: 1.0
             os.makedirs(self.cli.outdir)
         tasks.generate_list(self.cli)
         tasks.finalize(self.cli)
-        i = 0
         self._restore_cwd()
         sf  = open(os.path.join(self.cli.outdir,
                                 '_service:snapcraft:snapcraft.yaml'), 'r')
