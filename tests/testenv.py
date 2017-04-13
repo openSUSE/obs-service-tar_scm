@@ -1,8 +1,11 @@
 #!/usr/bin/env python2
 
+from __future__ import print_function
+
 import os
 import shutil
 import sys
+
 from utils import mkfreshdir
 from scmlogs import ScmInvocationLogs
 import TarSCM

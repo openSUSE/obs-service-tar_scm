@@ -52,10 +52,10 @@ class obscpio(BaseArchive):
         archivefile     = open(archivefilename, "w")
         proc            = subprocess.Popen(
             ['cpio', '--create', '--format=newc'],
-            shell  = False,
-            stdin  = subprocess.PIPE,
-            stdout = archivefile,
-            stderr = subprocess.STDOUT
+            shell=False,
+            stdin=subprocess.PIPE,
+            stdout=archivefile,
+            stderr=subprocess.STDOUT
         )
 
         # transform glob patterns to regular expressions

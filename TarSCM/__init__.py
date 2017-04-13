@@ -28,8 +28,8 @@ def run():
 
     try:
         task_list.process_list()
-    except OptionsError as e:
-        print(e)
+    except OptionsError as exc:
+        print(exc)
         sys.exit(1)
 
     task_list.finalize(_cli)
