@@ -104,6 +104,15 @@ class obscpio(BaseArchive):
 
         if commit:
             metafile.write("commit: " + commit + "\n")
+            names = {"%ci": "commit_date: ",
+                     "%h": "short_commit_hash: ",
+                     "@TAG_OFFSET@": "commits_since_last_tag: "}
+
+            for field in ("%h", "%ci", "@TAG_OFFSET@"):
+                fake_args = args.copy()
+                fake_args["versionformat"] = field
+                value = str(scm_object.detect_version(fake_args))
+                metafile.write(names[field] + value + "\n")
 
         metafile.close()
 
