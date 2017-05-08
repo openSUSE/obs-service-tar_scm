@@ -106,6 +106,12 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.tar_scm_std('--filename', filename, '--version', version)
         self.assertTarOnly(self.basename(filename, version))
 
+    def test_filename_without_version(self):
+        filename = 'myfilename'
+        self.fixtures.create_commits(1)
+        self.tar_scm_std('--filename', filename, '--version', '_none_')
+        th = self.assertTarOnly(filename)
+
     def test_revision_nop(self):
         self.tar_scm_std('--revision', self.rev(2))
         th = self.assertTarOnly(self.basename())

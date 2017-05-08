@@ -204,6 +204,8 @@ class tasks():
         versionprefix if given as cli option
         '''
         version = args.version
+        if version == '_none_':
+            return ''
         if version == '_auto_' or args.versionformat:
             version = self.detect_version(scm_object, args)
         if args.versionrewrite_pattern:
