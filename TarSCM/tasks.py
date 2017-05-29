@@ -1,3 +1,6 @@
+'''
+This module contains the class tasks
+'''
 import glob
 import copy
 import atexit
@@ -16,6 +19,10 @@ import yaml
 
 
 class tasks():
+    '''
+    Class to create a task list for formats which can contain more then one scm
+    job like snapcraft or appimage
+    '''
     def __init__(self):
         self.task_list      = []
         self.cleanup_dirs   = []
@@ -119,7 +126,6 @@ class tasks():
         # self.scm_object is need to unlock cache in cleanup
         # if exception occurs
         self.scm_object = scm_object   = scm_class(args, self)
-        helpers      = scm_object.helpers
 
         scm_object.fetch_upstream()
 
