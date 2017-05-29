@@ -46,9 +46,14 @@ class tasks():
             self.dataMap = yaml.safe_load(f)
             f.close()
             args.use_obs_scm = True
+            build_scms = ()
+            try:
+                build_scms = self.dataMap['build'].keys()
+            except TypeError:
+                pass
             # run for each scm an own task
             for scm in scms:
-                if scm not in self.dataMap['build'].keys():
+                if scm not in build_scms:
                     continue
                 for url in self.dataMap['build'][scm]:
                     args.url = url
