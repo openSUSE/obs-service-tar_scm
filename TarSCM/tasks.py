@@ -29,15 +29,16 @@ class tasks():
         self.helpers        = helpers()
         self.changes        = changes()
         self.scm_object     = None
+        self.data_map       = None
 
     def cleanup(self):
         """Cleaning temporary directories."""
         logging.debug("Cleaning: %s", ' '.join(self.cleanup_dirs))
 
-        for d in self.cleanup_dirs:
-            if not os.path.exists(d):
+        for dirname in self.cleanup_dirs:
+            if not os.path.exists(dirname):
                 continue
-            shutil.rmtree(d)
+            shutil.rmtree(dirname)
         self.cleanup_dirs = []
         # Unlock to prevent dead lock in cachedir if exception
         # gets raised
@@ -53,20 +54,20 @@ class tasks():
 
         if args.appimage:
             # we read the SCM config from appimage.yml
-            f = open('appimage.yml')
-            self.dataMap = yaml.safe_load(f)
-            f.close()
+            filehandle = open('appimage.yml')
+            self.data_map = yaml.safe_load(filehandle)
+            filehandle.close()
             args.use_obs_scm = True
             build_scms = ()
             try:
-                build_scms = self.dataMap['build'].keys()
+                build_scms = self.data_map['build'].keys()
             except TypeError:
                 pass
             # run for each scm an own task
             for scm in scms:
                 if scm not in build_scms:
                     continue
-                for url in self.dataMap['build'][scm]:
+                for url in self.data_map['build'][scm]:
                     args.url = url
                     args.scm = scm
                     self.task_list.append(copy.copy(args))
@@ -74,24 +75,24 @@ class tasks():
         elif args.snapcraft:
             # we read the SCM config from snapcraft.yaml instead
             # getting it via parameters
-            f = open('snapcraft.yaml')
-            self.dataMap = yaml.safe_load(f)
-            f.close()
+            filehandle = open('snapcraft.yaml')
+            self.data_map = yaml.safe_load(filehandle)
+            filehandle.close()
             args.use_obs_scm = True
             # run for each part an own task
-            for part in self.dataMap['parts'].keys():
+            for part in self.data_map['parts'].keys():
                 args.filename = part
-                if 'source-type' not in self.dataMap['parts'][part].keys():
+                if 'source-type' not in self.data_map['parts'][part].keys():
                     continue
-                pep8_1 = self.dataMap['parts'][part]['source-type']
+                pep8_1 = self.data_map['parts'][part]['source-type']
                 if pep8_1 not in scms:
                     continue
                 # avoid conflicts with files
                 args.clone_prefix = "_obs_"
-                args.url = self.dataMap['parts'][part]['source']
-                self.dataMap['parts'][part]['source'] = part
-                args.scm = self.dataMap['parts'][part]['source-type']
-                del self.dataMap['parts'][part]['source-type']
+                args.url = self.data_map['parts'][part]['source']
+                self.data_map['parts'][part]['source'] = part
+                args.scm = self.data_map['parts'][part]['source-type']
+                del self.data_map['parts'][part]['source-type']
                 self.task_list.append(copy.copy(args))
 
         else:
@@ -114,15 +115,14 @@ class tasks():
             # if he is using us in "disabled" mode
             new_file = args.outdir + '/_service:snapcraft:snapcraft.yaml'
             with open(new_file, 'w') as outfile:
-                outfile.write(yaml.dump(self.dataMap,
+                outfile.write(yaml.dump(self.data_map,
                                         default_flow_style=False))
 
     def _process_single_task(self, args):
         '''
         do the work for a single task
         '''
-        FORMAT  = "%(message)s"
-        logging.basicConfig(format=FORMAT, stream=sys.stderr,
+        logging.basicConfig(format="%(message)s", stream=sys.stderr,
                             level=logging.INFO)
         if args.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
