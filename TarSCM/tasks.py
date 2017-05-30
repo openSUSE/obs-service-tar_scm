@@ -191,7 +191,8 @@ class tasks():
             for filename in glob.glob('*.changes'):
                 new_changes_file = os.path.join(args.outdir, filename)
                 shutil.copy(filename, new_changes_file)
-                self.changes.write_changes(new_changes_file, detected_changes['lines'],
+                self.changes.write_changes(new_changes_file,
+                                           detected_changes['lines'],
                                            changesversion, changesauthor)
             self.changes.write_changes_revision(args.url, args.outdir,
                                                 detected_changes['revision'])
