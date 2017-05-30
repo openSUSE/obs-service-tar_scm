@@ -157,7 +157,7 @@ class tasks():
 
         logging.debug("DST: %s", dstname)
 
-        changes = scm_object.detect_changes()
+        detected_changes = scm_object.detect_changes()
 
         scm_object.prep_tree_for_archive(args.subdir, args.outdir,
                                          dstname=dstname)
@@ -179,7 +179,7 @@ class tasks():
             cli       = args
         )
 
-        if changes:
+        if detected_changes:
             changesauthor = self.changes.get_changesauthor(args)
 
             logging.debug("AUTHOR: %s", changesauthor)
@@ -191,10 +191,10 @@ class tasks():
             for filename in glob.glob('*.changes'):
                 new_changes_file = os.path.join(args.outdir, filename)
                 shutil.copy(filename, new_changes_file)
-                self.changes.write_changes(new_changes_file, changes['lines'],
+                self.changes.write_changes(new_changes_file, detected_changes['lines'],
                                            changesversion, changesauthor)
             self.changes.write_changes_revision(args.url, args.outdir,
-                                                changes['revision'])
+                                                detected_changes['revision'])
 
     def get_version(self, scm_object, args):
         '''
