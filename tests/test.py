@@ -22,11 +22,17 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
+
+def str_to_class(string):
+    '''Convert string into class'''
+    return getattr(sys.modules[__name__], string)
+
 if __name__ == '__main__':
     suite = unittest.TestSuite()
     testclasses = [
         # If you are only interested in a particular VCS, you can
-        # temporarily comment out any of these:
+        # temporarily comment out any of these or use the env variable
+        # TAR_SCM_TC=<comma_separated_list> test.py
         UnitTestCases,
         TasksTestCases,
         SCMBaseTestCases,
@@ -36,6 +42,11 @@ if __name__ == '__main__':
         BzrTests
     ]
 
+    if os.getenv('TAR_SCM_TC'):
+        testclasses = []
+        for classname in os.environ['TAR_SCM_TC'].split(','):
+            testclasses.append(str_to_class(classname))
+
     if len(sys.argv) == 1:
         for testclass in testclasses:
             all_tests = unittest.TestLoader().loadTestsFromTestCase(testclass)
@@ -44,29 +55,25 @@ if __name__ == '__main__':
         # By default this uses the CLI args as string or regexp
         # matches for names of git tests, but you can tweak this to run
         # specific tests, e.g.:
-        #
-        #   suite.addTest(HgTests('test_version_versionformat'))
-        #   suite.addTest(HgTests('test_versionformat_dateYYYYMMDD'))
-        test_class = GitTests
-        # test_class = TasksTestCases
-        # test_class = UnitTestCases
-        to_run = {}
-        for arg in sys.argv[1:]:
-            m = re.match('^/(.+)/$', arg)
-            if m:
-                # regexp mode
-                regexp = m.group(1)
-                matcher = lambda t: re.search(regexp, t)
-            else:
-                matcher = lambda t: t == arg
-            for t in dir(test_class):
-                if not t.startswith('test_'):
-                    continue
-                if matcher(t):
-                    to_run[t] = True
+        # PYTHONPATH=.:tests tests/test.py test_versionformat
+        for test_class in testclasses:
+            to_run = {}
+            for arg in sys.argv[1:]:
+                m = re.match('^/(.+)/$', arg)
+                if m:
+                    # regexp mode
+                    regexp = m.group(1)
+                    matcher = lambda t: re.search(regexp, t)
+                else:
+                    matcher = lambda t: t == arg
+                for t in dir(test_class):
+                    if not t.startswith('test_'):
+                        continue
+                    if matcher(t):
+                        to_run[t] = True
 
-        for t in to_run.keys():
-            suite.addTest(test_class(t))
+            for t in to_run.keys():
+                suite.addTest(test_class(t))
 
     runner_args = {
         # 'verbosity' : 2,
