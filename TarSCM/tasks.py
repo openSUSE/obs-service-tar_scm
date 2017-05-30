@@ -1,3 +1,7 @@
+'''
+This module contains the class tasks
+'''
+
 import glob
 import copy
 import atexit
@@ -16,6 +20,10 @@ import yaml
 
 
 class tasks():
+    '''
+    Class to create a task list for formats which can contain more then one scm
+    job like snapcraft or appimage
+    '''
     def __init__(self):
         self.task_list      = []
         self.cleanup_dirs   = []
@@ -38,6 +46,10 @@ class tasks():
             self.scm_object.unlock_cache()
 
     def generate_list(self, args):
+        '''
+        Generate list of scm jobs from appimage.yml, snapcraft.yml or a single
+        job from cli arguments.
+        '''
         scms = ['git', 'tar', 'svn', 'bzr', 'hg']
 
         if args.appimage:
@@ -87,10 +99,16 @@ class tasks():
             self.task_list.append(args)
 
     def process_list(self):
+        '''
+        process tasks from the task_list
+        '''
         for task in self.task_list:
             self._process_single_task(task)
 
     def finalize(self, args):
+        '''
+        final steps after processing task list
+        '''
         if args.snapcraft:
             # write the new snapcraft.yaml file
             # we prefix our own here to be sure to not overwrite user files,
@@ -101,6 +119,9 @@ class tasks():
                                         default_flow_style=False))
 
     def _process_single_task(self, args):
+        '''
+        do the work for a single task
+        '''
         FORMAT  = "%(message)s"
         logging.basicConfig(format=FORMAT, stream=sys.stderr,
                             level=logging.INFO)
@@ -177,6 +198,11 @@ class tasks():
                                                 changes['revision'])
 
     def get_version(self, scm_object, args):
+        '''
+        Generate final version number by detecting version from scm if not
+        given as cli option and applying versionrewrite_pattern and
+        versionprefix if given as cli option
+        '''
         version = args.version
         if version == '_auto_' or args.versionformat:
             version = self.detect_version(scm_object, args)
