@@ -140,7 +140,6 @@ class tasks():
         # self.scm_object is need to unlock cache in cleanup
         # if exception occurs
         self.scm_object = scm_object   = scm_class(args, self)
-        helpers      = scm_object.helpers
 
         scm_object.fetch_upstream()
 
