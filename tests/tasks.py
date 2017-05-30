@@ -87,6 +87,13 @@ class TasksTestCases(unittest.TestCase):
             self.assertEqual(tasks.task_list[0].__dict__[k], expected[k])
         self.assertEqual(len(tasks.task_list), 1)
 
+    def test_appimage_empty_build_git(self):
+        self.cli.snapcraft = False
+        self.cli.appimage = True
+        self._cd_fixtures_dir()
+        tasks = TarSCM.tasks()
+        tasks.generate_list(self.cli)
+
     def test_generate_task_list_multi_tasks(self):
         expected = {
             'libpipeline': {
