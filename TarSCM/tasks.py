@@ -36,10 +36,10 @@ class tasks():
         """Cleaning temporary directories."""
         logging.debug("Cleaning: %s", ' '.join(self.cleanup_dirs))
 
-        for d in self.cleanup_dirs:
-            if not os.path.exists(d):
+        for dirname in self.cleanup_dirs:
+            if not os.path.exists(dirname):
                 continue
-            shutil.rmtree(d)
+            shutil.rmtree(dirname)
         self.cleanup_dirs = []
         # Unlock to prevent dead lock in cachedir if exception
         # gets raised
@@ -55,9 +55,9 @@ class tasks():
 
         if args.appimage:
             # we read the SCM config from appimage.yml
-            f = open('appimage.yml')
-            self.data_map = yaml.safe_load(f)
-            f.close()
+            filehandle = open('appimage.yml')
+            self.data_map = yaml.safe_load(filehandle)
+            filehandle.close()
             args.use_obs_scm = True
             build_scms = ()
             try:
@@ -76,9 +76,9 @@ class tasks():
         elif args.snapcraft:
             # we read the SCM config from snapcraft.yaml instead
             # getting it via parameters
-            f = open('snapcraft.yaml')
-            self.data_map = yaml.safe_load(f)
-            f.close()
+            filehandle = open('snapcraft.yaml')
+            self.data_map = yaml.safe_load(filehandle)
+            filehandle.close()
             args.use_obs_scm = True
             # run for each part an own task
             for part in self.data_map['parts'].keys():
@@ -123,8 +123,7 @@ class tasks():
         '''
         do the work for a single task
         '''
-        FORMAT  = "%(message)s"
-        logging.basicConfig(format=FORMAT, stream=sys.stderr,
+        logging.basicConfig(format="%(message)s", stream=sys.stderr,
                             level=logging.INFO)
         if args.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
