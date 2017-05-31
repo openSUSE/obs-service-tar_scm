@@ -1,7 +1,8 @@
 #!/usr/bin/env python2
-#
-# This CLI tool is responsible for running the tests.
-# See TESTING.md for more information.
+'''
+This CLI tool is responsible for running the tests.
+See TESTING.md for more information.
+'''
 
 import os
 import re
