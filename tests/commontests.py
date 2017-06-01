@@ -162,16 +162,16 @@ class CommonTests(TestEnvironment, TestAssertions):
             use_cache
         )
 
-    def test_revision_master_alternating(self):
+    def test_rev_alter(self):
         self._revision_master_alternating()
 
-    def test_revision_master_alternating_no_cache(self):
+    def test_rev_alter_no_cache(self):
         self._revision_master_alternating(use_cache=False)
 
-    def test_revision_master_alternating_subdir(self):
+    def test_rev_alter_subdir(self):
         self._revision_master_alternating(use_subdir=True)
 
-    def test_revision_master_alternating_subdir_no_cache(self):
+    def test_rev_alter_subdir_no_cache(self):
         self._revision_master_alternating(use_cache=False, use_subdir=True)
 
     def _revision_master_alternating(self, use_cache=True, use_subdir=False):
@@ -253,7 +253,7 @@ class CommonTests(TestEnvironment, TestAssertions):
     def test_switch_revision_and_subdir(self):
         self._switch_revision_and_subdir()
 
-    def test_switch_revision_and_subdir_no_cache(self):
+    def test_switch_rev_and_subdir_nc(self):
         self._switch_revision_and_subdir(use_cache=False)
 
     def _switch_revision_and_subdir(self, use_cache=True):
