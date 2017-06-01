@@ -30,25 +30,25 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.fixtures.create_commits(1)
         self.tar_scm_std('--versionformat', '3',
                          '--revision', self.rev(3))
-        basename = self.basename(version=3)
-        th = self.assertTarOnly(basename)
+        basename   = self.basename(version=3)
+        tar_handle = self.assertTarOnly(basename)
         # tarfile.extractfile() in python 2.6 is broken when extracting
         # relative symlinks as a file object so we construct linkname manually
-        ti = th.getmember(basename + '/c')
-        self.assertTrue(ti.issym())
-        self.assertEquals(ti.linkname, 'a')
-        linkname = '/'.join([os.path.dirname(ti.name), ti.linkname])
-        self.assertTarMemberContains(th, linkname, '3')
+        member = tar_handle.getmember(basename + '/c')
+        self.assertTrue(member.issym())
+        self.assertEquals(member.linkname, 'a')
+        linkname = '/'.join([os.path.dirname(member.name), member.linkname])
+        self.assertTarMemberContains(tar_handle, linkname, '3')
 
     def test_broken_symlink(self):
         self.fixtures.create_commit_broken_symlink()
         self.tar_scm_std('--versionformat', '3',
                          '--revision', self.rev(3))
-        basename = self.basename(version=3)
-        th = self.assertTarOnly(basename)
-        ti = th.getmember(basename + '/c')
-        self.assertTrue(ti.issym())
-        self.assertRegexpMatches(ti.linkname, '[/.]*/nir/va/na$')
+        basename   = self.basename(version=3)
+        tar_handle = self.assertTarOnly(basename)
+        member     = tar_handle.getmember(basename + '/c')
+        self.assertTrue(member.issym())
+        self.assertRegexpMatches(member.linkname, '[/.]*/nir/va/na$')
 
     def test_exclude(self):
         self.tar_scm_std('--exclude', 'a', '--exclude', 'c')
@@ -110,12 +110,12 @@ class CommonTests(TestEnvironment, TestAssertions):
         filename = 'myfilename'
         self.fixtures.create_commits(1)
         self.tar_scm_std('--filename', filename, '--version', '_none_')
-        th = self.assertTarOnly(filename)
+        self.assertTarOnly(filename)
 
     def test_revision_nop(self):
         self.tar_scm_std('--revision', self.rev(2))
-        th = self.assertTarOnly(self.basename())
-        self.assertTarMemberContains(th, self.basename() + '/a', '2')
+        tar_handle = self.assertTarOnly(self.basename())
+        self.assertTarMemberContains(tar_handle, self.basename() + '/a', '2')
 
     def test_revision(self):
         self._revision()
@@ -232,13 +232,19 @@ class CommonTests(TestEnvironment, TestAssertions):
                 self.assertRanInitialClone(logpath, loglines)
 
             if self.fixtures.subdir in args:
-                th = self.assertTarOnly(basename,
-                                        tarchecker=self.assertSubdirTar)
+                tar_handle = self.assertTarOnly(
+                    basename,
+                    tarchecker=self.assertSubdirTar
+                )
                 tarent = 'b'
             else:
-                th = self.assertTarOnly(basename)
+                tar_handle = self.assertTarOnly(basename)
                 tarent = 'a'
-            self.assertTarMemberContains(th, basename + '/' + tarent, expected)
+            self.assertTarMemberContains(
+                tar_handle,
+                basename + '/' + tarent,
+                expected
+            )
 
             self.scmlogs.next()
             self.postRun()
