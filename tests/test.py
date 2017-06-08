@@ -84,19 +84,18 @@ def prepare_testsuite(tclasses):
                 testsuite.addTest(test_class(trun))
     return testsuite
 
-if __name__ == '__main__':
 
-    suite = prepare_testsuite(
-        prepare_testclasses()
-    )
+def main():
+    test_classes = prepare_testclasses()
+    suite = prepare_testsuite(test_classes)
 
-    RUNNER_ARGS = {
+    runner_args = {
         # 'verbosity': 2,
         # 'failfast': True,
         'buffer': True
     }
 
-    runner = unittest.TextTestRunner(**RUNNER_ARGS)
+    runner = unittest.TextTestRunner(**runner_args)
     result = runner.run(suite)
 
     # Cleanup:
@@ -108,3 +107,6 @@ if __name__ == '__main__':
         print("Left temporary files in %s" % TestEnvironment.tmp_dir)
         print("You should remove these prior to the next test run.")
         sys.exit(1)
+
+if __name__ == '__main__':
+    main()
