@@ -1,7 +1,8 @@
 #!/usr/bin/env python2
-#
-# This CLI tool is responsible for running the tests.
-# See TESTING.md for more information.
+'''
+This CLI tool is responsible for running the tests.
+See TESTING.md for more information.
+'''
 
 import os
 import re
@@ -22,11 +23,18 @@ if sys.version_info < (2, 7):
 else:
     import unittest
 
-if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    testclasses = [
+
+def str_to_class(string):
+    '''Convert string into class'''
+    return getattr(sys.modules[__name__], string)
+
+
+def prepare_testclasses():
+    tclasses = [
         # If you are only interested in a particular VCS, you can
-        # temporarily comment out any of these:
+        # temporarily comment out any of these or use the env variable
+        # TAR_SCM_TC=<comma_separated_list> test.py
+        # TAR_SCM_TC=UnitTestCases,TasksTestCases,SCMBaseTestCases,GitTests,SvnTests,HgTests
         UnitTestCases,
         TasksTestCases,
         SCMBaseTestCases,
@@ -36,47 +44,59 @@ if __name__ == '__main__':
         BzrTests
     ]
 
+    if os.getenv('TAR_SCM_TC'):
+        tclasses = []
+        for classname in os.environ['TAR_SCM_TC'].split(','):
+            tclasses.append(str_to_class(classname))
+
+    return tclasses
+
+
+def prepare_testsuite(tclasses):
+    testsuite = unittest.TestSuite()
+
     if len(sys.argv) == 1:
-        for testclass in testclasses:
+        for testclass in tclasses:
             all_tests = unittest.TestLoader().loadTestsFromTestCase(testclass)
-            suite.addTests(all_tests)
+            testsuite.addTests(all_tests)
     else:
         # By default this uses the CLI args as string or regexp
         # matches for names of git tests, but you can tweak this to run
         # specific tests, e.g.:
-        #
-        #   suite.addTest(HgTests('test_version_versionformat'))
-        #   suite.addTest(HgTests('test_versionformat_dateYYYYMMDD'))
-        test_class = GitTests
-        # test_class = TasksTestCases
-        # test_class = UnitTestCases
-        to_run = {}
-        for arg in sys.argv[1:]:
-            m = re.match('^/(.+)/$', arg)
-            if m:
-                # regexp mode
-                regexp = m.group(1)
-                matcher = lambda t: re.search(regexp, t)
-            else:
-                matcher = lambda t: t == arg
-            for t in dir(test_class):
-                if not t.startswith('test_'):
-                    continue
-                if matcher(t):
-                    to_run[t] = True
+        # PYTHONPATH=.:tests tests/test.py test_versionformat
+        for test_class in tclasses:
+            to_run = {}
+            for arg in sys.argv[1:]:
+                rmatch = re.match('^/(.+)/$', arg)
+                if rmatch:
+                    # regexp mode
+                    regexp = rmatch.group(1)
+                    matcher = lambda t, r=regexp: re.search(r, t)
+                else:
+                    matcher = lambda t, a=arg: t == a
+                for tdir in dir(test_class):
+                    if not tdir.startswith('test_'):
+                        continue
+                    if matcher(tdir):
+                        to_run[tdir] = True
 
-        for t in to_run.keys():
-            suite.addTest(test_class(t))
+            for trun in to_run:
+                testsuite.addTest(test_class(trun))
+    return testsuite
 
-    runner_args = {
-        # 'verbosity' : 2,
+if __name__ == '__main__':
+
+    suite = prepare_testsuite(
+        prepare_testclasses()
+    )
+
+    RUNNER_ARGS = {
+        # 'verbosity': 2,
+        # 'failfast': True,
+        'buffer': True
     }
-    major, minor, micro, releaselevel, serial = sys.version_info
-    # New in 2.7 but available in earlier versions via unittest2
-    runner_args['buffer'] = True
-    # runner_args['failfast'] = True
 
-    runner = unittest.TextTestRunner(**runner_args)
+    runner = unittest.TextTestRunner(**RUNNER_ARGS)
     result = runner.run(suite)
 
     # Cleanup:
