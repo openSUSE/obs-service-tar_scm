@@ -71,9 +71,9 @@ def prepare_testsuite(tclasses):
                 if m:
                     # regexp mode
                     regexp = m.group(1)
-                    matcher = lambda t: re.search(regexp, t)
+                    matcher = lambda t, r=regexp: re.search(r, t)
                 else:
-                    matcher = lambda t: t == arg
+                    matcher = lambda t, a=arg: t == a
                 for t in dir(test_class):
                     if not t.startswith('test_'):
                         continue
