@@ -80,7 +80,7 @@ def prepare_testsuite(tclasses):
                     if matcher(t):
                         to_run[t] = True
 
-            for t in to_run.keys():
+            for t in to_run:
                 testsuite.addTest(test_class(t))
     return testsuite
 
