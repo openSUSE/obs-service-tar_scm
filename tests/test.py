@@ -67,21 +67,21 @@ def prepare_testsuite(tclasses):
         for test_class in tclasses:
             to_run = {}
             for arg in sys.argv[1:]:
-                m = re.match('^/(.+)/$', arg)
-                if m:
+                rmatch = re.match('^/(.+)/$', arg)
+                if rmatch:
                     # regexp mode
-                    regexp = m.group(1)
+                    regexp = rmatch.group(1)
                     matcher = lambda t, r=regexp: re.search(r, t)
                 else:
                     matcher = lambda t, a=arg: t == a
-                for t in dir(test_class):
-                    if not t.startswith('test_'):
+                for tdir in dir(test_class):
+                    if not tdir.startswith('test_'):
                         continue
-                    if matcher(t):
-                        to_run[t] = True
+                    if matcher(tdir):
+                        to_run[tdir] = True
 
-            for t in to_run:
-                testsuite.addTest(test_class(t))
+            for trun in to_run:
+                testsuite.addTest(test_class(trun))
     return testsuite
 
 if __name__ == '__main__':
