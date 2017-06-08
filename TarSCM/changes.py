@@ -1,5 +1,4 @@
 import datetime
-import glob
 import logging
 import os
 import shutil
@@ -50,7 +49,7 @@ class changes():
             xml_parser = None
             if not hasattr(ET, 'ParseError'):
                 try:
-                    import xml.parsers.expat
+                    import xml.parsers.expat  # noqa
                 except:
                     raise RuntimeError("Couldn't load XML parser error class")
 

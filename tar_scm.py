@@ -19,11 +19,11 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # noqa
 
 import TarSCM
 import TarSCM.tasks
-from TarSCM.exceptions import OptionsError
 
 
 def main():
     TarSCM.run()
+
 
 if __name__ == '__main__':
     main()

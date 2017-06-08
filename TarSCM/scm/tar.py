@@ -22,7 +22,7 @@ class tar(scm):
             # not need in case of local osc build
             try:
                 os.rename(basename, self.clone_dir)
-            except OSError as e:
+            except OSError:
                 raise SystemExit(
                     "Error while moving from '%s' to '%s')\n"
                     "Current working directory: '%s'" %

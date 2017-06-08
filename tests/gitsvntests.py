@@ -1,11 +1,12 @@
 #!/usr/bin/env python2
 
+from __future__ import print_function
+
 import os
 import textwrap
 import re
 
 from commontests import CommonTests
-from utils       import run_git, run_svn
 
 
 class GitSvnTests(CommonTests):
@@ -71,7 +72,7 @@ class GitSvnTests(CommonTests):
 
     def test_changesgenerate_no_change_same_changes_file(self):
         self._write_servicedata(2)
-        orig_changes = self._write_changes_file()
+        self._write_changes_file()
         self.tar_scm_std('--changesgenerate', 'enable')
         self._check_servicedata()
 

@@ -2,10 +2,7 @@ import sys
 import os
 
 from TarSCM.tasks      import tasks
-from TarSCM.helpers    import helpers
 from TarSCM.cli        import cli
-from TarSCM.archive    import tar
-from TarSCM.archive    import obscpio
 from TarSCM.exceptions import OptionsError
 
 
@@ -31,8 +28,8 @@ def run():
 
     try:
         task_list.process_list()
-    except OptionsError as e:
-        print(e)
+    except OptionsError as exc:
+        print(exc)
         sys.exit(1)
 
     task_list.finalize(_cli)

@@ -3,7 +3,7 @@
 import os
 
 from fixtures import Fixtures
-from utils    import mkfreshdir, run_hg
+from utils    import run_hg
 
 
 class HgFixtures(Fixtures):

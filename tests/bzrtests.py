@@ -2,7 +2,6 @@
 
 from commontests import CommonTests
 from bzrfixtures import BzrFixtures
-from utils       import run_bzr
 
 
 class BzrTests(CommonTests):

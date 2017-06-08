@@ -1,11 +1,12 @@
 #!/usr/bin/env python2
 
-import datetime
+from __future__ import print_function
+
 import os
 import shutil
 import sys
-import logging
-from utils import mkfreshdir, run_cmd
+
+from utils import mkfreshdir
 from scmlogs import ScmInvocationLogs
 import TarSCM
 
@@ -133,8 +134,10 @@ class TestEnvironment:
         dir = self.pkgdir
         service = self.service
 
-        # This code was copied straight out of osc/core.py's
-        # Serviceinfo.execute() (and then line-wrapped for PEP8):
+        # The following code was copied straight out of osc/core.py's
+        # Serviceinfo.execute() (and then line-wrapped for PEP8).  To
+        # make it work in this context we first have to set a variable:
+        callmode = None
         # --------- 8< --------- 8< --------- 8< --------- 8< ---------
         if service['mode'] == "disabled"  or \
            service['mode'] == "trylocal"  or \
@@ -145,6 +148,7 @@ class TestEnvironment:
                 shutil.move(os.path.join(temp_dir, filename),
                             os.path.join(dir, filename))
         else:
+            name = service['name']
             for filename in os.listdir(temp_dir):
                 shutil.move(os.path.join(temp_dir, filename),
                             os.path.join(dir,
