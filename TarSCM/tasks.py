@@ -104,7 +104,7 @@ class tasks():
         process tasks from the task_list
         '''
         for task in self.task_list:
-            self._process_single_task(task)
+            self.process_single_task(task)
 
     def finalize(self, args):
         '''
@@ -119,7 +119,7 @@ class tasks():
                 outfile.write(yaml.dump(self.data_map,
                                         default_flow_style=False))
 
-    def _process_single_task(self, args):
+    def process_single_task(self, args):
         '''
         do the work for a single task
         '''

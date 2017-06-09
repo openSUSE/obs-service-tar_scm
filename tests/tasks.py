@@ -1,9 +1,8 @@
+from __future__ import print_function
+
 import sys
 import os
-import argparse
 import inspect
-import re
-import copy
 import shutil
 from mock import MagicMock
 
@@ -23,6 +22,7 @@ class TasksTestCases(unittest.TestCase):
         self.tmp_dir   = os.path.join(self.tests_dir, 'tmp')
         self.outdir    = os.path.join(self.tmp_dir,
                                       self.__class__.__name__, 'out')
+        self.cur_dir   = None
         self._prepare_cli()
 
     def tearDown(self):
@@ -42,19 +42,19 @@ class TasksTestCases(unittest.TestCase):
         fn_name = inspect.stack()[1][3]
         try:
             os.chdir(os.path.join(self.basedir, 'fixtures', cl_name, fn_name))
-        except(OSError) as e:
+        except OSError:
             print("current working directory: %s" % os.getcwd())
-            raise(e)
+            raise
 
     def _restore_cwd(self):
         try:
             os.chdir(self.basedir)
-        except(OSError) as e:
+        except OSError:
             print("failed to restore : current working directory: %s" %
                   os.getcwd())
-            raise(e)
+            raise
 
-    def test_generate_task_list_single_task(self):
+    def test_generate_tl_single_task(self):
         expected = {
             'scm': 'bzr', 'clone_prefix': '_obs_', 'snapcraft': True,
             'revision': None, 'url': 'lp:~mterry/libpipeline/printf',
@@ -64,11 +64,12 @@ class TasksTestCases(unittest.TestCase):
         tasks = TarSCM.tasks()
         tasks.generate_list(self.cli)
         self._restore_cwd()
-        for k in expected.keys():
+        for k in expected:
             self.assertEqual(tasks.task_list[0].__dict__[k], expected[k])
         self.assertEqual(len(tasks.task_list), 1)
 
-    def test_generate_task_list_single_task_appimage(self):
+    def test_generate_tl_st_appimage(self):
+        '''Test generates task list with single task from appimage.yml'''
         self.cli.snapcraft = False
         self.cli.appimage = True
         expected = {
@@ -83,7 +84,7 @@ class TasksTestCases(unittest.TestCase):
         tasks = TarSCM.tasks()
         tasks.generate_list(self.cli)
         self._restore_cwd()
-        for k in expected.keys():
+        for k in expected:
             self.assertEqual(tasks.task_list[0].__dict__[k], expected[k])
         self.assertEqual(len(tasks.task_list), 1)
 
@@ -94,7 +95,7 @@ class TasksTestCases(unittest.TestCase):
         tasks = TarSCM.tasks()
         tasks.generate_list(self.cli)
 
-    def test_generate_task_list_multi_tasks(self):
+    def test_generate_tl_multi_tasks(self):
         expected = {
             'libpipeline': {
                 'changesgenerate': False,
@@ -124,9 +125,9 @@ class TasksTestCases(unittest.TestCase):
         tasks.generate_list(self.cli)
         # test values in the objects instead of objects
         for got in tasks.task_list:
-            gf = got.__dict__['filename']
-            for k in expected[gf].keys():
-                self.assertEqual(got.__dict__[k], expected[gf][k])
+            got_f = got.__dict__['filename']
+            for key in expected[got_f].keys():
+                self.assertEqual(got.__dict__[key], expected[got_f][key])
         self._restore_cwd()
 
     def test_tasks_finalize(self):
@@ -158,18 +159,17 @@ version: 1.0
             os.makedirs(self.cli.outdir)
         tasks.generate_list(self.cli)
         tasks.finalize(self.cli)
-        i = 0
         self._restore_cwd()
-        sf  = open(os.path.join(self.cli.outdir,
+        scf = open(os.path.join(self.cli.outdir,
                                 '_service:snapcraft:snapcraft.yaml'), 'r')
-        got = sf.read()
-        sf.close()
+        got = scf.read()
+        scf.close()
         self.assertEqual(got, expected)
 
     def test_cleanup(self):
         tasks  = TarSCM.tasks()
-        cn     = self.__class__.__name__
-        cn_dir = os.path.join(self.tmp_dir, cn)
+        cln    = self.__class__.__name__
+        cn_dir = os.path.join(self.tmp_dir, cln)
         if not os.path.exists(self.tmp_dir):
             os.mkdir(self.tmp_dir)
         if not os.path.exists(cn_dir):
@@ -183,31 +183,37 @@ version: 1.0
 
     def test_get_version(self):
         class FakeSCM():
+            # pylint: disable=unused-argument,no-self-use,no-init,
+            # pylint: disable=too-few-public-methods
             def detect_version(self, args):
                 return '0.0.1'
 
         scm     = FakeSCM()
         tasks   = TarSCM.tasks()
-        v       = tasks.get_version(scm, self.cli)
-        self.assertEqual(v, '0.0.1')
+        ver     = tasks.get_version(scm, self.cli)
+        self.assertEqual(ver, '0.0.1')
         self.cli.versionprefix = "r"
-        v       = tasks.get_version(scm, self.cli)
-        self.assertEqual(v, 'r.0.0.1')
+        ver     = tasks.get_version(scm, self.cli)
+        self.assertEqual(ver, 'r.0.0.1')
 
-    def test_get_version_with_versionrewrite(self):
+    def test_get_version_with_versionrw(self):
+        '''Test for get_version with versionrewrite'''
         class FakeSCM():
+            # pylint: disable=unused-argument,no-self-use,no-init,
+            # pylint: disable=too-few-public-methods
             def detect_version(self, args):
                 return 'v0.0.1'
-        self.cli.versionrewrite_pattern = 'v(\d[\d\.]*)'
+
+        self.cli.versionrewrite_pattern = r'v(\d[\d\.]*)'
         self.cli.versionrewrite_replacement = '\\1-stable'
         scm     = FakeSCM()
         tasks   = TarSCM.tasks()
-        v       = tasks.get_version(scm, self.cli)
-        self.assertEqual(v, '0.0.1-stable')
+        ver     = tasks.get_version(scm, self.cli)
+        self.assertEqual(ver, '0.0.1-stable')
 
     def test_process_list(self):
         tasks   = TarSCM.tasks()
         self.cli.snapcraft = False
-        tasks._process_single_task = MagicMock(name='_process_single_task')
+        tasks.process_single_task = MagicMock(name='process_single_task')
         tasks.generate_list(self.cli)
         tasks.process_list()
