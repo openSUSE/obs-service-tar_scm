@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-
+from __future__ import print_function
 import glob
 import os
 
@@ -39,9 +39,11 @@ class ScmInvocationLogs:
             os.environ['PATH'] = new_path
 
     def __init__(self, scm, test_dir):
-        self.scm = scm
-        self.test_dir = test_dir
-        self.counter = 0
+        self.scm              = scm
+        self.test_dir         = test_dir
+        self.counter          = 0
+        self.current_log_path = None
+
         self.unlink_existing_logs()
 
     def get_log_file_template(self):
