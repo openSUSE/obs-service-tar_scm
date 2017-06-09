@@ -4,9 +4,9 @@ import os
 
 from pprint         import pprint, pformat
 
-from testassertions import TestAssertions
-from testenv        import TestEnvironment
-from utils          import mkfreshdir
+from tests.testassertions import TestAssertions
+from tests.testenv        import TestEnvironment
+from tests.utils          import mkfreshdir
 
 
 class CommonTests(TestEnvironment, TestAssertions):
