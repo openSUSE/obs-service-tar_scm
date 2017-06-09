@@ -3,20 +3,22 @@
 This CLI tool is responsible for running the tests.
 See TESTING.md for more information.
 '''
+from __future__ import print_function
 
 import os
 import re
 import shutil
 import sys
 
-from gittests import GitTests
-from svntests import SvnTests
-from hgtests  import HgTests
-from bzrtests import BzrTests
-from testenv import TestEnvironment
-from unittestcases import UnitTestCases
-from tasks import TasksTestCases
-from scm import SCMBaseTestCases
+
+from tests.gittests import GitTests
+from tests.svntests import SvnTests
+from tests.hgtests  import HgTests
+from tests.bzrtests import BzrTests
+from tests.testenv import TestEnvironment
+from tests.unittestcases import UnitTestCases
+from tests.tasks import TasksTestCases
+from tests.scm import SCMBaseTestCases
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
