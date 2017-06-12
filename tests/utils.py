@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 #
 # Simple utility functions to help executing processes.
+from __future__ import print_function
 
 import os
 import re
@@ -21,11 +22,11 @@ def mkfreshdir(path):
 
 
 def run_cmd(cmd):
-    p = subprocess.Popen(cmd, shell=True,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    (stdout, stderr) = p.communicate()
-    return (stdout, stderr, p.returncode)
+    proc = subprocess.Popen(cmd, shell=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    (stdout, stderr) = proc.communicate()
+    return (stdout, stderr, proc.returncode)
 
 
 def quietrun(cmd):
