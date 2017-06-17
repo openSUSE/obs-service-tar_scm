@@ -69,6 +69,7 @@ class ObsCpio(BaseArchive):
         excludes = r'|'.join(excl_arr) or r'$.'
 
         # add topdir without filtering for now
+        cpiolist = []
         for root, dirs, files in os.walk(topdir, topdown=False):
             # excludes
             dirs[:] = [os.path.join(root, d) for d in dirs]
@@ -81,14 +82,15 @@ class ObsCpio(BaseArchive):
 
             for name in dirs:
                 if not METADATA_PATTERN.match(name):
-                    proc.stdin.write(name)
-                    proc.stdin.write("\n")
+                    cpiolist.append(name)
 
             for name in files:
                 if not METADATA_PATTERN.match(name):
-                    proc.stdin.write(name)
-                    proc.stdin.write("\n")
+                    cpiolist.append(name)
 
+        for name in sorted(cpiolist):
+            proc.stdin.write(name)
+            proc.stdin.write("\n")
         proc.stdin.close()
         ret_code = proc.wait()
         if ret_code != 0:
