@@ -197,6 +197,8 @@ class tasks():
             self.changes.write_changes_revision(args.url, args.outdir,
                                                 detected_changes['revision'])
 
+        scm_object.finalize()
+
     def get_version(self, scm_object, args):
         '''
         Generate final version number by detecting version from scm if not

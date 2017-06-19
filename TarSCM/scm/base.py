@@ -240,3 +240,6 @@ class scm():
             fcntl.lockf(self.lock_file, fcntl.LOCK_UN)
             self.lock_file.close()
             self.lock_file = None
+
+    def finalize(self):
+        pass

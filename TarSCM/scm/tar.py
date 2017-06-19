@@ -14,19 +14,22 @@ class tar(scm):
         if self.args.obsinfo is None:
             raise SystemExit("ERROR: no .obsinfo file found in directory: "
                              "'%s'" % os.getcwd())
-        basename = self.clone_dir = self.read_from_obsinfo(self.args.obsinfo,
-                                                           "name")
+        self.basename = self.clone_dir = self.read_from_obsinfo(
+            self.args.obsinfo,
+            "name"
+        )
         self.clone_dir += "-" + self.read_from_obsinfo(self.args.obsinfo,
                                                        "version")
         if not os.path.exists(self.clone_dir):
+            self.final_rename_needed = 1
             # not need in case of local osc build
             try:
-                os.rename(basename, self.clone_dir)
+                os.rename(self.basename, self.clone_dir)
             except OSError as e:
                 raise SystemExit(
                     "Error while moving from '%s' to '%s')\n"
                     "Current working directory: '%s'" %
-                    (basename, self.clone_dir, os.getcwd())
+                    (self.basename, self.clone_dir, os.getcwd())
                 )
 
     def update_cache(self):
@@ -49,3 +52,8 @@ class tar(scm):
                 return k[1].strip()
             line = infofile.readline()
         return ""
+
+    def finalize(self):
+        """Execute final cleanup of workspace"""
+        if self.final_rename_needed:
+            os.rename(self.clone_dir, self.basename)
