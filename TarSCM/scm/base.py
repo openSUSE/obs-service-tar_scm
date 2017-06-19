@@ -27,6 +27,8 @@ class scm():
         self.repocachedir   = None
         self.clone_dir      = None
         self.lock_file      = None
+        self.basename       = None
+        self.repodir        = None
 
         # mandatory arguments
         self.args           = args
@@ -51,8 +53,8 @@ class scm():
 
     def fetch_upstream(self):
         """Fetch sources from repository and checkout given revision."""
-        logging.debug("CACHEDIR: '%s'" % self.repocachedir)
-        logging.debug("SCM: '%s'" % self.scm)
+        logging.debug("CACHEDIR: '%s'", self.repocachedir)
+        logging.debug("SCM: '%s'", self.scm)
         clone_prefix = ""
         if 'clone_prefix' in self.args.__dict__:
             clone_prefix = self.args.__dict__['clone_prefix']
@@ -65,7 +67,7 @@ class scm():
         if not os.path.isdir(self.clone_dir):
             # initial clone
             logging.debug(
-                "[fetch_upstream] Initial checkout/clone to directory: '%s'" %
+                "[fetch_upstream] Initial checkout/clone to directory: '%s'",
                 self.clone_dir
             )
             os.mkdir(self.clone_dir)
@@ -93,19 +95,19 @@ class scm():
 
     def detect_changes(self):
         """Detect changes between revisions."""
-        if (not self.args.changesgenerate):
+        if not self.args.changesgenerate:
             return None
 
-        changes = self.changes.read_changes_revision(self.url, os.getcwd(),
-                                                     self.args.outdir)
+        chgs = self.changes.read_changes_revision(self.url, os.getcwd(),
+                                                  self.args.outdir)
 
-        logging.debug("CHANGES: %s" % repr(changes))
+        logging.debug("CHANGES: %s", repr(chgs))
 
-        changes = self.detect_changes_scm(self.args.subdir, changes)
-        logging.debug("Detected changes:\n%s" % repr(changes))
-        return changes
+        chgs = self.detect_changes_scm(self.args.subdir, chgs)
+        logging.debug("Detected changes:\n%s", repr(chgs))
+        return chgs
 
-    def detect_changes_scm(self, subdir, changes):
+    def detect_changes_scm(self, subdir, chgs):
         sys.exit("changesgenerate not supported with %s SCM" % self.scm)
 
     def get_repocache_hash(self, subdir):
@@ -148,7 +150,7 @@ class scm():
             self.repodir = os.getcwd()
 
         # construct repodir (the parent directory of the checkout)
-        logging.debug("REPOCACHEDIR = '%s'" % self.repocachedir)
+        logging.debug("REPOCACHEDIR = '%s'", self.repocachedir)
         if self.repocachedir:
             if not os.path.isdir(self.repocachedir):
                 os.makedirs(self.repocachedir)
@@ -194,7 +196,7 @@ class scm():
         else:
             self.clone_dir = os.path.abspath(self.repodir)
 
-        logging.debug("[_calc_dir_to_clone_to] CLONE_DIR: %s" % self.clone_dir)
+        logging.debug("[_calc_dir_to_clone_to] CLONE_DIR: %s", self.clone_dir)
 
     def is_sslverify_enabled(self):
         """Returns ``True`` if the ``sslverify`` option has been enabled or
@@ -231,8 +233,8 @@ class scm():
         shutil.copytree(src, dst, symlinks=True)
 
     def lock_cache(self):
-        pd = os.path.join(self.clone_dir, os.pardir, '.lock')
-        self.lock_file = open(os.path.abspath(pd), 'w')
+        pdir = os.path.join(self.clone_dir, os.pardir, '.lock')
+        self.lock_file = open(os.path.abspath(pdir), 'w')
         fcntl.lockf(self.lock_file, fcntl.LOCK_EX)
 
     def unlock_cache(self):
