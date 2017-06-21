@@ -30,25 +30,25 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.fixtures.create_commits(1)
         self.tar_scm_std('--versionformat', '3',
                          '--revision', self.rev(3))
-        basename = self.basename(version=3)
-        th = self.assertTarOnly(basename)
+        basename   = self.basename(version=3)
+        tar_handle = self.assertTarOnly(basename)
         # tarfile.extractfile() in python 2.6 is broken when extracting
         # relative symlinks as a file object so we construct linkname manually
-        ti = th.getmember(basename + '/c')
-        self.assertTrue(ti.issym())
-        self.assertEquals(ti.linkname, 'a')
-        linkname = '/'.join([os.path.dirname(ti.name), ti.linkname])
-        self.assertTarMemberContains(th, linkname, '3')
+        member = tar_handle.getmember(basename + '/c')
+        self.assertTrue(member.issym())
+        self.assertEquals(member.linkname, 'a')
+        linkname = '/'.join([os.path.dirname(member.name), member.linkname])
+        self.assertTarMemberContains(tar_handle, linkname, '3')
 
     def test_broken_symlink(self):
         self.fixtures.create_commit_broken_symlink()
         self.tar_scm_std('--versionformat', '3',
                          '--revision', self.rev(3))
-        basename = self.basename(version=3)
-        th = self.assertTarOnly(basename)
-        ti = th.getmember(basename + '/c')
-        self.assertTrue(ti.issym())
-        self.assertRegexpMatches(ti.linkname, '[/.]*/nir/va/na$')
+        basename   = self.basename(version=3)
+        tar_handle = self.assertTarOnly(basename)
+        member     = tar_handle.getmember(basename + '/c')
+        self.assertTrue(member.issym())
+        self.assertRegexpMatches(member.linkname, '[/.]*/nir/va/na$')
 
     def test_exclude(self):
         self.tar_scm_std('--exclude', 'a', '--exclude', 'c')
@@ -61,15 +61,13 @@ class CommonTests(TestEnvironment, TestAssertions):
                            tarchecker=self.assertIncludeSubdirTar)
 
     def test_absolute_subdir(self):
-        (stdout, stderr, ret) = \
-            self.tar_scm_std_fail('--subdir', '/')
+        (_stdout, stderr, _ret) = self.tar_scm_std_fail('--subdir', '/')
         self.assertRegexpMatches(
             stderr, "Absolute path '/' is not allowed for --subdir")
 
     def test_subdir_parent(self):
         for path in ('..', '../', '../foo', 'foo/../../bar'):
-            (stdout, stderr, ret) = \
-                self.tar_scm_std_fail('--subdir', path)
+            (_stdout, stderr, _ret) = self.tar_scm_std_fail('--subdir', path)
             self.assertRegexpMatches(
                 stderr, "--subdir path '%s' must stay within repo" % path)
 
@@ -78,17 +76,8 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.assertTarOnly(self.basename(), tarchecker=self.assertSubdirTar)
 
     def test_history_depth_obsolete(self):
-        (stdout, stderr, ret) = self.tar_scm_std('--history-depth', '1')
+        (stdout, _stderr, _ret) = self.tar_scm_std('--history-depth', '1')
         self.assertRegexpMatches(stdout, 'obsolete')
-        # self.assertTarOnly(self.basename())
-        # self.assertRegexpMatches(self.scmlogs.read()[0],
-        #                          '^%s clone --depth=1')
-
-    # def test_history_depth_full(self):
-    #     self.tar_scm_std('--history-depth', 'full')
-    #     self.assertTarOnly(self.basename())
-    #     self.assertRegexpMatches(self.scmlogs.read()[0],
-    #                              '^git clone --depth=999999+')
 
     def test_filename(self):
         name = 'myfilename'
@@ -106,10 +95,16 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.tar_scm_std('--filename', filename, '--version', version)
         self.assertTarOnly(self.basename(filename, version))
 
+    def test_filename_without_version(self):
+        filename = 'myfilename'
+        self.fixtures.create_commits(1)
+        self.tar_scm_std('--filename', filename, '--version', '_none_')
+        self.assertTarOnly(filename)
+
     def test_revision_nop(self):
         self.tar_scm_std('--revision', self.rev(2))
-        th = self.assertTarOnly(self.basename())
-        self.assertTarMemberContains(th, self.basename() + '/a', '2')
+        tar_handle = self.assertTarOnly(self.basename())
+        self.assertTarMemberContains(tar_handle, self.basename() + '/a', '2')
 
     def test_revision(self):
         self._revision()
@@ -155,16 +150,16 @@ class CommonTests(TestEnvironment, TestAssertions):
             use_cache
         )
 
-    def test_revision_master_alternating(self):
+    def test_rev_alter(self):
         self._revision_master_alternating()
 
-    def test_revision_master_alternating_no_cache(self):
+    def test_rev_alter_no_cache(self):
         self._revision_master_alternating(use_cache=False)
 
-    def test_revision_master_alternating_subdir(self):
+    def test_rev_alter_subdir(self):
         self._revision_master_alternating(use_subdir=True)
 
-    def test_revision_master_alternating_subdir_no_cache(self):
+    def test_rev_alter_subdir_no_cache(self):
         self._revision_master_alternating(use_cache=False, use_subdir=True)
 
     def _revision_master_alternating(self, use_cache=True, use_subdir=False):
@@ -226,13 +221,19 @@ class CommonTests(TestEnvironment, TestAssertions):
                 self.assertRanInitialClone(logpath, loglines)
 
             if self.fixtures.subdir in args:
-                th = self.assertTarOnly(basename,
-                                        tarchecker=self.assertSubdirTar)
+                tar_handle = self.assertTarOnly(
+                    basename,
+                    tarchecker=self.assertSubdirTar
+                )
                 tarent = 'b'
             else:
-                th = self.assertTarOnly(basename)
+                tar_handle = self.assertTarOnly(basename)
                 tarent = 'a'
-            self.assertTarMemberContains(th, basename + '/' + tarent, expected)
+            self.assertTarMemberContains(
+                tar_handle,
+                basename + '/' + tarent,
+                expected
+            )
 
             self.scmlogs.next()
             self.postRun()
@@ -240,7 +241,7 @@ class CommonTests(TestEnvironment, TestAssertions):
     def test_switch_revision_and_subdir(self):
         self._switch_revision_and_subdir()
 
-    def test_switch_revision_and_subdir_no_cache(self):
+    def test_switch_rev_and_subdir_nc(self):
         self._switch_revision_and_subdir(use_cache=False)
 
     def _switch_revision_and_subdir(self, use_cache=True):
