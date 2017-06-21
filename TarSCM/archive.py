@@ -37,7 +37,7 @@ class BaseArchive():
                 sys.exit("%s: Failed to copy file" % src)
 
 
-class obscpio(BaseArchive):
+class ObsCpio(BaseArchive):
     def create_archive(self, scm_object, **kwargs):
         """Create an OBS cpio archive of repodir in destination directory.
         """
@@ -112,7 +112,7 @@ class obscpio(BaseArchive):
         os.chdir(cwd)
 
 
-class tar(BaseArchive):
+class Tar(BaseArchive):
     def create_archive(self, scm_object, **kwargs):
         """Create a tarball of repodir in destination directory."""
         (workdir, topdir) = os.path.split(scm_object.arch_dir)

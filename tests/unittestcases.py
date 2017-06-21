@@ -16,8 +16,8 @@ from TarSCM.config import config
 from TarSCM.changes import changes
 from TarSCM.scm.git import git
 from TarSCM.scm.svn import svn
-from TarSCM.archive import obscpio
-from TarSCM.archive import tar
+from TarSCM.archive import ObsCpio
+from TarSCM.archive import Tar
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -210,7 +210,7 @@ class UnitTestCases(unittest.TestCase):
         outdir               = os.path.join(self.tmp_dir, cl_name, tc_name,
                                             'out')
         self.cli.outdir      = outdir
-        arch                 = obscpio()
+        arch                 = ObsCpio()
         os.makedirs(outdir)
         arch.create_archive(
             scm_object,
@@ -227,7 +227,7 @@ class UnitTestCases(unittest.TestCase):
         repodir = os.path.join(self.fixtures_dir, tc_name, 'repo')
         files   = ["test.spec"]
         outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
-        arch    = obscpio()
+        arch    = ObsCpio()
         os.makedirs(outdir)
         arch.extract_from_archive(repodir, files, outdir)
         for fn in files:
@@ -240,7 +240,7 @@ class UnitTestCases(unittest.TestCase):
         repodir = os.path.join(self.fixtures_dir, tc_name, 'repo')
         files   = ["test.spec", 'Readme.md']
         outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
-        arch    = obscpio()
+        arch    = ObsCpio()
         os.makedirs(outdir)
         arch.extract_from_archive(repodir, files, outdir)
         for fn in files:
@@ -253,7 +253,7 @@ class UnitTestCases(unittest.TestCase):
         repodir = os.path.join(self.fixtures_dir, tc_name, 'repo')
         files   = ['nonexistantfile']
         outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
-        arch    = obscpio()
+        arch    = ObsCpio()
         os.makedirs(outdir)
         self.assertRaisesRegexp(
             SystemExit,
@@ -273,7 +273,7 @@ class UnitTestCases(unittest.TestCase):
         repodir = os.path.join(self.fixtures_dir, tc_name, 'repo')
         files   = ['dir1']
         outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
-        arch    = TarSCM.archive.obscpio()
+        arch    = TarSCM.archive.ObsCpio()
         os.makedirs(outdir)
         self.assertRaisesRegexp(
             IOError,

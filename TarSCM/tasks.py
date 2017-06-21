@@ -164,9 +164,9 @@ class tasks():
         self.cleanup_dirs.append(scm_object.arch_dir)
 
         if args.use_obs_scm:
-            arch = TarSCM.archive.obscpio()
+            arch = TarSCM.archive.ObsCpio()
         else:
-            arch = TarSCM.archive.tar()
+            arch = TarSCM.archive.Tar()
 
         arch.extract_from_archive(scm_object.arch_dir, args.extract,
                                   args.outdir)
