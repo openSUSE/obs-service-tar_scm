@@ -61,35 +61,23 @@ class CommonTests(TestEnvironment, TestAssertions):
                            tarchecker=self.assertIncludeSubdirTar)
 
     def test_absolute_subdir(self):
-        # ret = (stdout, stderr, return_code)
-        ret = self.tar_scm_std_fail('--subdir', '/')
+        (_stdout, stderr, _ret) = self.tar_scm_std_fail('--subdir', '/')
         self.assertRegexpMatches(
-            ret[1], "Absolute path '/' is not allowed for --subdir")
+            stderr, "Absolute path '/' is not allowed for --subdir")
 
     def test_subdir_parent(self):
         for path in ('..', '../', '../foo', 'foo/../../bar'):
-            # ret = (stdout, stderr, return_code)
-            ret = self.tar_scm_std_fail('--subdir', path)
+            (_stdout, stderr, _ret) = self.tar_scm_std_fail('--subdir', path)
             self.assertRegexpMatches(
-                ret[1], "--subdir path '%s' must stay within repo" % path)
+                stderr, "--subdir path '%s' must stay within repo" % path)
 
     def test_subdir(self):
         self.tar_scm_std('--subdir', self.fixtures.subdir)
         self.assertTarOnly(self.basename(), tarchecker=self.assertSubdirTar)
 
     def test_history_depth_obsolete(self):
-        # ret = (stdout, stderr, return_code)
-        ret = self.tar_scm_std('--history-depth', '1')
-        self.assertRegexpMatches(ret[0], 'obsolete')
-        # self.assertTarOnly(self.basename())
-        # self.assertRegexpMatches(self.scmlogs.read()[0],
-        #                          '^%s clone --depth=1')
-
-    # def test_history_depth_full(self):
-    #     self.tar_scm_std('--history-depth', 'full')
-    #     self.assertTarOnly(self.basename())
-    #     self.assertRegexpMatches(self.scmlogs.read()[0],
-    #                              '^git clone --depth=999999+')
+        (stdout, _stderr, _ret) = self.tar_scm_std('--history-depth', '1')
+        self.assertRegexpMatches(stdout, 'obsolete')
 
     def test_filename(self):
         name = 'myfilename'
