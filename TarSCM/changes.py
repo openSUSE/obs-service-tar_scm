@@ -6,7 +6,7 @@ import sys
 import tempfile
 import stat
 
-import TarSCM.cli
+from TarSCM.cli    import Cli
 from TarSCM.config import config
 
 
@@ -219,7 +219,7 @@ class Changes():
             pass
 
         if not changesauthor:
-            changesauthor = TarSCM.cli.DEFAULT_AUTHOR
+            changesauthor = Cli.DEFAULT_AUTHOR
 
         logging.debug("AUTHOR: %s", changesauthor)
 

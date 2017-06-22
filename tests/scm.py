@@ -32,7 +32,7 @@ class SCMBaseTestCases(unittest.TestCase):
             shutil.rmtree(self.outdir)
 
     def _prepare_cli(self):
-        self.cli = TarSCM.cli()
+        self.cli = TarSCM.Cli()
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
         self.cli.parse_args(['--outdir', self.outdir, '--scm', 'git'])

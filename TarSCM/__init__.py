@@ -5,14 +5,14 @@ import os
 
 from TarSCM.tasks      import tasks
 from TarSCM.helpers    import helpers
-from TarSCM.cli        import cli
+from TarSCM.cli        import Cli
 from TarSCM.archive    import Tar
 from TarSCM.archive    import ObsCpio
 from TarSCM.exceptions import OptionsError
 
 
 def run():
-    _cli = cli()
+    _cli = Cli()
     _cli.parse_args(sys.argv[1:])
 
     if os.path.basename(sys.argv[0]) == "tar":

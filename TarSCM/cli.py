@@ -3,7 +3,7 @@ import os
 import sys
 
 
-class cli():
+class Cli():
     DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
 
     def __init__(self):
