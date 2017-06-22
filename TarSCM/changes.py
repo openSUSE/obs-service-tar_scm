@@ -1,5 +1,4 @@
 import datetime
-import glob
 import logging
 import os
 import shutil
@@ -70,11 +69,11 @@ class Changes():
 
         try:
             return ET.parse(servicedata_file, parser=xml_parser)
-        except StandardError as e:
+        except StandardError as exc:
             # Tolerate an empty file, but any other parse error should be
             # made visible.
-            if str(e).startswith("Document is empty") or \
-               str(e).startswith("no element found"):
+            if str(exc).startswith("Document is empty") or \
+               str(exc).startswith("no element found"):
                 return None
             raise
 
@@ -99,7 +98,7 @@ class Changes():
         element, or None, if it doesn't exist.
         """
         params = tar_scm_service.findall("param[@name='changesrevision']")
-        if len(params) == 0:
+        if not params:
             return None
         if len(params) > 1:
             raise RuntimeError('Found multiple <param name="changesrevision"> '
@@ -206,7 +205,6 @@ class Changes():
         # return changesauthor if given as cli option
         if args.changesauthor:
             return args.changesauthor
-        #
 
         # find changesauthor in $HOME/.oscrc
         try:
@@ -216,13 +214,12 @@ class Changes():
             changesauthor = None
             section = cfg.get('general', 'apiurl')
             if section:
-                    changesauthor = cfg.get(section, 'email')
+                changesauthor = cfg.get(section, 'email')
         except KeyError:
             pass
 
         if not changesauthor:
-                changesauthor = TarSCM.cli.DEFAULT_AUTHOR
-        #
+            changesauthor = TarSCM.cli.DEFAULT_AUTHOR
 
         logging.debug("AUTHOR: %s", changesauthor)
 
