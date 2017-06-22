@@ -16,6 +16,7 @@ except:
 
 
 class Config():
+    # pylint: disable=too-few-public-methods
     def __init__(
             self,
             files=[['/etc/obs/services/tar_scm', True]]
@@ -41,7 +42,7 @@ class Config():
             fname = tmp[0]
             self.fakeheader = tmp[1]
             if not os.path.isfile(fname):
-                logging.debug("Config file not found: %s" % fname)
+                logging.debug("Config file not found: %s", fname)
                 continue
             self.configs.append(self._init_config(fname))
 
@@ -64,7 +65,7 @@ class Config():
         config.optionxform = str
 
         if self.fakeheader:
-            logging.debug("Using fakeheader for file '%s'" % fname)
+            logging.debug("Using fakeheader for file '%s'", fname)
             tmp_fp = StringIO()
             tmp_fp.write('[' + self.default_section + ']\n')
             tmp_fp.write(open(fname, 'r').read())
@@ -85,7 +86,7 @@ class Config():
         if section is None and self.fakeheader:
             section = self.default_section
 
-        logging.debug("SECTION: %s" % section)
+        logging.debug("SECTION: %s", section)
         for config in self.configs:
             try:
                 value = config.get(section, option)
