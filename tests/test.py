@@ -19,6 +19,7 @@ from tests.testenv import TestEnvironment
 from tests.unittestcases import UnitTestCases
 from tests.tasks import TasksTestCases
 from tests.scm import SCMBaseTestCases
+from tests.tartests import TarTestCases
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -36,13 +37,14 @@ def prepare_testclasses():
         # If you are only interested in a particular VCS, you can
         # temporarily comment out any of these or use the env variable
         # TAR_SCM_TC=<comma_separated_list> test.py
-        # TAR_SCM_TC=UnitTestCases,TasksTestCases,SCMBaseTestCases,GitTests,SvnTests,HgTests
+        # export TAR_SCM_TC=UnitTestCases,TasksTestCases,SCMBaseTestCases,GitTests,SvnTests,HgTests,TarTestCases # noqa # pylint: disable=line-too-long
         UnitTestCases,
         TasksTestCases,
         SCMBaseTestCases,
         GitTests,
         SvnTests,
         HgTests,
+        TarTestCases,
         BzrTests
     ]
 
