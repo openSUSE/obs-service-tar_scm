@@ -13,7 +13,7 @@ import argparse
 
 from TarSCM.helpers import helpers
 from TarSCM.config import config
-from TarSCM.changes import changes
+from TarSCM.changes import Changes
 from TarSCM.scm.git import git
 from TarSCM.scm.svn import svn
 from TarSCM.archive import ObsCpio
@@ -126,7 +126,7 @@ class UnitTestCases(unittest.TestCase):
             os.unsetenv('DEBUG_TAR_SCM')
 
     def test_TarSCM_changes_get_changesauthor_from_args(self):
-        c                   = changes()
+        c                   = Changes()
         cli                 = copy.copy(self.cli)
         cli.changesauthor   = 'args@example.com'
         ca                  = c.get_changesauthor(cli)
@@ -136,7 +136,7 @@ class UnitTestCases(unittest.TestCase):
         tc_name             = inspect.stack()[0][3]
         home                = os.environ['HOME']
         os.environ['HOME']  = os.path.join(self.fixtures_dir, tc_name)
-        c                   = changes()
+        c                   = Changes()
         ca                  = c.get_changesauthor(self.cli)
         os.environ['HOME']  = home
         self.assertEqual(ca, 'devel@example.com')
@@ -144,7 +144,7 @@ class UnitTestCases(unittest.TestCase):
     def test_TarSCM_changes_get_changesauthor_default(self):
         home                = os.environ['HOME']
         os.environ['HOME']  = '/nir/va/na'
-        c                   = changes()
+        c                   = Changes()
         ca                  = c.get_changesauthor(self.cli)
         os.environ['HOME']  = home
         self.assertEqual(ca, 'opensuse-packaging@opensuse.org')
@@ -153,7 +153,7 @@ class UnitTestCases(unittest.TestCase):
         tc_name             = inspect.stack()[0][3]
         home                = os.environ['HOME']
         os.environ['HOME']  = os.path.join(self.fixtures_dir, tc_name)
-        c                   = changes()
+        c                   = Changes()
         ca                  = c.get_changesauthor(self.cli)
         os.environ['HOME']  = home
         self.assertEqual(ca, 'devel@example.com')

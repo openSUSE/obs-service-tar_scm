@@ -11,7 +11,7 @@ import TarSCM.cli
 from TarSCM.config import config
 
 
-class changes():
+class Changes():
     def import_xml_parser(self):
         """Import the best XML parser available.  Currently prefers lxml and
         falls back to xml.etree.

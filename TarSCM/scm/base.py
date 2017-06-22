@@ -8,7 +8,7 @@ import shutil
 import fcntl
 import time
 from TarSCM.helpers import helpers
-from TarSCM.changes import changes
+from TarSCM.changes import Changes
 from TarSCM.config import config
 
 if sys.version_info[0] < 3:
@@ -41,7 +41,7 @@ class scm():
         # preparation of required attributes
         self.helpers        = helpers()
         if self.args.changesgenerate:
-            self.changes    = changes()
+            self.changes    = Changes()
 
         self._calc_repocachedir()
 
