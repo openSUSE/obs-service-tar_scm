@@ -4,7 +4,7 @@ import sys
 import os
 
 from TarSCM.tasks      import tasks
-from TarSCM.helpers    import helpers
+from TarSCM.helpers    import Helpers
 from TarSCM.cli        import Cli
 from TarSCM.archive    import Tar
 from TarSCM.archive    import ObsCpio

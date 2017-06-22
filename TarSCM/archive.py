@@ -6,7 +6,7 @@ import sys
 import tarfile
 import shutil
 
-from TarSCM.helpers import helpers
+from TarSCM.helpers import Helpers
 
 try:
     from io import StringIO
@@ -18,7 +18,7 @@ METADATA_PATTERN = re.compile(r'.*/\.(bzr|git(ignore)?|hg|svn)(\/.*|$)')
 
 class BaseArchive():
     def __init__(self):
-        self.helpers        = helpers()
+        self.helpers        = Helpers()
         self.archivefile    = None
         self.metafile       = None
 

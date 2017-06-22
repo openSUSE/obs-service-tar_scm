@@ -11,7 +11,7 @@ from mock import patch
 import TarSCM
 import argparse
 
-from TarSCM.helpers import helpers
+from TarSCM.helpers import Helpers
 from TarSCM.config  import Config
 from TarSCM.changes import Changes
 from TarSCM.scm.git import git
@@ -57,19 +57,19 @@ class UnitTestCases(unittest.TestCase):
             self.assertEqual(scm.clone_dir, os.path.join(scm.repodir))
             self.tasks.cleanup()
 
-    @patch('TarSCM.helpers.safe_run')
+    @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_with_args(self, safe_run_mock):
         scm     = TarSCM.scm.git(self.cli, self.tasks)
         new_cmd = scm._log_cmd(['-n1'], '')
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1'], cwd=None)
 
-    @patch('TarSCM.helpers.safe_run')
+    @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_without_args(self, safe_run_mock):
         scm     = TarSCM.scm.git(self.cli, self.tasks)
         new_cmd = scm._log_cmd([], '')
         safe_run_mock.assert_called_once_with(['git', 'log'], cwd=None)
 
-    @patch('TarSCM.helpers.safe_run')
+    @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_with_subdir(self, safe_run_mock):
         scm     = TarSCM.scm.git(self.cli, self.tasks)
         new_cmd = scm._log_cmd(['-n1'], 'subdir')
@@ -77,7 +77,7 @@ class UnitTestCases(unittest.TestCase):
                                                '--', 'subdir'], cwd=None)
 
     def test_safe_run_exception(self):
-        h = helpers()
+        h = Helpers()
         self.assertRaisesRegexp(
             SystemExit,
             re.compile("Command failed\(1\): ''"),

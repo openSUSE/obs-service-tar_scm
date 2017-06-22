@@ -7,7 +7,7 @@ import hashlib
 import shutil
 import fcntl
 import time
-from TarSCM.helpers import helpers
+from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
 from TarSCM.config import Config
 
@@ -39,7 +39,7 @@ class scm():
         self.revision       = args.revision
 
         # preparation of required attributes
-        self.helpers        = helpers()
+        self.helpers        = Helpers()
         if self.args.changesgenerate:
             self.changes    = Changes()
 

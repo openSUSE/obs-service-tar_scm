@@ -13,7 +13,7 @@ import re
 
 import TarSCM.scm
 import TarSCM.archive
-from TarSCM.helpers import helpers
+from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
 from TarSCM.exceptions import OptionsError
 import yaml
@@ -27,7 +27,7 @@ class tasks():
     def __init__(self):
         self.task_list      = []
         self.cleanup_dirs   = []
-        self.helpers        = helpers()
+        self.helpers        = Helpers()
         self.changes        = Changes()
         self.scm_object     = None
         self.data_map       = None
