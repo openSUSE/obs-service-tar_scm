@@ -1,10 +1,10 @@
 import sys
 import re
 import os
-from TarSCM.scm.base import scm
+from TarSCM.scm.base import Scm
 
 
-class hg(scm):
+class hg(Scm):
     def switch_revision(self):
         """Switch sources to revision."""
         if self.revision is None:

@@ -7,7 +7,7 @@ import copy
 import shutil
 from mock import MagicMock
 
-from TarSCM.scm.base import scm
+from TarSCM.scm.base import Scm
 
 import TarSCM
 
@@ -40,7 +40,7 @@ class SCMBaseTestCases(unittest.TestCase):
 
     def test_prep_tree_for_archive(self):
         tasks = TarSCM.Tasks()
-        scm_base = scm(self.cli, tasks)
+        scm_base = Scm(self.cli, tasks)
         basedir = os.path.join(self.tmp_dir, self.__class__.__name__)
         dir1 = os.path.join(basedir, "test1")
         scm_base.clone_dir = basedir

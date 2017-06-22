@@ -17,7 +17,7 @@ else:
     import urllib
 
 
-class scm():
+class Scm():
     def __init__(self, args, task):
         # default settings
         self.scm            = self.__class__.__name__

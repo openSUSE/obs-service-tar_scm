@@ -2,10 +2,10 @@ import sys
 import re
 import os
 import dateutil.parser
-from TarSCM.scm.base import scm
+from TarSCM.scm.base import Scm
 
 
-class bzr(scm):
+class bzr(Scm):
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for bzr."""
         command = ['bzr', 'checkout', self.url, self.clone_dir]

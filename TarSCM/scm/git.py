@@ -2,10 +2,10 @@ import sys
 import os
 import logging
 import re
-from TarSCM.scm.base import scm
+from TarSCM.scm.base import Scm
 
 
-class git(scm):
+class git(Scm):
     def switch_revision(self):
         """Switch sources to revision. The git revision may refer to any of the
         following:
