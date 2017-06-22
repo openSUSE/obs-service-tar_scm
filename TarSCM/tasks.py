@@ -19,7 +19,7 @@ from TarSCM.exceptions import OptionsError
 import yaml
 
 
-class tasks():
+class Tasks():
     '''
     Class to create a task list for formats which can contain more then one scm
     job like snapcraft or appimage

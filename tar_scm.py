@@ -20,7 +20,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # noqa
 # These two modules have to be imported after sys.path.append because
 # the additional path is where the modules are found
 import TarSCM        # pylint: disable=wrong-import-position
-import TarSCM.tasks  # pylint: disable=wrong-import-position
 
 
 def main():

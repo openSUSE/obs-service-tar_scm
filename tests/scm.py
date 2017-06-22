@@ -39,7 +39,7 @@ class SCMBaseTestCases(unittest.TestCase):
         self.cli.snapcraft  = True
 
     def test_prep_tree_for_archive(self):
-        tasks = TarSCM.tasks()
+        tasks = TarSCM.Tasks()
         scm_base = scm(self.cli, tasks)
         basedir = os.path.join(self.tmp_dir, self.__class__.__name__)
         dir1 = os.path.join(basedir, "test1")

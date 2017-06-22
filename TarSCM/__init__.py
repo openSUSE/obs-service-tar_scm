@@ -3,7 +3,7 @@ from __future__ import print_function
 import sys
 import os
 
-from TarSCM.tasks      import tasks
+from TarSCM.tasks      import Tasks
 from TarSCM.helpers    import Helpers
 from TarSCM.cli        import Cli
 from TarSCM.archive    import Tar
@@ -27,7 +27,7 @@ def run():
     if os.path.basename(sys.argv[0]) == "snapcraft":
         _cli.snapcraft = True
 
-    task_list = tasks()
+    task_list = Tasks()
 
     task_list.generate_list(_cli)
 
