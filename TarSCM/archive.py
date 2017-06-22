@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tarfile
 import shutil
-import logging
+
 from TarSCM.helpers import helpers
 
 try:
@@ -99,8 +99,8 @@ class ObsCpio(BaseArchive):
         metafile = open(os.path.join(args.outdir, basename + '.obsinfo'), "w")
         metafile.write("name: " + basename + "\n")
         metafile.write("version: " + version + "\n")
-        ts = self.helpers.get_timestamp(scm_object, args, topdir)
-        metafile.write("mtime: " + str(ts) + "\n")
+        tstamp = self.helpers.get_timestamp(scm_object, args, topdir)
+        metafile.write("mtime: " + str(tstamp) + "\n")
 
         if commit:
             metafile.write("commit: " + commit + "\n")
@@ -141,8 +141,8 @@ class Tar(BaseArchive):
             pat = fnmatch.translate(os.path.join(topdir, i))
             incl_patterns.append(re.compile(pat))
 
-        for e in exclude:
-            pat = fnmatch.translate(os.path.join(topdir, e))
+        for exc in exclude:
+            pat = fnmatch.translate(os.path.join(topdir, exc))
             excl_patterns.append(re.compile(pat))
 
         def tar_exclude(filename):
