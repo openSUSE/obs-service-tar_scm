@@ -9,7 +9,7 @@ import fcntl
 import time
 from TarSCM.helpers import helpers
 from TarSCM.changes import Changes
-from TarSCM.config import config
+from TarSCM.config import Config
 
 if sys.version_info[0] < 3:
     from urlparse import urlparse
@@ -134,7 +134,7 @@ class scm():
             repocachedir = os.getenv('CACHEDIRECTORY')
 
         if repocachedir is None:
-            repocachedir = config().get('tar_scm', 'CACHEDIRECTORY')
+            repocachedir = Config().get('tar_scm', 'CACHEDIRECTORY')
 
         if repocachedir:
             logging.debug("REPOCACHE: %s", repocachedir)

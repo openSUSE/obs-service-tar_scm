@@ -7,7 +7,7 @@ import tempfile
 import stat
 
 from TarSCM.cli    import Cli
-from TarSCM.config import config
+from TarSCM.config import Config
 
 
 class Changes():
@@ -209,7 +209,7 @@ class Changes():
         # find changesauthor in $HOME/.oscrc
         try:
             files = [[os.path.join(os.environ['HOME'], '.oscrc'), False]]
-            cfg = config(files)
+            cfg = Config(files)
 
             changesauthor = None
             section = cfg.get('general', 'apiurl')

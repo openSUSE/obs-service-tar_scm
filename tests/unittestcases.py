@@ -12,7 +12,7 @@ import TarSCM
 import argparse
 
 from TarSCM.helpers import helpers
-from TarSCM.config import config
+from TarSCM.config  import Config
 from TarSCM.changes import Changes
 from TarSCM.scm.git import git
 from TarSCM.scm.svn import svn
@@ -92,7 +92,7 @@ class UnitTestCases(unittest.TestCase):
             [os.path.join(self.fixtures_dir, tc_name, 'a.cfg'), True],
             [os.path.join(self.fixtures_dir, tc_name, 'b.cfg'), True],
         ]
-        var = config(files).get(None, 'var')
+        var = Config(files).get(None, 'var')
         self.assertEqual(var, 'b')
 
     def test_TarSCM_config_no_faked_header(self):
@@ -100,9 +100,9 @@ class UnitTestCases(unittest.TestCase):
         files   = [
             [os.path.join(self.fixtures_dir, tc_name, 'test.ini'), False]
         ]
-        var     = config(files).get('general', 'apiurl')
+        var     = Config(files).get('general', 'apiurl')
         self.assertEqual(var, 'http://api.example.com')
-        var     = config(files).get(var, 'email')
+        var     = Config(files).get(var, 'email')
         self.assertEqual(var, 'devel@example.com')
 
     def test_TarSCM_config_debug_tar_scm(self):
@@ -116,7 +116,7 @@ class UnitTestCases(unittest.TestCase):
         os.environ['DEBUG_TAR_SCM'] = "1"
 
         files = [[os.path.join(self.fixtures_dir, tc_name, 'test.rc'), True]]
-        var = config(files).get(None, 'var')
+        var = Config(files).get(None, 'var')
         self.assertEqual(var, None)
 
         if tmp:

@@ -15,10 +15,10 @@ except:
     import ConfigParser as configparser
 
 
-class config():
+class Config():
     def __init__(
-        self,
-        files=[['/etc/obs/services/tar_scm', True]]
+            self,
+            files=[['/etc/obs/services/tar_scm', True]]
     ):
         try:
             rc_file = [
