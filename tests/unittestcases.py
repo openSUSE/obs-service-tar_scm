@@ -28,7 +28,7 @@ else:
 class UnitTestCases(unittest.TestCase):
     def setUp(self):
         self.cli            = TarSCM.Cli()
-        self.tasks          = TarSCM.Tasks()
+        self.tasks          = TarSCM.Tasks(self.cli)
         self.tests_dir      = os.path.abspath(os.path.dirname(__file__))
         self.tmp_dir        = os.path.join(self.tests_dir, 'tmp')
         self.fixtures_dir   = os.path.join(self.tests_dir, 'fixtures',

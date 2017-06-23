@@ -24,13 +24,14 @@ class Tasks():
     Class to create a task list for formats which can contain more then one scm
     job like snapcraft or appimage
     '''
-    def __init__(self):
+    def __init__(self, args):
         self.task_list      = []
         self.cleanup_dirs   = []
         self.helpers        = Helpers()
         self.changes        = Changes()
         self.scm_object     = None
         self.data_map       = None
+        self.args           = args
 
     def cleanup(self):
         """Cleaning temporary directories."""
@@ -46,11 +47,12 @@ class Tasks():
         if self.scm_object:
             self.scm_object.unlock_cache()
 
-    def generate_list(self, args):
+    def generate_list(self):
         '''
         Generate list of scm jobs from appimage.yml, snapcraft.yml or a single
         job from cli arguments.
         '''
+        args = self.args
         scms = ['git', 'tar', 'svn', 'bzr', 'hg']
 
         if args.appimage:
@@ -106,10 +108,11 @@ class Tasks():
         for task in self.task_list:
             self.process_single_task(task)
 
-    def finalize(self, args):
+    def finalize(self):
         '''
         final steps after processing task list
         '''
+        args = self.args
         if args.snapcraft:
             # write the new snapcraft.yaml file
             # we prefix our own here to be sure to not overwrite user files,
@@ -123,6 +126,8 @@ class Tasks():
         '''
         do the work for a single task
         '''
+        self.args = args
+
         logging.basicConfig(format="%(message)s", stream=sys.stderr,
                             level=logging.INFO)
         if args.verbose:
@@ -156,7 +161,7 @@ class Tasks():
         else:
             dstname = basename = os.path.basename(scm_object.clone_dir)
 
-        version = self.get_version(scm_object, args)
+        version = self.get_version()
         changesversion = version
         if version and not sys.argv[0].endswith("/tar") \
            and not sys.argv[0].endswith("/snapcraft") \
@@ -194,7 +199,7 @@ class Tasks():
 
             if not version:
                 args.version = "_auto_"
-                changesversion = self.get_version(scm_object, args)
+                changesversion = self.get_version()
 
             for filename in glob.glob('*.changes'):
                 new_changes_file = os.path.join(args.outdir, filename)
@@ -207,29 +212,29 @@ class Tasks():
 
         scm_object.finalize()
 
-    def get_version(self, scm_object, args):
+    def get_version(self):
         '''
         Generate final version number by detecting version from scm if not
         given as cli option and applying versionrewrite_pattern and
         versionprefix if given as cli option
         '''
-        version = args.version
+        version = self.args.version
         if version == '_none_':
             return ''
-        if version == '_auto_' or args.versionformat:
-            version = self.detect_version(scm_object, args)
-        if args.versionrewrite_pattern:
-            regex = re.compile(args.versionrewrite_pattern)
-            version = regex.sub(args.versionrewrite_replacement, version)
-        if args.versionprefix:
-            version = "%s.%s" % (args.versionprefix, version)
+        if version == '_auto_' or self.args.versionformat:
+            version = self.detect_version()
+        if self.args.versionrewrite_pattern:
+            regex = re.compile(self.args.versionrewrite_pattern)
+            version = regex.sub(self.args.versionrewrite_replacement, version)
+        if self.args.versionprefix:
+            version = "%s.%s" % (self.args.versionprefix, version)
 
         logging.debug("VERSION(auto): %s", version)
         return version
 
-    def detect_version(self, scm_object, args):
+    def detect_version(self):
         """Automatic detection of version number for checked-out repository."""
 
-        version = scm_object.detect_version(args.__dict__).strip()
+        version = self.scm_object.detect_version(self.args.__dict__).strip()
         logging.debug("VERSION(auto): %s", version)
         return version

@@ -27,9 +27,9 @@ def run():
     if os.path.basename(sys.argv[0]) == "snapcraft":
         _cli.snapcraft = True
 
-    task_list = Tasks()
+    task_list = Tasks(_cli)
 
-    task_list.generate_list(_cli)
+    task_list.generate_list()
 
     try:
         task_list.process_list()
@@ -37,7 +37,7 @@ def run():
         print(exc)
         sys.exit(1)
 
-    task_list.finalize(_cli)
+    task_list.finalize()
 
     task_list.cleanup()
 
