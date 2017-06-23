@@ -137,7 +137,7 @@ class Tasks():
         atexit.register(self.cleanup)
 
         scm2class = {
-            'git': 'git',
+            'git': 'Git',
             'bzr': 'Bzr',
             'hg':  'hg',
             'svn': 'svn',

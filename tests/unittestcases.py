@@ -14,7 +14,7 @@ import argparse
 from TarSCM.helpers import Helpers
 from TarSCM.config  import Config
 from TarSCM.changes import Changes
-from TarSCM.scm.git import git
+from TarSCM.scm.git import Git
 from TarSCM.scm.svn import svn
 from TarSCM.archive import ObsCpio
 from TarSCM.archive import Tar
@@ -49,7 +49,7 @@ class UnitTestCases(unittest.TestCase):
             'http://remote/repo/.git;param?query#fragment',
         ]
 
-        scm = TarSCM.scm.git(self.cli, self.tasks)
+        scm = Git(self.cli, self.tasks)
 
         for cd in clone_dirs:
             scm.url = cd
@@ -59,19 +59,19 @@ class UnitTestCases(unittest.TestCase):
 
     @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_with_args(self, safe_run_mock):
-        scm     = TarSCM.scm.git(self.cli, self.tasks)
+        scm     = Git(self.cli, self.tasks)
         new_cmd = scm._log_cmd(['-n1'], '')
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1'], cwd=None)
 
     @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_without_args(self, safe_run_mock):
-        scm     = TarSCM.scm.git(self.cli, self.tasks)
+        scm     = Git(self.cli, self.tasks)
         new_cmd = scm._log_cmd([], '')
         safe_run_mock.assert_called_once_with(['git', 'log'], cwd=None)
 
     @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_with_subdir(self, safe_run_mock):
-        scm     = TarSCM.scm.git(self.cli, self.tasks)
+        scm     = Git(self.cli, self.tasks)
         new_cmd = scm._log_cmd(['-n1'], 'subdir')
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1',
                                                '--', 'subdir'], cwd=None)
@@ -159,7 +159,7 @@ class UnitTestCases(unittest.TestCase):
         self.assertEqual(ca, 'devel@example.com')
 
     def test_git_get_repocache_hash_without_subdir(self):
-        scm_object = git(self.cli, self.tasks)
+        scm_object = Git(self.cli, self.tasks)
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
         repohash = scm_object.get_repocache_hash(None)
         self.assertEqual(
@@ -171,7 +171,7 @@ class UnitTestCases(unittest.TestCase):
         This test case proves that subdir is ignored in
         TarSCM.base.scm.get_repocache_hash
         '''
-        scm_object = git(self.cli, self.tasks)
+        scm_object = Git(self.cli, self.tasks)
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
         repohash = scm_object.get_repocache_hash('subdir')
         self.assertEqual(
@@ -203,7 +203,7 @@ class UnitTestCases(unittest.TestCase):
     def test_obscpio_create_archive(self):
         tc_name              = inspect.stack()[0][3]
         cl_name              = self.__class__.__name__
-        scm_object           = git(self.cli, self.tasks)
+        scm_object           = Git(self.cli, self.tasks)
         scm_object.clone_dir = os.path.join(self.fixtures_dir, tc_name, 'repo')
         ver                  = '0.1.1'
         scm_object.arch_dir  = os.path.join(self.fixtures_dir, tc_name, 'repo')
