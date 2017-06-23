@@ -3,7 +3,7 @@ import os
 from TarSCM.scm.base import Scm
 
 
-class tar(Scm):
+class Tar(Scm):
     def fetch_upstream(self):
         """SCM specific version of fetch_uptream for tar."""
         if self.args.obsinfo is None:

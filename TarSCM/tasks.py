@@ -141,7 +141,7 @@ class Tasks():
             'bzr': 'Bzr',
             'hg':  'Hg',
             'svn': 'Svn',
-            'tar': 'tar',
+            'tar': 'Tar',
         }
 
         # create objects for TarSCM.<scm> and TarSCM.helpers

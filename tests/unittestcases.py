@@ -289,7 +289,7 @@ class UnitTestCases(unittest.TestCase):
         tc_name    = inspect.stack()[0][3]
         cl_name    = self.__class__.__name__
         cur_cwd    = os.getcwd()
-        scm_object = TarSCM.scm.tar(self.cli, self.tasks)
+        scm_object = TarSCM.scm.Tar(self.cli, self.tasks)
         wd         = os.path.join(self.tmp_dir, cl_name, tc_name)
         os.makedirs(os.path.join(wd, 'test'))
         info = os.path.join(wd, "test.obsinfo")
