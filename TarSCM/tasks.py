@@ -131,9 +131,17 @@ class Tasks():
         # force cleaning of our workspace on exit
         atexit.register(self.cleanup)
 
+        scm2class = {
+            'git': 'git',
+            'bzr': 'Bzr',
+            'hg':  'hg',
+            'svn': 'svn',
+            'tar': 'tar',
+        }
+
         # create objects for TarSCM.<scm> and TarSCM.helpers
         try:
-            scm_class    = getattr(TarSCM.scm, args.scm)
+            scm_class = getattr(TarSCM.scm, scm2class[args.scm])
         except:
             raise OptionsError("Please specify valid --scm=... options")
 
