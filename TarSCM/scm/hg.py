@@ -10,10 +10,10 @@ class Hg(Scm):
         if self.revision is None:
             self.revision = 'tip'
 
-        rc, _  = self.helpers.run_cmd(['hg', 'update', self.revision],
-                                      cwd=self.clone_dir,
-                                      interactive=sys.stdout.isatty())
-        if rc:
+        rcode, _  = self.helpers.run_cmd(['hg', 'update', self.revision],
+                                         cwd=self.clone_dir,
+                                         interactive=sys.stdout.isatty())
+        if rcode:
             sys.exit('%s: No such revision' % self.revision)
 
     def fetch_upstream_scm(self):
@@ -21,8 +21,8 @@ class Hg(Scm):
         command = ['hg', 'clone', self.url, self.clone_dir]
         if not self.is_sslverify_enabled():
             command += ['--insecure']
-        wd = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
-        self.helpers.safe_run(command, wd,
+        wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
+        self.helpers.safe_run(command, wdir,
                               interactive=sys.stdout.isatty())
 
     def update_cache(self):
@@ -30,18 +30,17 @@ class Hg(Scm):
         try:
             self.helpers.safe_run(['hg', 'pull'], cwd=self.clone_dir,
                                   interactive=sys.stdout.isatty())
-        except SystemExit as e:
+        except SystemExit as exc:
             # Contrary to the docs, hg pull returns exit code 1 when
             # there are no changes to pull, but we don't want to treat
             # this as an error.
-            if re.match('.*no changes found.*', e.message) is None:
+            if re.match('.*no changes found.*', str(exc)) is None:
                 raise
 
     def detect_version(self, args):
         """
         Automatic detection of version number for checked-out HG repository.
         """
-        parent_tag      = args['parent_tag']
         versionformat   = args['versionformat']
         if versionformat is None:
             versionformat = '{rev}'
@@ -88,7 +87,7 @@ class Hg(Scm):
         return self.version_iso_cleanup(version)
 
     def get_timestamp(self):
-        d = {"parent_tag": None, "versionformat": "{date}"}
-        timestamp = self.detect_version(d)
+        data = {"parent_tag": None, "versionformat": "{date}"}
+        timestamp = self.detect_version(data)
         timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
         return int(timestamp)
