@@ -1,9 +1,11 @@
 import hashlib
 import sys
 import re
-import dateutil.parser
 import os
 import logging
+
+import dateutil.parser
+
 from TarSCM.scm.base import Scm
 
 
@@ -17,9 +19,9 @@ class Svn(Scm):
         if not self.is_sslverify_enabled():
             command.insert(3, '--trust-server-cert')
 
-        wd = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
+        wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
 
-        self.helpers.safe_run(command, wd, interactive=sys.stdout.isatty())
+        self.helpers.safe_run(command, wdir, interactive=sys.stdout.isatty())
 
     def update_cache(self):
         """Update sources via svn."""
@@ -54,13 +56,13 @@ class Svn(Scm):
             return 0
 
         timestamp = match.group(1).strip()
-        timestamp = re.sub('\(.*\)', '', timestamp)
+        timestamp = re.sub(r'\(.*\)', '', timestamp)
         timestamp = dateutil.parser.parse(timestamp).strftime("%s")
         return int(timestamp)
 
-    def detect_changes_scm(self, subdir, changes):
+    def detect_changes_scm(self, subdir, chgs):
         """Detect changes between SVN revisions."""
-        last_rev = changes['revision']
+        last_rev = chgs['revision']
         first_run = False
         if subdir:
             clone_dir = os.path.join(self.clone_dir, subdir)
@@ -86,9 +88,9 @@ class Svn(Scm):
                       current_rev)
         lines = self._get_log(clone_dir, last_rev, current_rev)
 
-        changes['revision'] = current_rev
-        changes['lines'] = lines
-        return changes
+        chgs['revision'] = current_rev
+        chgs['lines'] = lines
+        return chgs
 
     def get_repocache_hash(self, subdir):
         """Calculate hash fingerprint for repository cache."""
