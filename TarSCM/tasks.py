@@ -140,7 +140,7 @@ class Tasks():
             'git': 'Git',
             'bzr': 'Bzr',
             'hg':  'Hg',
-            'svn': 'svn',
+            'svn': 'Svn',
             'tar': 'tar',
         }
 

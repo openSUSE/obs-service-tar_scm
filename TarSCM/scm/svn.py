@@ -7,7 +7,7 @@ import logging
 from TarSCM.scm.base import Scm
 
 
-class svn(Scm):
+class Svn(Scm):
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for svn."""
         command = ['svn', 'checkout', '--non-interactive', self.url,

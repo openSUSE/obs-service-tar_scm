@@ -15,7 +15,7 @@ from TarSCM.helpers import Helpers
 from TarSCM.config  import Config
 from TarSCM.changes import Changes
 from TarSCM.scm.git import Git
-from TarSCM.scm.svn import svn
+from TarSCM.scm.svn import Svn
 from TarSCM.archive import ObsCpio
 from TarSCM.archive import Tar
 
@@ -179,7 +179,7 @@ class UnitTestCases(unittest.TestCase):
             'c0f3245498ad916e9ee404acfd7aa59e29d53b7a063a8609735c1284c67b2161')
 
     def test_svn_get_repocache_hash_without_subdir(self):
-        scm_object = svn(self.cli, self.tasks)
+        scm_object = Svn(self.cli, self.tasks)
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
         repohash = scm_object.get_repocache_hash('')
         self.assertEqual(
@@ -191,7 +191,7 @@ class UnitTestCases(unittest.TestCase):
         This test case proves that subdir is ignored in
         TarSCM.base.scm.get_repocache_hash
         '''
-        scm_object = svn(self.cli, self.tasks)
+        scm_object = Svn(self.cli, self.tasks)
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
         repohash = scm_object.get_repocache_hash('subdir')
         self.assertEqual(
