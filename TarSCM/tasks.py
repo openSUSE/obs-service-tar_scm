@@ -139,7 +139,7 @@ class Tasks():
         scm2class = {
             'git': 'Git',
             'bzr': 'Bzr',
-            'hg':  'hg',
+            'hg':  'Hg',
             'svn': 'svn',
             'tar': 'tar',
         }
