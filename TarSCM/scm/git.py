@@ -63,8 +63,9 @@ class Git(Scm):
             command += ['--config', 'http.sslverify=false']
         if self.repocachedir:
             command.insert(2, '--mirror')
-        wd = os.path.abspath(os.path.join(self.repodir, os.pardir))
-        self.helpers.safe_run(command, cwd=wd, interactive=sys.stdout.isatty())
+        wdir = os.path.abspath(os.path.join(self.repodir, os.pardir))
+        self.helpers.safe_run(
+            command, cwd=wdir, interactive=sys.stdout.isatty())
 
         self.fetch_specific_revision()
 
@@ -80,16 +81,16 @@ class Git(Scm):
     def fetch_submodules(self):
         """Recursively initialize git submodules."""
         if (
-            'submodules' in self.args.__dict__ and
-            self.args.__dict__['submodules'] == 'enable'
+                'submodules' in self.args.__dict__ and
+                self.args.__dict__['submodules'] == 'enable'
         ):
             self.helpers.safe_run(
                 ['git', 'submodule', 'update', '--init', '--recursive'],
                 cwd=self.clone_dir
             )
         elif (
-            'submodules' in self.args.__dict__ and
-            self.args.__dict__['submodules'] == 'master'
+                'submodules' in self.args.__dict__ and
+                self.args.__dict__['submodules'] == 'master'
         ):
             self.helpers.safe_run(
                 ['git', 'submodule', 'update', '--init', '--recursive',
@@ -122,42 +123,17 @@ class Git(Scm):
             versionformat = '%ct.%h'
 
         if not parent_tag:
-            cmd = ['git', 'describe', '--tags', '--abbrev=0']
-            try:
-                if args['match_tag']:
-                    cmd.append("--match=%s" % args['match_tag'])
-            except KeyError:
-                pass
-            rc, output = self.helpers.run_cmd(cmd, self.clone_dir)
+            parent_tag = self._detect_parent_tag(args)
 
-            if rc == 0:
-                # strip to remove newlines
-                parent_tag = output.strip()
         if re.match('.*@PARENT_TAG@.*', versionformat):
-            if parent_tag:
-                versionformat = re.sub('@PARENT_TAG@', parent_tag,
-                                       versionformat)
-            else:
-                sys.exit("\033[31mNo parent tag present for the checked out "
-                         "revision, thus @PARENT_TAG@ cannot be expanded."
-                         "\033[0m")
+            versionformat = self._detect_version_parent_tag(
+                parent_tag,
+                versionformat)
 
         if re.match('.*@TAG_OFFSET@.*', versionformat):
-            if parent_tag:
-                rc, output = self.helpers.run_cmd(
-                    ['git', 'rev-list', '--count', parent_tag + '..HEAD'],
-                    self.clone_dir
-                )
-                if not rc:
-                    tag_offset = output.strip()
-                    versionformat = re.sub('@TAG_OFFSET@', tag_offset,
-                                           versionformat)
-                else:
-                    sys.exit("\033[31m@TAG_OFFSET@ can not be expanded: " +
-                             output + "\033[0m")
-            else:
-                sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
-                         "as no parent tag was discovered.\033[0m")
+            versionformat = self._detect_version_tag_offset(
+                parent_tag,
+                versionformat)
 
         version = self.helpers.safe_run(
             ['git', 'log', '-n1', '--date=short',
@@ -166,9 +142,53 @@ class Git(Scm):
         )[1]
         return self.version_iso_cleanup(version)
 
+    def _detect_parent_tag(self, args):
+        cmd = ['git', 'describe', '--tags', '--abbrev=0']
+        try:
+            if args['match_tag']:
+                cmd.append("--match=%s" % args['match_tag'])
+        except KeyError:
+            pass
+        rcode, output = self.helpers.run_cmd(cmd, self.clone_dir)
+
+        if rcode == 0:
+            # strip to remove newlines
+            parent_tag = output.strip()
+
+        return parent_tag
+
+    def _detect_version_parent_tag(self, parent_tag, versionformat):  # noqa pylint: disable=no-self-use
+        if not parent_tag:
+            sys.exit("\033[31mNo parent tag present for the checked out "
+                     "revision, thus @PARENT_TAG@ cannot be expanded."
+                     "\033[0m")
+
+        versionformat = re.sub('@PARENT_TAG@', parent_tag,
+                               versionformat)
+        return versionformat
+
+    def _detect_version_tag_offset(self, parent_tag, versionformat):
+        if not parent_tag:
+            sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
+                     "as no parent tag was discovered.\033[0m")
+
+        rcode, output = self.helpers.run_cmd(
+            ['git', 'rev-list', '--count', parent_tag + '..HEAD'],
+            self.clone_dir
+        )
+
+        if rcode:
+            sys.exit("\033[31m@TAG_OFFSET@ can not be expanded: " +
+                     output + "\033[0m")
+
+        tag_offset = output.strip()
+        versionformat = re.sub('@TAG_OFFSET@', tag_offset,
+                               versionformat)
+        return versionformat
+
     def get_timestamp(self):
-        d = {"parent_tag": None, "versionformat": "%ct"}
-        timestamp = self.detect_version(d)
+        data = {"parent_tag": None, "versionformat": "%ct"}
+        timestamp = self.detect_version(data)
         return int(timestamp)
 
     def get_current_commit(self):
@@ -176,12 +196,12 @@ class Git(Scm):
                                      self.clone_dir)[1]
 
     def _ref_exists(self, rev):
-        rc, _ = self.helpers.run_cmd(
+        rcode, _ = self.helpers.run_cmd(
             ['git', 'rev-parse', '--verify', '--quiet', rev],
             cwd=self.clone_dir,
             interactive=sys.stdout.isatty()
         )
-        return (rc == 0)
+        return rcode == 0
 
     def _log_cmd(self, cmd_args, subdir):
         """ Helper function to call 'git log' with args"""
@@ -190,9 +210,9 @@ class Git(Scm):
             cmd += ['--', subdir]
         return self.helpers.safe_run(cmd, cwd=self.clone_dir)[1]
 
-    def detect_changes_scm(self, subdir, changes):
+    def detect_changes_scm(self, subdir, chgs):
         """Detect changes between GIT revisions."""
-        last_rev = changes['revision']
+        last_rev = chgs['revision']
 
         if last_rev is None:
             last_rev = self._log_cmd(
@@ -216,9 +236,9 @@ class Git(Scm):
                                "%s..%s" % (last_rev, current_rev)],
                               subdir)
 
-        changes['revision'] = current_rev
-        changes['lines'] = lines.split('\n')
-        return changes
+        chgs['revision'] = current_rev
+        chgs['lines'] = lines.split('\n')
+        return chgs
 
     def prepare_working_copy(self):
         if not self.repocachedir:
@@ -231,10 +251,10 @@ class Git(Scm):
         command = ['git', 'clone', self.repocachedir, self.url, self.clone_dir]
         use_reference = True
         try:
-            if (self.args.package_meta):
+            if self.args.package_meta:
                 logging.info("Not using '--reference'")
                 use_reference = False
-        except(KeyError):
+        except KeyError:
             pass
 
         if use_reference:
@@ -242,5 +262,6 @@ class Git(Scm):
                        self.clone_dir]
         else:
             command = ['git', 'clone', org_clone_dir, self.clone_dir]
-        wd = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
-        self.helpers.safe_run(command, cwd=wd, interactive=sys.stdout.isatty())
+        wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
+        self.helpers.safe_run(
+            command, cwd=wdir, interactive=sys.stdout.isatty())
