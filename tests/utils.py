@@ -59,4 +59,7 @@ def run_hg(repo, args):
 
 
 def run_bzr(repo, args):
+    os.putenv('LANG', 'C')
+    os.environ['LANG'] = 'C'
+
     return run_scm('bzr', repo, args)

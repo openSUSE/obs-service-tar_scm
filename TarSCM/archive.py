@@ -5,8 +5,8 @@ import subprocess
 import sys
 import tarfile
 import shutil
-import logging
-from TarSCM.helpers import helpers
+
+from TarSCM.helpers import Helpers
 
 try:
     from io import StringIO
@@ -18,7 +18,7 @@ METADATA_PATTERN = re.compile(r'.*/\.(bzr|git(ignore)?|hg|svn)(\/.*|$)')
 
 class BaseArchive():
     def __init__(self):
-        self.helpers        = helpers()
+        self.helpers        = Helpers()
         self.archivefile    = None
         self.metafile       = None
 
@@ -37,7 +37,7 @@ class BaseArchive():
                 sys.exit("%s: Failed to copy file" % src)
 
 
-class obscpio(BaseArchive):
+class ObsCpio(BaseArchive):
     def create_archive(self, scm_object, **kwargs):
         """Create an OBS cpio archive of repodir in destination directory.
         """
@@ -99,8 +99,8 @@ class obscpio(BaseArchive):
         metafile = open(os.path.join(args.outdir, basename + '.obsinfo'), "w")
         metafile.write("name: " + basename + "\n")
         metafile.write("version: " + version + "\n")
-        ts = self.helpers.get_timestamp(scm_object, args, topdir)
-        metafile.write("mtime: " + str(ts) + "\n")
+        tstamp = self.helpers.get_timestamp(scm_object, args, topdir)
+        metafile.write("mtime: " + str(tstamp) + "\n")
 
         if commit:
             metafile.write("commit: " + commit + "\n")
@@ -112,7 +112,7 @@ class obscpio(BaseArchive):
         os.chdir(cwd)
 
 
-class tar(BaseArchive):
+class Tar(BaseArchive):
     def create_archive(self, scm_object, **kwargs):
         """Create a tarball of repodir in destination directory."""
         (workdir, topdir) = os.path.split(scm_object.arch_dir)
@@ -141,8 +141,8 @@ class tar(BaseArchive):
             pat = fnmatch.translate(os.path.join(topdir, i))
             incl_patterns.append(re.compile(pat))
 
-        for e in exclude:
-            pat = fnmatch.translate(os.path.join(topdir, e))
+        for exc in exclude:
+            pat = fnmatch.translate(os.path.join(topdir, exc))
             excl_patterns.append(re.compile(pat))
 
         def tar_exclude(filename):

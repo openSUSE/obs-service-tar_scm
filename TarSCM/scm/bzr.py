@@ -2,10 +2,10 @@ import sys
 import re
 import os
 import dateutil.parser
-from TarSCM.scm.base import scm
+from TarSCM.scm.base import Scm
 
 
-class bzr(scm):
+class Bzr(Scm):
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for bzr."""
         command = ['bzr', 'checkout', self.url, self.clone_dir]
@@ -14,8 +14,8 @@ class bzr(scm):
             command.insert(4, self.revision)
         if not self.is_sslverify_enabled():
             command.insert(2, '-Ossl.cert_reqs=None')
-        wd = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
-        self.helpers.safe_run(command, wd, interactive=sys.stdout.isatty())
+        wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
+        self.helpers.safe_run(command, wdir, interactive=sys.stdout.isatty())
 
     def update_cache(self):
         """Update sources via bzr."""

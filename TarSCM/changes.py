@@ -1,5 +1,4 @@
 import datetime
-import glob
 import logging
 import os
 import shutil
@@ -7,11 +6,11 @@ import sys
 import tempfile
 import stat
 
-import TarSCM.cli
-from TarSCM.config import config
+from TarSCM.cli    import Cli
+from TarSCM.config import Config
 
 
-class changes():
+class Changes():
     def import_xml_parser(self):
         """Import the best XML parser available.  Currently prefers lxml and
         falls back to xml.etree.
@@ -70,11 +69,11 @@ class changes():
 
         try:
             return ET.parse(servicedata_file, parser=xml_parser)
-        except StandardError as e:
+        except StandardError as exc:
             # Tolerate an empty file, but any other parse error should be
             # made visible.
-            if str(e).startswith("Document is empty") or \
-               str(e).startswith("no element found"):
+            if str(exc).startswith("Document is empty") or \
+               str(exc).startswith("no element found"):
                 return None
             raise
 
@@ -99,7 +98,7 @@ class changes():
         element, or None, if it doesn't exist.
         """
         params = tar_scm_service.findall("param[@name='changesrevision']")
-        if len(params) == 0:
+        if not params:
             return None
         if len(params) > 1:
             raise RuntimeError('Found multiple <param name="changesrevision"> '
@@ -206,23 +205,21 @@ class changes():
         # return changesauthor if given as cli option
         if args.changesauthor:
             return args.changesauthor
-        #
 
         # find changesauthor in $HOME/.oscrc
         try:
             files = [[os.path.join(os.environ['HOME'], '.oscrc'), False]]
-            cfg = config(files)
+            cfg = Config(files)
 
             changesauthor = None
             section = cfg.get('general', 'apiurl')
             if section:
-                    changesauthor = cfg.get(section, 'email')
+                changesauthor = cfg.get(section, 'email')
         except KeyError:
             pass
 
         if not changesauthor:
-                changesauthor = TarSCM.cli.DEFAULT_AUTHOR
-        #
+            changesauthor = Cli.DEFAULT_AUTHOR
 
         logging.debug("AUTHOR: %s", changesauthor)
 

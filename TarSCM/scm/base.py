@@ -7,9 +7,10 @@ import hashlib
 import shutil
 import fcntl
 import time
-from TarSCM.helpers import helpers
-from TarSCM.changes import changes
-from TarSCM.config import config
+
+from TarSCM.helpers import Helpers
+from TarSCM.changes import Changes
+from TarSCM.config import Config
 
 if sys.version_info[0] < 3:
     from urlparse import urlparse
@@ -17,7 +18,7 @@ else:
     import urllib
 
 
-class scm():
+class Scm():
     def __init__(self, args, task):
         # default settings
         self.scm            = self.__class__.__name__
@@ -39,9 +40,9 @@ class scm():
         self.revision       = args.revision
 
         # preparation of required attributes
-        self.helpers        = helpers()
+        self.helpers        = Helpers()
         if self.args.changesgenerate:
-            self.changes    = changes()
+            self.changes    = Changes()
 
         self._calc_repocachedir()
 
@@ -134,7 +135,7 @@ class scm():
             repocachedir = os.getenv('CACHEDIRECTORY')
 
         if repocachedir is None:
-            repocachedir = config().get('tar_scm', 'CACHEDIRECTORY')
+            repocachedir = Config().get('tar_scm', 'CACHEDIRECTORY')
 
         if repocachedir:
             logging.debug("REPOCACHE: %s", repocachedir)

@@ -1,9 +1,12 @@
+from __future__ import print_function
+
 import argparse
 import os
 import sys
 
 
-class cli():
+class Cli():
+    # pylint: disable=too-few-public-methods
     DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
 
     def __init__(self):
@@ -70,7 +73,7 @@ class cli():
                                  'written, defaults to first email entry in '
                                  '~/.oscrc or "%s" '
                                  'if there is no ~/.oscrc found.' %
-                                 self.DEFAULT_AUTHOR)
+                            self.DEFAULT_AUTHOR)
         parser.add_argument('--subdir', default='',
                             help='Package just a subdirectory of the sources')
         parser.add_argument('--submodules',
@@ -123,21 +126,12 @@ class cli():
             print("history-depth parameter is obsolete and will be ignored")
 
         # booleanize non-standard parameters
-        if args.changesgenerate == 'enable':
-            args.changesgenerate = True
-        else:
-            args.changesgenerate = False
-
-        if args.package_meta == 'yes':
-            args.package_meta = True
-        else:
-            args.package_meta = False
-
-        args.sslverify = False if args.sslverify == 'disable' else True
+        args.changesgenerate = bool(args.changesgenerate == 'enable')
+        args.package_meta = bool(args.package_meta == 'yes')
+        args.sslverify = bool(args.sslverify != 'disable')
 
         # force verbose mode in test-mode
-        if os.getenv('DEBUG_TAR_SCM'):
-            args.verbose = True
+        args.verbose = bool(os.getenv('DEBUG_TAR_SCM'))
 
         for attr in args.__dict__.keys():
             self.__dict__[attr] = args.__dict__[attr]

@@ -7,7 +7,7 @@ import copy
 import shutil
 from mock import MagicMock
 
-from TarSCM.scm.base import scm
+from TarSCM.scm.base import Scm
 
 import TarSCM
 
@@ -32,15 +32,15 @@ class SCMBaseTestCases(unittest.TestCase):
             shutil.rmtree(self.outdir)
 
     def _prepare_cli(self):
-        self.cli = TarSCM.cli()
+        self.cli = TarSCM.Cli()
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
         self.cli.parse_args(['--outdir', self.outdir, '--scm', 'git'])
         self.cli.snapcraft  = True
 
     def test_prep_tree_for_archive(self):
-        tasks = TarSCM.tasks()
-        scm_base = scm(self.cli, tasks)
+        tasks = TarSCM.Tasks(self.cli)
+        scm_base = Scm(self.cli, tasks)
         basedir = os.path.join(self.tmp_dir, self.__class__.__name__)
         dir1 = os.path.join(basedir, "test1")
         scm_base.clone_dir = basedir

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import datetime
 import os
 import logging
@@ -10,7 +12,7 @@ except:
     from io import StringIO
 
 
-class helpers():
+class Helpers():
     def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False):
         """
         Execute the command cmd in the working directory cwd and check return
