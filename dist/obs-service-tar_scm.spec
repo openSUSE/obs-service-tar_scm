@@ -19,8 +19,8 @@
 %bcond_without obs_scm_testsuite
 
 Name:           obs-service-tar_scm
-%define version_unconverted 0.7.0.1496831936.d960322
-Version:        0.7.0.1496831936.d960322
+%define version_unconverted 0.8.0.1498846582.8799787
+Version:        0.8.0.1498846582.8799787
 Release:        0
 Summary:        An OBS source service: create tar ball from svn/git/hg
 License:        GPL-2.0+
@@ -135,12 +135,14 @@ resources and packages them.
 %setup -q -n obs-service-tar_scm-%version
 
 %build
+%py_compile %{buildroot}
 
 %install
 make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}"
 
 %if %{with obs_scm_testsuite}
 %if 0%{?suse_version} >= 1220
+
 %check
 # No need to run PEP8 tests here; that would require a potentially
 # brittle BuildRequires: python-pep8, and any style issues are already
