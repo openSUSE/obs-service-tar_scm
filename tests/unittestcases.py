@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+from __future__ import print_function
 
 import sys
 import os
@@ -17,6 +18,7 @@ from TarSCM.scm.svn import Svn
 from TarSCM.archive import ObsCpio
 
 if sys.version_info < (2, 7):
+    # pylint: disable=import-error
     import unittest2 as unittest
 else:
     import unittest
@@ -46,46 +48,45 @@ class UnitTestCases(unittest.TestCase):
 
         scm = Git(self.cli, self.tasks)
 
-        for cd in clone_dirs:
-            scm.url = cd
-            scm._calc_dir_to_clone_to("")
+        for cdir in clone_dirs:
+            scm.url = cdir
+            scm._calc_dir_to_clone_to("")  # pylint: disable=protected-access
             self.assertTrue(scm.clone_dir.endswith('/repo'))
             self.tasks.cleanup()
 
     @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_with_args(self, safe_run_mock):
         scm     = Git(self.cli, self.tasks)
-        # pylint: disable=unused-variable
+        # pylint: disable=unused-variable,protected-access
         new_cmd = scm._log_cmd(['-n1'], '')  # noqa
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1'], cwd=None)
 
     @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_without_args(self, safe_run_mock):
         scm     = Git(self.cli, self.tasks)
-        # pylint: disable=unused-variable
+        # pylint: disable=unused-variable,protected-access
         new_cmd = scm._log_cmd([], '')  # noqa
         safe_run_mock.assert_called_once_with(['git', 'log'], cwd=None)
 
     @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_with_subdir(self, safe_run_mock):
-
         scm     = Git(self.cli, self.tasks)
-        # pylint: disable=unused-variable
+        # pylint: disable=unused-variable,protected-access
         new_cmd = scm._log_cmd(['-n1'], 'subdir')  # noqa
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1',
                                                '--', 'subdir'], cwd=None)
 
     def test_safe_run_exception(self):
-        h = Helpers()
+        helpers = Helpers()
         self.assertRaisesRegexp(
             SystemExit,
-            re.compile("Command failed\(1\): ''"),
-            h.safe_run,
+            re.compile(r"Command failed\(1\): ''"),
+            helpers.safe_run,
             "/bin/false",
             cwd=None,
         )
 
-    def test_TarSCM_config_files_ordering(self):
+    def test_config_files_ordering(self):
         tc_name = inspect.stack()[0][3]
         files = [
             [os.path.join(self.fixtures_dir, tc_name, 'a.cfg'), True],
@@ -94,7 +95,7 @@ class UnitTestCases(unittest.TestCase):
         var = Config(files).get(None, 'var')
         self.assertEqual(var, 'b')
 
-    def test_TarSCM_config_no_faked_header(self):
+    def test_config_no_faked_header(self):
         tc_name = inspect.stack()[0][3]
         files   = [
             [os.path.join(self.fixtures_dir, tc_name, 'test.ini'), False]
@@ -104,7 +105,7 @@ class UnitTestCases(unittest.TestCase):
         var     = Config(files).get(var, 'email')
         self.assertEqual(var, 'devel@example.com')
 
-    def test_TarSCM_config_debug_tar_scm(self):
+    def test_config_debug_tar_scm(self):
         tc_name = inspect.stack()[0][3]
 
         try:
@@ -124,40 +125,46 @@ class UnitTestCases(unittest.TestCase):
             os.environ['DEBUG_TAR_SCM'] = ''
             os.unsetenv('DEBUG_TAR_SCM')
 
-    def test_TarSCM_changes_get_changesauthor_from_args(self):
-        c                   = Changes()
+    def test_changes_get_chga_args(self):
+        '''Test if getting changesauthor from cli args works'''
+        chg                 = Changes()
         cli                 = copy.copy(self.cli)
         cli.changesauthor   = 'args@example.com'
-        ca                  = c.get_changesauthor(cli)
-        self.assertEqual(ca, 'args@example.com')
+        author              = chg.get_changesauthor(cli)
+        self.assertEqual(author, 'args@example.com')
 
-    def test_TarSCM_changes_get_changesauthor_from_oscrc(self):
+    def test_changes_get_chga_oscrc(self):
+        '''Test if getting changesauthor from .oscrc works'''
         tc_name             = inspect.stack()[0][3]
         home                = os.environ['HOME']
         os.environ['HOME']  = os.path.join(self.fixtures_dir, tc_name)
-        c                   = Changes()
-        ca                  = c.get_changesauthor(self.cli)
+        chg                 = Changes()
+        author              = chg.get_changesauthor(self.cli)
         os.environ['HOME']  = home
-        self.assertEqual(ca, 'devel@example.com')
+        self.assertEqual(author, 'devel@example.com')
 
-    def test_TarSCM_changes_get_changesauthor_default(self):
+    def test_changes_get_chga_default(self):
+        '''Test if getting changesauthor from .oscrc'''
         home                = os.environ['HOME']
         os.environ['HOME']  = '/nir/va/na'
-        c                   = Changes()
-        ca                  = c.get_changesauthor(self.cli)
+        chg                 = Changes()
+        author              = chg.get_changesauthor(self.cli)
         os.environ['HOME']  = home
-        self.assertEqual(ca, 'opensuse-packaging@opensuse.org')
+        self.assertEqual(author, 'opensuse-packaging@opensuse.org')
 
-    def test_TarSCM_changes_get_changesauthor_from_home_rc(self):
+    def test_changes_get_chga_home_rc(self):
+        '''Test if getting changesauthor from rcfile in home dir'''
+        home                = os.environ['HOME']
         tc_name             = inspect.stack()[0][3]
         home                = os.environ['HOME']
         os.environ['HOME']  = os.path.join(self.fixtures_dir, tc_name)
-        c                   = Changes()
-        ca                  = c.get_changesauthor(self.cli)
+        chg                 = Changes()
+        author              = chg.get_changesauthor(self.cli)
         os.environ['HOME']  = home
-        self.assertEqual(ca, 'devel@example.com')
+        self.assertEqual(author, 'devel@example.com')
 
-    def test_git_get_repocache_hash_without_subdir(self):
+    def test_git_repoc_hash_wo_subdir(self):
+        '''Test to get git repocache dir without subdir'''
         scm_object = Git(self.cli, self.tasks)
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
         repohash = scm_object.get_repocache_hash(None)
@@ -165,7 +172,7 @@ class UnitTestCases(unittest.TestCase):
             repohash,
             'c0f3245498ad916e9ee404acfd7aa59e29d53b7a063a8609735c1284c67b2161')
 
-    def test_git_get_repocache_hash_with_subdir(self):
+    def test_git_repoc_hash_w_subdir(self):
         '''
         This test case proves that subdir is ignored in
         TarSCM.base.scm.get_repocache_hash
@@ -177,7 +184,8 @@ class UnitTestCases(unittest.TestCase):
             repohash,
             'c0f3245498ad916e9ee404acfd7aa59e29d53b7a063a8609735c1284c67b2161')
 
-    def test_svn_get_repocache_hash_without_subdir(self):
+    def test_svn_repoc_hash_wo_subdir(self):
+        '''Test to get svn repocache dir without subdir'''
         scm_object = Svn(self.cli, self.tasks)
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
         repohash = scm_object.get_repocache_hash('')
@@ -185,7 +193,7 @@ class UnitTestCases(unittest.TestCase):
             repohash,
             'd5a57bc8ad6a3ecbca514a1a6fb48e2c9ee183ceb5f7d42e9fd5836918bd540c')
 
-    def test_svn_get_repocache_hash_with_subdir(self):
+    def test_svn_repoc_hash_w_subdir(self):
         '''
         This test case proves that subdir is ignored in
         TarSCM.base.scm.get_repocache_hash
@@ -218,7 +226,10 @@ class UnitTestCases(unittest.TestCase):
             version  = '0.1.1'
         )
 
-    def test_obscpio_extract_from_archive_one_file(self):
+    def test_obscpio_extract_of(self):
+        '''
+        Test obscpio to extract one file from archive
+        '''
         tc_name = inspect.stack()[0][3]
         cl_name = self.__class__.__name__
 
@@ -228,10 +239,14 @@ class UnitTestCases(unittest.TestCase):
         arch    = ObsCpio()
         os.makedirs(outdir)
         arch.extract_from_archive(repodir, files, outdir)
-        for fn in files:
-            self.assertTrue(os.path.exists(os.path.join(outdir, fn)))
+        for fname in files:
+            self.assertTrue(os.path.exists(
+                os.path.join(outdir, fname)))
 
-    def test_obscpio_extract_from_archive_multiple_files(self):
+    def test_obscpio_extract_mf(self):
+        '''
+        Test obscpio to extract multiple files from archive
+        '''
         tc_name = inspect.stack()[0][3]
         cl_name = self.__class__.__name__
 
@@ -241,10 +256,14 @@ class UnitTestCases(unittest.TestCase):
         arch    = ObsCpio()
         os.makedirs(outdir)
         arch.extract_from_archive(repodir, files, outdir)
-        for fn in files:
-            self.assertTrue(os.path.exists(os.path.join(outdir, fn)))
+        for fname in files:
+            self.assertTrue(os.path.exists(
+                os.path.join(outdir, fname)))
 
-    def test_obscpio_extract_from_archive_non_existing_file(self):
+    def test_obscpio_extract_nef(self):
+        '''
+        Test obscpio to extract non existant file from archive
+        '''
         tc_name = inspect.stack()[0][3]
         cl_name = self.__class__.__name__
 
@@ -264,7 +283,10 @@ class UnitTestCases(unittest.TestCase):
 
     @unittest.skip("Broken test, actually raises "
                    "SystemExit: No such file or directory")
-    def test_obscpio_extract_from_archive_directory(self):
+    def test_obscpio_extract_d(self):
+        '''
+        Test obscpio to extract directory from archive
+        '''
         tc_name = inspect.stack()[0][3]
         cl_name = self.__class__.__name__
 
@@ -288,40 +310,40 @@ class UnitTestCases(unittest.TestCase):
         cl_name    = self.__class__.__name__
         cur_cwd    = os.getcwd()
         scm_object = TarSCM.scm.Tar(self.cli, self.tasks)
-        wd         = os.path.join(self.tmp_dir, cl_name, tc_name)
-        os.makedirs(os.path.join(wd, 'test'))
-        info = os.path.join(wd, "test.obsinfo")
+        wdir       = os.path.join(self.tmp_dir, cl_name, tc_name)
+        os.makedirs(os.path.join(wdir, 'test'))
+        info = os.path.join(wdir, "test.obsinfo")
         print("INFOFILE: '%s'" % info)
-        fh = open(info, 'w')
-        fh.write(
+        f_h = open(info, 'w')
+        f_h.write(
             "name: test\n" +
             "version: 0.1.1\n" +
             "mtime: 1476683264\n" +
             "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
         )
-        fh.close()
-        os.chdir(wd)
+        f_h.close()
+        os.chdir(wdir)
         scm_object.fetch_upstream()
         # just to make coverage happy
         scm_object.update_cache()
-        ts      = scm_object.get_timestamp()
+        tstamp  = scm_object.get_timestamp()
         ver     = scm_object.detect_version(self.cli)
         empty   = scm_object.read_from_obsinfo(info, "nonexistantkey")
 
-        self.assertTrue(os.path.isdir(os.path.join(wd, "test-0.1.1")))
-        self.assertFalse(os.path.isdir(os.path.join(wd, "test")))
-        self.assertEqual(ts, 1476683264)
+        self.assertTrue(os.path.isdir(os.path.join(wdir, "test-0.1.1")))
+        self.assertFalse(os.path.isdir(os.path.join(wdir, "test")))
+        self.assertEqual(tstamp, 1476683264)
         self.assertEqual(ver, "0.1.1")
         self.assertEqual(empty, "")
         # testing non existant basename
-        fh = open(info, 'w')
-        fh.write(
+        f_h = open(info, 'w')
+        f_h.write(
             "name: nonexistantbase\n" +
             "version: 0.1.1\n" +
             "mtime: 1476683264\n" +
             "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
         )
-        fh.close()
+        f_h.close()
 
         self.assertRaisesRegexp(
             SystemExit,
