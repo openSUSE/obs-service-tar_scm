@@ -21,7 +21,7 @@ class Tar(Scm):
         self.clone_dir += "-" + self.read_from_obsinfo(self.args.obsinfo,
                                                        "version")
         if not os.path.exists(self.clone_dir):
-            self.final_rename_needed = 1
+            self._final_rename_needed = True
             # not need in case of local osc build
             try:
                 os.rename(self.basename, self.clone_dir)
@@ -55,5 +55,5 @@ class Tar(Scm):
 
     def finalize(self):
         """Execute final cleanup of workspace"""
-        if self.final_rename_needed:
+        if self._final_rename_needed:
             os.rename(self.clone_dir, self.basename)

@@ -6,6 +6,7 @@ import os
 from tests.tarfixtures    import TarFixtures
 from tests.testenv        import TestEnvironment
 from tests.testassertions import TestAssertions
+from TarSCM.scm.tar       import Tar
 
 
 class TarTestCases(TestEnvironment, TestAssertions):
@@ -35,3 +36,19 @@ class TarTestCases(TestEnvironment, TestAssertions):
         os.mkdir(src_dir)
         self.tar_scm_std()
         self.assertTrue(os.path.isdir(src_dir))
+
+    def test_tar_scm_no_finalize(self):  # pylint: disable=no-self-use
+        class FakeCli():  # pylint: disable=no-init,too-few-public-methods
+            def __init__(self):
+                self.url             = ''
+                self.revision        = ''
+                self.changesgenerate = False
+                self.subdir          = ''
+
+        class FakeTasks():  # pylint: disable=no-init,too-few-public-methods
+            pass
+
+        cli                 = FakeCli()
+        tasks               = FakeTasks()
+        tar_obj             = Tar(cli, tasks)
+        tar_obj.finalize()

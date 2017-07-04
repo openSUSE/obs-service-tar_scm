@@ -45,6 +45,7 @@ class Scm():
             self.changes    = Changes()
 
         self._calc_repocachedir()
+        self._final_rename_needed = False
 
     def switch_revision(self):
         '''Switch sources to revision. Dummy implementation for version control
