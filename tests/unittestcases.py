@@ -38,7 +38,6 @@ class UnitTestCases(unittest.TestCase):
         os.environ['CACHEDIRECTORY'] = ''
 
     def test_calc_dir_to_clone_to(self):
-        scm = 'git'
         outdir = '/out/'
 
         clone_dirs = [
@@ -54,7 +53,7 @@ class UnitTestCases(unittest.TestCase):
         for cd in clone_dirs:
             scm.url = cd
             scm._calc_dir_to_clone_to("")
-            self.assertEqual(scm.clone_dir, os.path.join(scm.repodir))
+            self.assertTrue(scm.clone_dir.endswith('/repo'))
             self.tasks.cleanup()
 
     @patch('TarSCM.Helpers.safe_run')

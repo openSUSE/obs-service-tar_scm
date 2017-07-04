@@ -10,6 +10,8 @@ from TarSCM.scm.base import Scm
 
 
 class Svn(Scm):
+    scm = 'svn'
+
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for svn."""
         command = ['svn', 'checkout', '--non-interactive', self.url,

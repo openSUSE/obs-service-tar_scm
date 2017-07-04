@@ -6,6 +6,8 @@ from TarSCM.scm.base import Scm
 
 
 class Git(Scm):
+    scm = 'git'
+
     def switch_revision(self):
         """Switch sources to revision. The git revision may refer to any of the
         following:
