@@ -5,11 +5,9 @@ import os
 import re
 import inspect
 import copy
-import subprocess
 from mock import patch
 
 import TarSCM
-import argparse
 
 from TarSCM.helpers import Helpers
 from TarSCM.config  import Config
@@ -17,7 +15,6 @@ from TarSCM.changes import Changes
 from TarSCM.scm.git import Git
 from TarSCM.scm.svn import Svn
 from TarSCM.archive import ObsCpio
-from TarSCM.archive import Tar
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -38,7 +35,6 @@ class UnitTestCases(unittest.TestCase):
         os.environ['CACHEDIRECTORY'] = ''
 
     def test_calc_dir_to_clone_to(self):
-        outdir = '/out/'
 
         clone_dirs = [
             '/local/repo.git',
@@ -59,19 +55,23 @@ class UnitTestCases(unittest.TestCase):
     @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_with_args(self, safe_run_mock):
         scm     = Git(self.cli, self.tasks)
-        new_cmd = scm._log_cmd(['-n1'], '')
+        # pylint: disable=unused-variable
+        new_cmd = scm._log_cmd(['-n1'], '')  # noqa
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1'], cwd=None)
 
     @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_without_args(self, safe_run_mock):
         scm     = Git(self.cli, self.tasks)
-        new_cmd = scm._log_cmd([], '')
+        # pylint: disable=unused-variable
+        new_cmd = scm._log_cmd([], '')  # noqa
         safe_run_mock.assert_called_once_with(['git', 'log'], cwd=None)
 
     @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_with_subdir(self, safe_run_mock):
+
         scm     = Git(self.cli, self.tasks)
-        new_cmd = scm._log_cmd(['-n1'], 'subdir')
+        # pylint: disable=unused-variable
+        new_cmd = scm._log_cmd(['-n1'], 'subdir')  # noqa
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1',
                                                '--', 'subdir'], cwd=None)
 
@@ -204,7 +204,6 @@ class UnitTestCases(unittest.TestCase):
         cl_name              = self.__class__.__name__
         scm_object           = Git(self.cli, self.tasks)
         scm_object.clone_dir = os.path.join(self.fixtures_dir, tc_name, 'repo')
-        ver                  = '0.1.1'
         scm_object.arch_dir  = os.path.join(self.fixtures_dir, tc_name, 'repo')
         outdir               = os.path.join(self.tmp_dir, cl_name, tc_name,
                                             'out')
