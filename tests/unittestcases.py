@@ -15,7 +15,6 @@ from TarSCM.config  import Config
 from TarSCM.changes import Changes
 from TarSCM.scm.git import Git
 from TarSCM.scm.svn import Svn
-from TarSCM.archive import ObsCpio
 
 if sys.version_info < (2, 7):
     # pylint: disable=import-error
@@ -24,6 +23,7 @@ else:
     import unittest
 
 
+# pylint: disable=duplicate-code
 class UnitTestCases(unittest.TestCase):
     def setUp(self):
         self.cli            = TarSCM.Cli()
@@ -204,105 +204,6 @@ class UnitTestCases(unittest.TestCase):
         self.assertEqual(
             repohash,
             'b9761648b96f105d82a97b8a81f1ca060b015a3f882ef9a55ae6b5bf7be0d48a')
-
-    @unittest.skip("Broken test, relies on a fixture set which is a .git file"
-                   " which is excluded while package building")
-    def test_obscpio_create_archive(self):
-        tc_name              = inspect.stack()[0][3]
-        cl_name              = self.__class__.__name__
-        scm_object           = Git(self.cli, self.tasks)
-        scm_object.clone_dir = os.path.join(self.fixtures_dir, tc_name, 'repo')
-        scm_object.arch_dir  = os.path.join(self.fixtures_dir, tc_name, 'repo')
-        outdir               = os.path.join(self.tmp_dir, cl_name, tc_name,
-                                            'out')
-        self.cli.outdir      = outdir
-        arch                 = ObsCpio()
-        os.makedirs(outdir)
-        arch.create_archive(
-            scm_object,
-            cli      = self.cli,
-            basename = 'test',
-            dstname  = 'test',
-            version  = '0.1.1'
-        )
-
-    def test_obscpio_extract_of(self):
-        '''
-        Test obscpio to extract one file from archive
-        '''
-        tc_name = inspect.stack()[0][3]
-        cl_name = self.__class__.__name__
-
-        repodir = os.path.join(self.fixtures_dir, tc_name, 'repo')
-        files   = ["test.spec"]
-        outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
-        arch    = ObsCpio()
-        os.makedirs(outdir)
-        arch.extract_from_archive(repodir, files, outdir)
-        for fname in files:
-            self.assertTrue(os.path.exists(
-                os.path.join(outdir, fname)))
-
-    def test_obscpio_extract_mf(self):
-        '''
-        Test obscpio to extract multiple files from archive
-        '''
-        tc_name = inspect.stack()[0][3]
-        cl_name = self.__class__.__name__
-
-        repodir = os.path.join(self.fixtures_dir, tc_name, 'repo')
-        files   = ["test.spec", 'Readme.md']
-        outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
-        arch    = ObsCpio()
-        os.makedirs(outdir)
-        arch.extract_from_archive(repodir, files, outdir)
-        for fname in files:
-            self.assertTrue(os.path.exists(
-                os.path.join(outdir, fname)))
-
-    def test_obscpio_extract_nef(self):
-        '''
-        Test obscpio to extract non existant file from archive
-        '''
-        tc_name = inspect.stack()[0][3]
-        cl_name = self.__class__.__name__
-
-        repodir = os.path.join(self.fixtures_dir, tc_name, 'repo')
-        files   = ['nonexistantfile']
-        outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
-        arch    = ObsCpio()
-        os.makedirs(outdir)
-        self.assertRaisesRegexp(
-            SystemExit,
-            re.compile('No such file or directory'),
-            arch.extract_from_archive,
-            repodir,
-            files,
-            outdir
-        )
-
-    @unittest.skip("Broken test, actually raises "
-                   "SystemExit: No such file or directory")
-    def test_obscpio_extract_d(self):
-        '''
-        Test obscpio to extract directory from archive
-        '''
-        tc_name = inspect.stack()[0][3]
-        cl_name = self.__class__.__name__
-
-        repodir = os.path.join(self.fixtures_dir, tc_name, 'repo')
-        files   = ['dir1']
-        outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
-        arch    = TarSCM.archive.ObsCpio()
-        os.makedirs(outdir)
-        self.assertRaisesRegexp(
-            IOError,
-            re.compile('Is a directory:'),
-            arch.extract_from_archive,
-            repodir,
-            files,
-            outdir
-        )
 
     @unittest.skip("Broken test, relies on the results of an other test case")
     def test_scm_tar(self):
