@@ -216,7 +216,7 @@ tar_scm: tar_scm.py
 	sed 's,^\#!/usr/bin/.*,#!$(PYTHON),' $< > $@
 
 .PHONY: install
-install: tar_scm compile
+install: tar_scm
 	mkdir -p $(DESTDIR)$(mylibdir)
 	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM
 	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM/scm
