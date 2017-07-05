@@ -21,7 +21,6 @@ else:
 class Scm():
     def __init__(self, args, task):
         # default settings
-        self.scm            = self.__class__.__name__
         # arch_dir - Directory which is used for the archive
         # e.g. myproject-2.0
         self.arch_dir            = None
@@ -165,7 +164,9 @@ class Scm():
             url_path = urllib.parse.urlparse(self.url)[2].rstrip('/')
 
         # remove trailing scm extension
+        logging.debug("Stripping '%s' extension from '%s'", self.scm, url_path)
         url_path = re.sub(r'\.%s$' % self.scm, '', url_path)
+        logging.debug(" - New  url_path: '%s'", url_path)
 
         # special handling for cloning bare repositories (../repo/.git/)
         url_path = url_path.rstrip('/')

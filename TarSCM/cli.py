@@ -107,6 +107,10 @@ class Cli():
         parser.add_argument('--history-depth',
                             help='Obsolete osc service parameter that does '
                                  'nothing')
+        # This option is only used in test cases, in real life you would call
+        # obs_scm instead
+        parser.add_argument('--use-obs-scm', default = False,
+                            help='use obs scm (obscpio) ')
         args = parser.parse_args(options)
 
         # basic argument validation
@@ -127,8 +131,9 @@ class Cli():
 
         # booleanize non-standard parameters
         args.changesgenerate = bool(args.changesgenerate == 'enable')
-        args.package_meta = bool(args.package_meta == 'yes')
-        args.sslverify = bool(args.sslverify != 'disable')
+        args.package_meta    = bool(args.package_meta == 'yes')
+        args.sslverify       = bool(args.sslverify != 'disable')
+        args.use_obs_scm     = bool(args.use_obs_scm)
 
         # force verbose mode in test-mode
         args.verbose = bool(os.getenv('DEBUG_TAR_SCM'))

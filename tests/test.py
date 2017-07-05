@@ -20,6 +20,7 @@ from tests.unittestcases import UnitTestCases
 from tests.tasks import TasksTestCases
 from tests.scm import SCMBaseTestCases
 from tests.tartests import TarTestCases
+from tests.archiveobscpiotestcases import ArchiveOBSCpioTestCases
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -40,6 +41,7 @@ def prepare_testclasses():
         # export TAR_SCM_TC=UnitTestCases,TasksTestCases,SCMBaseTestCases,GitTests,SvnTests,HgTests,TarTestCases # noqa # pylint: disable=line-too-long
         UnitTestCases,
         TasksTestCases,
+        ArchiveOBSCpioTestCases,
         SCMBaseTestCases,
         GitTests,
         SvnTests,

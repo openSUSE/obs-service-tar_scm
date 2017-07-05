@@ -6,6 +6,8 @@ from TarSCM.scm.base import Scm
 
 
 class Bzr(Scm):
+    scm = 'bzr'
+
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for bzr."""
         command = ['bzr', 'checkout', self.url, self.clone_dir]

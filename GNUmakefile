@@ -18,6 +18,8 @@ CLEAN_TEST_PYFILES = \
   ./tests/__init__.py \
   ./tests/utils.py \
   ./tests/tarfixtures.py \
+  ./tests/unittestcases.py \
+  ./tests/archiveobscpiotestcases.py \
 
 
 PYLINT_READY_TEST_MODULES = \
@@ -49,7 +51,6 @@ PYLINT_NOT_READY_MODULES = \
 ./tests/gittests.py \
 ./tests/svntests.py \
 ./tests/testenv.py \
-./tests/unittestcases.py \
 ./tests/bzrtests.py \
 ./tests/fixtures.py \
 ./tests/hgtests.py \
@@ -193,7 +194,7 @@ pylint: pylint2
 pylint3:
 	@if [ "x$(PYLINT3)" != "x" ]; then \
 		$(PYLINT3) --rcfile=./.pylintrc $(PYLINT_READY_MODULES); \
-		PYTHONPATH=tests $(PYLINT3) --rcfile=./.pylintrc $(PYLINT_READY_TEST_MODULES); \
+		PYTHONPATH=tests $(PYLINT3) --rcfile=./.pylinttestsrc $(PYLINT_READY_TEST_MODULES); \
 	else \
 		echo "PYLINT3 not set - Skipping tests"; \
 	fi
@@ -202,7 +203,7 @@ pylint3:
 pylint2:
 	@if [ "x$(PYLINT2)" != "x" ]; then \
 		$(PYLINT2) --rcfile=./.pylintrc $(PYLINT_READY_MODULES); \
-		PYTHONPATH=tests $(PYLINT2) --rcfile=./.pylintrc $(PYLINT_READY_TEST_MODULES); \
+		PYTHONPATH=tests $(PYLINT2) --rcfile=./.pylinttestsrc $(PYLINT_READY_TEST_MODULES); \
 	else \
 		echo "PYLINT2 not set - Skipping tests"; \
 	fi
