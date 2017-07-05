@@ -107,6 +107,8 @@ class Cli():
         parser.add_argument('--history-depth',
                             help='Obsolete osc service parameter that does '
                                  'nothing')
+        # This option is only used in test cases, in real life you would call
+        # obs_scm instead
         parser.add_argument('--use-obs-scm', default = False,
                             help='use obs scm (obscpio) ')
         args = parser.parse_args(options)
