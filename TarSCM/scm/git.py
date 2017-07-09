@@ -155,9 +155,9 @@ class Git(Scm):
 
         if rcode == 0:
             # strip to remove newlines
-            parent_tag = output.strip()
+            return output.strip()
 
-        return parent_tag
+        return ''
 
     def _detect_version_parent_tag(self, parent_tag, versionformat):  # noqa pylint: disable=no-self-use
         if not parent_tag:
