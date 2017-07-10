@@ -6,9 +6,10 @@ import re
 import tarfile
 import textwrap
 
-from githgtests  import GitHgTests
-from gitsvntests import GitSvnTests
-from gitfixtures import GitFixtures
+from tests.githgtests   import GitHgTests
+from tests.gitsvntests  import GitSvnTests
+from tests.gitfixtures  import GitFixtures
+from tests.fake_classes import FakeCli, FakeTasks
 from utils       import run_git
 
 
