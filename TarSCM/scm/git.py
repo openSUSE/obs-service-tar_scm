@@ -145,6 +145,7 @@ class Git(Scm):
         return self.version_iso_cleanup(version)
 
     def _detect_parent_tag(self, args):
+        parent_tag = ''
         cmd = ['git', 'describe', '--tags', '--abbrev=0']
         try:
             if args['match_tag']:
