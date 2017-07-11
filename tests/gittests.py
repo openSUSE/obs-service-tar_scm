@@ -5,11 +5,16 @@ import os
 import re
 import tarfile
 import textwrap
+import shutil
 
-from githgtests  import GitHgTests
-from gitsvntests import GitSvnTests
-from gitfixtures import GitFixtures
-from utils       import run_git
+from tests.githgtests   import GitHgTests
+from tests.gitsvntests  import GitSvnTests
+from tests.gitfixtures  import GitFixtures
+from tests.fake_classes import FakeCli, FakeTasks
+
+from TarSCM.scm.git     import Git
+
+from utils              import run_git
 
 
 class GitTests(GitHgTests, GitSvnTests):
@@ -292,3 +297,25 @@ class GitTests(GitHgTests, GitSvnTests):
             '.gitlab/test'),
             ''
         )
+
+    def test_no_parent_tag(self):
+        fix = self.fixtures
+        r_dir = os.path.join(self.test_dir, 'repo')
+        os.chdir(r_dir)
+        # remove autogenerate gitfixtures
+        shutil.rmtree(os.path.join(r_dir))
+
+        # create
+        fix.create_repo(r_dir)
+        f_h = open('f1', 'a')
+        f_h.close()
+        fix.safe_run('add .')
+        fix.safe_run('commit -m "initial commit"')
+
+        # prepare test
+        f_args  = FakeCli()
+        f_tasks = FakeTasks()
+        git = Git(f_args, f_tasks)
+
+        p_tag = git._detect_parent_tag(f_args)
+        self.assertEqual(p_tag, '')

@@ -7,6 +7,7 @@ import shutil
 from mock import MagicMock
 
 from tar_scm import TarSCM
+from tests.fake_classes import FakeSCM
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -182,13 +183,7 @@ version: 1.0
         self.assertEqual(os.path.exists(cn_dir), False)
 
     def test_get_version(self):
-        class FakeSCM():
-            # pylint: disable=unused-argument,no-self-use,no-init,
-            # pylint: disable=too-few-public-methods
-            def detect_version(self, args):
-                return '0.0.1'
-
-        scm              = FakeSCM()
+        scm              = FakeSCM('0.0.1')
         tasks            = TarSCM.Tasks(self.cli)
         tasks.scm_object = scm
         ver              = tasks.get_version()
@@ -199,15 +194,9 @@ version: 1.0
 
     def test_get_version_with_versionrw(self):
         '''Test for get_version with versionrewrite'''
-        class FakeSCM():
-            # pylint: disable=unused-argument,no-self-use,no-init,
-            # pylint: disable=too-few-public-methods
-            def detect_version(self, args):
-                return 'v0.0.1'
-
         self.cli.versionrewrite_pattern = r'v(\d[\d\.]*)'
         self.cli.versionrewrite_replacement = '\\1-stable'
-        scm     = FakeSCM()
+        scm     = FakeSCM('v0.0.1')
         tasks   = TarSCM.Tasks(self.cli)
         tasks.scm_object = scm
         ver     = tasks.get_version()
