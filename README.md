@@ -42,6 +42,9 @@ is basically the `cpio` `newc` format.
 The standard `tar` archive format is used as output format by the
 `tar` and `tar_scm` source services.
 
+### gbp
+The `obs_gbp` service can be used to create Debian source artefacts (.dsc, .orig.tar.gz and if non-native .debian.tar.gz or .diff.gz) from Git repositories, following the very popular [git-buildpackage workflow.](https://honk.sigxcpu.org/piki/projects/git-buildpackage/) Requires git-buildpackage to be installed.
+
 ## Services
 
 ### tar_scm

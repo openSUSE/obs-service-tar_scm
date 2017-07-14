@@ -5,6 +5,8 @@ import subprocess
 import sys
 import tarfile
 import shutil
+import logging
+import tempfile
 
 from TarSCM.helpers import Helpers
 
@@ -205,5 +207,132 @@ class Tar(BaseArchive):
         tar.close()
 
         self.archivefile    = tar.name
+
+        os.chdir(cwd)
+
+
+class Gbp(BaseArchive):
+
+    def create_archive(self, scm_object, **kwargs):
+        """Create Debian source artefacts using git-buildpackage.
+        """
+        args = kwargs['cli']
+        version = kwargs['version']
+
+        (workdir, topdir) = os.path.split(scm_object.clone_dir)
+
+        cwd = os.getcwd()
+        os.chdir(workdir)
+
+        if not args.revision:
+            revision = 'origin/master'
+        else:
+            revision = 'origin/' + args.revision
+
+        command = ['gbp', 'buildpackage', '--git-notify=off',
+                   '--git-force-create', '--git-cleaner="true"']
+
+        # we are not on a proper local branch due to using git-reset but we
+        # anyway use the --git-export option
+        command.extend(['--git-ignore-branch',
+                        "--git-export=%s" % revision])
+
+        # gbp can load submodules without having to run the git command, and
+        # will ignore submodules even if loaded manually unless this option is
+        # passed.
+        if args.submodules:
+            command.extend(['--git-submodules'])
+
+        # create local pristine-tar branch if present
+        ret, output = self.helpers.run_cmd(['git', 'rev-parse', '--verify',
+                                            '--quiet', 'origin/pristine-tar'],
+                                           cwd=scm_object.clone_dir)
+        if not ret:
+            ret, output = self.helpers.run_cmd(['git', 'update-ref',
+                                                'refs/heads/pristine-tar',
+                                                'origin/pristine-tar'],
+                                               cwd=scm_object.clone_dir)
+            if not ret:
+                command.append('--git-pristine-tar')
+            else:
+                command.append('--git-no-pristine-tar')
+        else:
+            command.append('--git-no-pristine-tar')
+
+        # Prevent potentially dangerous arguments from being passed to gbp,
+        # e.g. via cleaner, postexport or other hooks.
+        if args.gbp_build_args:
+            build_args = args.gbp_build_args.split(' ')
+            safe_args = re.compile(
+                '--git-verbose|--git-upstream-tree=.*|--git-no-pristine-tar')
+            p = re.compile('--git-.*|--hook-.*|--.*-hook=.*')
+
+            gbp_args = [arg for arg in build_args if safe_args.match(arg)]
+            dpkg_args = [arg for arg in build_args if not p.match(arg)]
+
+            ignored_args = list(set(build_args) - set(gbp_args + dpkg_args))
+            if ignored_args:
+                logging.info("Ignoring build_args: %s" % ignored_args)
+            command.extend(gbp_args + dpkg_args)
+
+        # Set the version in the changelog. Note that we can't simply use
+        # --source-option=-Dversion=$ver as it will not change the tarball
+        # name, which means dpkg-source -x pkg.dsc will fail as the names
+        # and version will not match
+        cl_path = os.path.join(scm_object.clone_dir, 'debian', 'changelog')
+        if (os.path.isfile(cl_path) and
+                version not in ['', '_none_', '_auto_', None]):
+            # Some characters are legal in Debian's versions but not in a git
+            # tag, so they get substituted
+            version = re.sub(r'_', r'~', version)
+            version = re.sub(r'%', r':', version)
+            with open(cl_path, 'r') as cl:
+                lines = cl.readlines()
+            # non-native packages MUST have a debian revision (-xyz)
+            if (re.search(r'-', lines[0]) is not None and
+                    re.search(r'-', version)) is None:
+                logging.warning("Package is non-native but requested version"
+                                " %s is native! Ignoring.", version)
+            else:
+                with open(cl_path, 'w+') as cl:
+                    # A valid debian changelog has 'package (version) release'
+                    # as the first line, if it's malformed we don't care as it
+                    # will not even build
+                    logging.debug("Setting version to %s", version)
+                    # gbp by default complains about uncommitted changes
+                    command.append("--git-ignore-new")
+                    lines[0] = re.sub(r'^(.+) \(.+\) (.+)',
+                                      r'\1 (%s) \2' % version, lines[0])
+                    cl.write("".join(lines))
+
+        logging.debug("Running in %s", scm_object.clone_dir)
+
+        self.helpers.safe_run(command, cwd=scm_object.clone_dir)
+
+        # Use dpkg to find out what source artefacts have been built and copy
+        # them back, which allows the script to be future-proof and work with
+        # all present and future package formats
+        sources = self.helpers.safe_run(['dpkg-scansources', workdir],
+                                        cwd=workdir)[1]
+
+        FILES_PATTERN = re.compile(
+            r'^Files:(.*(?:\n .*)+)', flags=re.MULTILINE)
+        for match in FILES_PATTERN.findall(sources):
+            logging.info("Files:")
+            for line in match.strip().split("\n"):
+                fname = line.strip().split(' ')[2]
+                logging.info(" %s", fname)
+                input_file = os.path.join(workdir, fname)
+                output_file = os.path.join(args.outdir, fname)
+
+                if (args.gbp_dch_release_update and
+                        fnmatch.fnmatch(fname, '*.dsc')):
+                    # This tag is used by the build-recipe-dsc to set the OBS
+                    # revision: https://github.com/openSUSE/obs-build/pull/192
+                    logging.debug("Setting OBS-DCH-RELEASE in %s", input_file)
+                    with open(input_file, "a") as dsc_file:
+                        dsc_file.write("OBS-DCH-RELEASE: 1")
+
+                shutil.copy(input_file, output_file)
 
         os.chdir(cwd)

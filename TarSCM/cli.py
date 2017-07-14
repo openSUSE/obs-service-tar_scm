@@ -107,8 +107,14 @@ class Cli():
         parser.add_argument('--history-depth',
                             help='Obsolete osc service parameter that does '
                                  'nothing')
-        # This option is only used in test cases, in real life you would call
-        # obs_scm instead
+        parser.add_argument('--gbp-build-args', type=str,
+                            default='-nc -uc -us -S',
+                            help='Parameters passed to git-buildpackage')
+        parser.add_argument('--gbp-dch-release-update',
+                            choices=['enable', 'disable'], default='disable',
+                            help='Append OBS release number')
+        # These option is only used in test cases, in real life you would call
+        # obs_scm or obs_gbp instead
         parser.add_argument('--use-obs-scm', default = False,
                             help='use obs scm (obscpio) ')
 
@@ -116,6 +122,8 @@ class Cli():
                             action='store_true',
                             help='do not cleanup directories before exiting '
                                  '(Only for debugging')
+        parser.add_argument('--use-obs-gbp', default = False,
+                            help='use obs gbp (requires git-buildpackage) ')
         args = parser.parse_args(options)
 
         # basic argument validation
@@ -139,6 +147,12 @@ class Cli():
         args.package_meta    = bool(args.package_meta == 'yes')
         args.sslverify       = bool(args.sslverify != 'disable')
         args.use_obs_scm     = bool(args.use_obs_scm)
+        args.use_obs_gbp     = bool(args.use_obs_gbp)
+        args.gbp_dch_release_update = bool(args.gbp_dch_release_update !=
+                                           'disable')
+        # git-buildpackage, as the name suggets, supports only git
+        if args.use_obs_gbp:
+            args.scm = 'git'
 
         # force verbose mode in test-mode
         args.verbose = bool(os.getenv('DEBUG_TAR_SCM'))
