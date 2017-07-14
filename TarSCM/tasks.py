@@ -201,16 +201,23 @@ class Tasks():
 
         detected_changes = scm_object.detect_changes()
 
-        scm_object.prep_tree_for_archive(args.subdir, args.outdir,
-                                         dstname=dstname)
-        self.cleanup_dirs.append(scm_object.arch_dir)
+        if not args.use_obs_gbp:
+            scm_object.prep_tree_for_archive(args.subdir, args.outdir,
+                                             dstname=dstname)
+            self.cleanup_dirs.append(scm_object.arch_dir)
 
+        # For the GBP service there is no copy in arch_dir, so use clone_dir
+        # which has the same content
+        extract_src = scm_object.arch_dir
         if args.use_obs_scm:
             arch = TarSCM.archive.ObsCpio()
+        elif args.use_obs_gbp:
+            arch = TarSCM.archive.Gbp()
+            extract_src = scm_object.clone_dir
         else:
             arch = TarSCM.archive.Tar()
 
-        arch.extract_from_archive(scm_object.arch_dir, args.extract,
+        arch.extract_from_archive(extract_src, args.extract,
                                   args.outdir)
 
         arch.create_archive(

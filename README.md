@@ -130,6 +130,13 @@ a URL, fetch the sources via the SCM from the upstream repository, and
 build a tarball from it.  You can find example `appimage.yml` files
 under the `tests/fixtures/` subdirectory.
 
+### gbp
+The `obs_gbp` service can be used to create Debian source artefacts
+(.dsc, .orig.tar.gz and if non-native .debian.tar.gz or .diff.gz) from
+Git repositories, following the very popular [git-buildpackage workflow.]
+(https://honk.sigxcpu.org/piki/projects/git-buildpackage/)
+Requires git-buildpackage to be installed.
+
 ## Archive Formats
 
 ### tar
