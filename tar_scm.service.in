@@ -11,6 +11,20 @@
   <description>This service uses a SCM client to checkout or update from a given repository.  Supported are svn, git, hg and bzr.</description>
 ===
 
+===GBP_ONLY
+<service name="gbp_scm">
+  <summary>Create Debian source artefacts from SCM repository</summary>
+  <description>This service uses a Git to checkout or update from a given repository and create the Debian source artefacts (.dsc, .origin.tar.gz and .debian.tar.gz if non-native). Can only be used with (and implies) --scm git.</description>
+  <parameter name="gbp-build-args">
+    <description>Parameters passed to git-buildpackage. Default is '-nc -uc -us -S'.</description>
+  </parameter>
+  <parameter name="gbp-dch-release-update">
+    <description>Append OBS release number.  Default is 'disable'.</description>
+    <allowedvalue>enable</allowedvalue>
+    <allowedvalue>disable</allowedvalue>
+  </parameter>
+===
+
   <parameter name="scm">
     <description>Specify SCM to use.</description>
     <allowedvalue>svn</allowedvalue>
