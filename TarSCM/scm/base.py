@@ -210,10 +210,13 @@ class Scm():
 
     def version_iso_cleanup(self, version):
         """Reformat timestamp value."""
-        version = re.sub(r'([0-9]{4})-([0-9]{2})-([0-9]{2}) +'
-                         r'([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?'
-                         r'( +[-+][0-9]{3,4})', r'\1\2\3T\4\6\8', version)
-        version = re.sub(r'[-:]', '', version)
+        # avoid removing "-" (eg: debian downstream revision) if the version
+        # is not a date
+        if re.search(r'([0-9]{4})-([0-9]{2})-([0-9]{2})', version) is not None:
+            version = re.sub(r'([0-9]{4})-([0-9]{2})-([0-9]{2}) +'
+                             r'([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?'
+                             r'( +[-+][0-9]{3,4})', r'\1\2\3T\4\6\8', version)
+            version = re.sub(r'[-:]', '', version)
         return version
 
     def prepare_working_copy(self):
