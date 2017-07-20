@@ -251,7 +251,7 @@ class Git(Scm):
         # between multiple services
         org_clone_dir  = self.clone_dir
         self.clone_dir = self.repodir
-        command = ['git', 'clone', self.repocachedir, self.url, self.clone_dir]
+        command = ['git', 'clone']
         use_reference = True
         try:
             if self.args.package_meta:
@@ -261,10 +261,10 @@ class Git(Scm):
             pass
 
         if use_reference:
-            command = ['git', 'clone', '--reference', org_clone_dir, self.url,
-                       self.clone_dir]
+            command.extend(['--reference', org_clone_dir, self.url])
         else:
-            command = ['git', 'clone', org_clone_dir, self.clone_dir]
+            command.append(org_clone_dir)
+        command.append(self.clone_dir)
         wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
         self.helpers.safe_run(
             command, cwd=wdir, interactive=sys.stdout.isatty())
