@@ -190,7 +190,7 @@ class Tar(BaseArchive):
             # Python 2.6 compatibility
             tar.add(topdir, recursive=False)
         for entry in map(lambda x: os.path.join(topdir, x),
-                         os.listdir(topdir)):
+                         sorted(os.listdir(topdir))):
             try:
                 tar.add(entry, filter=tar_filter)
             except TypeError:
