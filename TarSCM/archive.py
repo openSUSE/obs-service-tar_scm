@@ -88,7 +88,9 @@ class ObsCpio(BaseArchive):
                 if not METADATA_PATTERN.match(name):
                     cpiolist.append(name)
 
+        tstamp = self.helpers.get_timestamp(scm_object, args, topdir)
         for name in sorted(cpiolist):
+            os.utime(name, (tstamp, tstamp))
             proc.stdin.write(name)
             proc.stdin.write("\n")
         proc.stdin.close()
@@ -101,7 +103,6 @@ class ObsCpio(BaseArchive):
         metafile = open(os.path.join(args.outdir, basename + '.obsinfo'), "w")
         metafile.write("name: " + basename + "\n")
         metafile.write("version: " + version + "\n")
-        tstamp = self.helpers.get_timestamp(scm_object, args, topdir)
         metafile.write("mtime: " + str(tstamp) + "\n")
 
         if commit:
