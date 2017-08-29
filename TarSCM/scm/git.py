@@ -234,7 +234,7 @@ class Git(Scm):
 
         logging.debug(dbg_msg)
 
-        lines = self._log_cmd(['--reverse', '--no-merges',
+        lines = self._log_cmd(['--no-merges',
                                '--pretty=format:%s',
                                "%s..%s" % (last_rev, current_rev)],
                               subdir)
