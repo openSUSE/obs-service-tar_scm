@@ -102,7 +102,7 @@ class Svn(Scm):
         new_lines = []
 
         xml_lines = self.helpers.safe_run(
-            ['svn', 'log', '-r%s:%s' % (revision1, revision2), '--xml'],
+            ['svn', 'log', '-r%s:%s' % (revision2, revision1), '--xml'],
             clone_dir
         )[1]
 

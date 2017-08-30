@@ -141,9 +141,9 @@ class GitSvnTests(CommonTests):
             expected_author,
             textwrap.dedent("""\
               - Update to version 0.6.%s:
-                \* 3
-                \* 4
                 \* 5
+                \* 4
+                \* 3
               """) % rev
         )
         self._check_changes(orig_changes, expected_changes_regexp)
@@ -171,9 +171,9 @@ class GitSvnTests(CommonTests):
             expected_author,
             textwrap.dedent("""\
               - Update to version %s:
-                \* 3
-                \* 4
                 \* 5
+                \* 4
+                \* 3
               """) % ver_regex
         )
         self._check_changes(orig_changes, expected_changes_regexp)
@@ -201,9 +201,9 @@ class GitSvnTests(CommonTests):
             expected_author,
             textwrap.dedent("""\
               - Update to version 0.6.%s:
-                \* 6
-                \* 7
                 \* 8
+                \* 7
+                \* 6
               """) % self.changesrevision(rev, abbrev=True)
         )
         self._check_changes(orig_changes, expected_changes_regexp)
