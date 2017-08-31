@@ -102,6 +102,13 @@ class Git(Scm):
 
     def update_cache(self):
         """Update sources via git."""
+        # Force origin to the wanted URL in case it switched
+        self.helpers.safe_run(
+            ['git', 'config', 'remote.origin.url', self.url],
+            cwd=self.clone_dir,
+            interactive=sys.stdout.isatty()
+        )
+
         self.helpers.safe_run(
             ['git', 'fetch', '--tags'],
             cwd=self.clone_dir,
