@@ -107,6 +107,10 @@ class Cli():
         parser.add_argument('--history-depth',
                             help='Obsolete osc service parameter that does '
                                  'nothing')
+        parser.add_argument('--iso-cleanup-string',
+                            default='',
+                            help='Characters [-:] are replace by this string.'
+                            ' Defaults to ""')
         # This option is only used in test cases, in real life you would call
         # obs_scm instead
         parser.add_argument('--use-obs-scm', default = False,
