@@ -21,6 +21,7 @@ from tests.tasks import TasksTestCases
 from tests.scm import SCMBaseTestCases
 from tests.tartests import TarTestCases
 from tests.archiveobscpiotestcases import ArchiveOBSCpioTestCases
+from tests.archivetartestcases import ArchiveTarTestCases
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -42,6 +43,7 @@ def prepare_testclasses():
         UnitTestCases,
         TasksTestCases,
         ArchiveOBSCpioTestCases,
+        ArchiveTarTestCases,
         SCMBaseTestCases,
         GitTests,
         SvnTests,

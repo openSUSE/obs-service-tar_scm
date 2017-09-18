@@ -129,6 +129,7 @@ class Tar(BaseArchive):
         extension           = (args.extension or 'tar')
         exclude             = args.exclude
         include             = args.include
+        include_topdir      = args.include_topdir
         package_metadata    = args.package_meta
         timestamp           = self.helpers.get_timestamp(
             scm_object,
@@ -190,20 +191,24 @@ class Tar(BaseArchive):
             os.path.join(outdir, dstname + '.' + extension),
             "w"
         )
-        try:
-            tar.add(topdir, recursive=False, filter=reset)
-        except TypeError:
-            # Python 2.6 compatibility
-            tar.add(topdir, recursive=False)
+        if include_topdir:
+            try:
+                tar.add(topdir, recursive=False, filter=reset)
+            except TypeError:
+                # Python 2.6 compatibility
+                tar.add(topdir, recursive=False)
         for entry in map(lambda x: os.path.join(topdir, x),
                          sorted(os.listdir(topdir))):
             try:
-                tar.add(entry, filter=tar_filter)
+                if include_topdir:
+                    tar.add(entry, filter=tar_filter)
+                else:
+                    tar.add(entry, filter=tar_filter,
+                            arcname=entry.replace(topdir, ''))
             except TypeError:
                 # Python 2.6 compatibility
                 tar.add(entry, exclude=tar_exclude)
         tar.close()
 
         self.archivefile    = tar.name
-
         os.chdir(cwd)

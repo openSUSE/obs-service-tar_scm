@@ -96,6 +96,10 @@ class Cli():
                            default=[], metavar='REGEXP',
                            help='Specifies excludes when creating the '
                                 'tarball (can be repeated)')
+        parser.add_argument('--include_topdir',
+                            choices=['yes', 'no'], default='yes',
+                            help='Specifies if the tar archive should include '
+                                 'or not the top directory.')
         parser.add_argument('--package-meta',
                             choices=['yes', 'no'], default='no',
                             help='Package the meta data of SCM to allow the '
@@ -139,6 +143,7 @@ class Cli():
         args.package_meta    = bool(args.package_meta == 'yes')
         args.sslverify       = bool(args.sslverify != 'disable')
         args.use_obs_scm     = bool(args.use_obs_scm)
+        args.include_topdir  = bool(args.include_topdir == 'yes')
 
         # force verbose mode in test-mode
         args.verbose = bool(os.getenv('DEBUG_TAR_SCM'))
