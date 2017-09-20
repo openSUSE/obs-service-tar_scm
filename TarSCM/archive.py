@@ -203,11 +203,19 @@ class Tar(BaseArchive):
                 if include_topdir:
                     tar.add(entry, filter=tar_filter)
                 else:
-                    tar.add(entry, filter=tar_filter,
-                            arcname=entry.replace(topdir, ''))
+                    tar.add(
+                        entry, filter=tar_filter,
+                        arcname=entry.replace(topdir, '')
+                    )
             except TypeError:
                 # Python 2.6 compatibility
-                tar.add(entry, exclude=tar_exclude)
+                if include_topdir:
+                    tar.add(entry, exclude=tar_exclude)
+                else:
+                    tar.add(
+                        entry, exclude=tar_exclude,
+                        arcname=entry.replace(topdir, '')
+                    )
         tar.close()
 
         self.archivefile    = tar.name
