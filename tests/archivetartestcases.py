@@ -51,9 +51,12 @@ class ArchiveTarTestCases(unittest.TestCase):
         )
         outfile = os.sep.join([outdir, 'test.tar'])
         assert os.path.exists(outfile)
-        with tarfile.open(outfile, 'r') as tar:
+        tar = tarfile.open(outfile, 'r')
+        try:
             assert tar.getmember('repo')
             assert tar.getmember('repo/dir1/.keep')
+        finally:
+            tar.close()
 
     @patch('TarSCM.scm.base')
     def test_tar_create_archive_no_topdir(self, mock_scm):
@@ -76,5 +79,8 @@ class ArchiveTarTestCases(unittest.TestCase):
         )
         outfile = os.sep.join([outdir, 'test.tar'])
         assert os.path.exists(outfile)
-        with tarfile.open(outfile, 'r') as tar:
+        tar = tarfile.open(outfile, 'r')
+        try:
             assert tar.getmember('dir1/.keep')
+        finally:
+            tar.close()
