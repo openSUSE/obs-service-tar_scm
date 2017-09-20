@@ -49,7 +49,7 @@ class ArchiveTarTestCases(unittest.TestCase):
             dstname  = 'test',
             version  = '0.1.1'
         )
-        outfile = os.sep.join([outdir,'test.tar'])
+        outfile = os.sep.join([outdir, 'test.tar'])
         assert os.path.exists(outfile)
         with tarfile.open(outfile, 'r') as tar:
             assert tar.getmember('repo')
@@ -74,7 +74,7 @@ class ArchiveTarTestCases(unittest.TestCase):
             dstname  = 'test',
             version  = '0.1.1'
         )
-        outfile = os.sep.join([outdir,'test.tar'])
+        outfile = os.sep.join([outdir, 'test.tar'])
         assert os.path.exists(outfile)
         with tarfile.open(outfile, 'r') as tar:
             assert tar.getmember('dir1/.keep')
