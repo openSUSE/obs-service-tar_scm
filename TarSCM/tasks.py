@@ -49,7 +49,7 @@ class Tasks():
 
     def generate_list(self):
         '''
-        Generate list of scm jobs from appimage.yml, snapcraft.yml or a single
+        Generate list of scm jobs from appimage.yml, snapcraft.yaml or a single
         job from cli arguments.
         '''
         args = self.args
