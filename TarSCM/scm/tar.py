@@ -7,7 +7,7 @@ class Tar(Scm):
     scm = 'tar'
 
     def fetch_upstream(self):
-        """SCM specific version of fetch_uptream for tar."""
+        """SCM specific version of fetch_upstream for tar."""
         if self.args.obsinfo is None:
             files = glob.glob('*.obsinfo')
             if files:
