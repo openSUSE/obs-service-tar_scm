@@ -2,6 +2,10 @@
 
 If you notice an issue, please first check [the list of known issues](https://github.com/openSUSE/obs-service-tar_scm/issues?state=open).
 
+It is a known issue that currently [we need better developer
+documentation](https://github.com/openSUSE/obs-service-tar_scm/issues/195),
+and help fixing this is extremely welcome.
+
 ## Pull requests
 
 [Pull requests](https://help.github.com/articles/using-pull-requests)
