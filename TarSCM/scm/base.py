@@ -147,7 +147,9 @@ class Scm():
         # current work directory to allow the developer to work inside
         # of the git repo and fetch local changes
         if sys.argv[0].endswith("snapcraft") or \
-           (self.args.use_obs_scm and os.getenv('OSC_VERSION')):
+           (self.args.use_obs_scm and
+                os.getenv('OSC_VERSION') and
+                os.path.isdir('.git')):
             self.repodir = os.getcwd()
 
         # construct repodir (the parent directory of the checkout)
