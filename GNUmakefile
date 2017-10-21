@@ -21,7 +21,6 @@ CLEAN_TEST_PYFILES = \
   ./tests/unittestcases.py \
   ./tests/archiveobscpiotestcases.py \
 
-
 PYLINT_READY_TEST_MODULES = \
   $(CLEAN_TEST_PYFILES) \
   ./tests/test.py \
@@ -36,75 +35,6 @@ PYLINT_READY_MODULES = \
   ./TarSCM/scm/__init__.py  \
   ./TarSCM/cli.py  \
   ./TarSCM/tasks.py  \
-
-PYLINT_NOT_READY_MODULES = \
-./tests/tasks.py \
-./tests/scm.py \
-./tests/svnfixtures.py \
-./tests/commontests.py \
-./tests/hgfixtures.py \
-./tests/testassertions.py \
-./tests/bzrfixtures.py \
-./tests/gitfixtures.py \
-./tests/githgtests.py \
-./tests/gitsvntests.py \
-./tests/gittests.py \
-./tests/svntests.py \
-./tests/testenv.py \
-./tests/bzrtests.py \
-./tests/fixtures.py \
-./tests/hgtests.py \
-./TarSCM/scm/base.py \
-./TarSCM/scm/tar.py \
-./TarSCM/changes.py \
-./TarSCM/config.py \
-./TarSCM/archive.py \
-./TarSCM/helpers.py \
-
-FLAKE8_READY_FILES = \
-$(CLEAN_PYFILES) \
-  ./TarSCM/scm/bzr.py \
-  ./TarSCM/scm/svn.py \
-  ./TarSCM/scm/tar.py \
-  ./TarSCM/exceptions.py \
-
-
-FLAKE8_NOT_READY_FILES = \
-  ./tests/hgfixtures.py \
-  ./tests/tasks.py \
-  ./tests/scm.py \
-  ./tests/test.py \
-  ./tests/svnfixtures.py \
-  ./tests/commontests.py \
-  ./tests/testassertions.py \
-  ./tests/bzrfixtures.py \
-  ./tests/gitfixtures.py \
-  ./tests/githgtests.py \
-  ./tests/gitsvntests.py \
-  ./tests/scmlogs.py \
-  ./tests/gittests.py \
-  ./tests/svntests.py \
-  ./tests/testenv.py \
-  ./tests/tartests.py \
-  ./tests/unittestcases.py \
-  ./tests/bzrtests.py \
-  ./tests/fixtures.py \
-  ./tests/hgtests.py \
-  ./tar_scm.py \
-  ./TarSCM/scm/base.py \
-  ./TarSCM/scm/git.py \
-  ./TarSCM/scm/hg.py \
-  ./TarSCM/scm/__init__.py \
-  ./TarSCM/__init__.py \
-  ./TarSCM/cli.py \
-  ./TarSCM/changes.py \
-  ./TarSCM/config.py \
-  ./TarSCM/archive.py \
-  ./TarSCM/helpers.py \
-  ./TarSCM/tasks.py \
-
-
-ALL_PY_MODULES = $(PYLINT_READY_MODULES) $(PYLINT_READY_MODULES)
 
 define first_in_path
 $(or \
@@ -151,31 +81,19 @@ PYLINT3 = $(call first_in_path_opt,$(ALL_PYLINT3))
 default: check
 
 .PHONY: check check_all
-check: pep8 flake8 pylint test # test3
+check: flake8 pylint test # test3
 
 .PHONY: list-py-files
 list-py-files:
 	@$(LIST_PY_FILES)
 
-.PHONY: pep8
-pep8: $(PY_FILES)
-	# flake8 obsoletes pep8 in openSUSE TW 20170626, so we make this test optional
-	@if ! which pep8 >/dev/null 2>&1; then \
-		echo "pep8 not installed!  Cannot check PEP8 compliance. Skipping tests." >&2; \
-	else \
-		echo "Running pep8";\
-		$(LIST_PY_FILES) | xargs pep8 --ignore=E221,E251,E272,E241,E731;\
-	fi
-
 .PHONY: flake8
 flake8:
-	# Tests might run under python 2.6 and we only want to run linting under one python 
-	# version
 	@if ! which flake8 >/dev/null 2>&1; then \
 		echo "flake8 not installed!  Cannot check PEP8 compliance with flake8. Skipping tests." >&2; \
 	else \
 		echo "Running flake8";\
-		flake8 --ignore=E221,E251,E272,E241,E731 $(FLAKE8_READY_FILES);\
+		flake8;\
 	fi
 
 .PHONY: test
