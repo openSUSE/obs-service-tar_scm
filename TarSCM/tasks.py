@@ -35,6 +35,10 @@ class Tasks():
 
     def cleanup(self):
         """Cleaning temporary directories."""
+        if self.args.skip_cleanup:
+            logging.debug("Skipping cleanup")
+            return
+
         logging.debug("Cleaning: %s", ' '.join(self.cleanup_dirs))
 
         for dirname in self.cleanup_dirs:

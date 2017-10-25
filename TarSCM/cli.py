@@ -111,6 +111,11 @@ class Cli():
         # obs_scm instead
         parser.add_argument('--use-obs-scm', default = False,
                             help='use obs scm (obscpio) ')
+
+        parser.add_argument('--skip-cleanup', default = False,
+                            action='store_true',
+                            help='do not cleanup directories before exiting '
+                                 '(Only for debugging')
         args = parser.parse_args(options)
 
         # basic argument validation
