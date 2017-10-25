@@ -5,7 +5,7 @@
 SHELL    = /bin/bash -o pipefail
 
 DESTDIR ?=
-PREFIX   = /usr/local
+PREFIX   = /usr
 SYSCFG   = /etc
 
 CLEAN_PYFILES = \
