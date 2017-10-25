@@ -90,7 +90,10 @@ class ObsCpio(BaseArchive):
 
         tstamp = self.helpers.get_timestamp(scm_object, args, topdir)
         for name in sorted(cpiolist):
-            os.utime(name, (tstamp, tstamp))
+            try:
+                os.utime(name, (tstamp, tstamp))
+            except OSError:
+                pass
             proc.stdin.write(name)
             proc.stdin.write("\n")
         proc.stdin.close()

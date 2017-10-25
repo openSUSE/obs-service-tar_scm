@@ -128,3 +128,22 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
             files,
             outdir
         )
+
+    def test_obscpio_broken_link(self):
+        tc_name              = inspect.stack()[0][3]
+        cl_name              = self.__class__.__name__
+        scm_object           = Git(self.cli, self.tasks)
+        scm_object.clone_dir = os.path.join(self.fixtures_dir, tc_name, 'repo')
+        scm_object.arch_dir  = os.path.join(self.fixtures_dir, tc_name, 'repo')
+        outdir               = os.path.join(self.tmp_dir, cl_name, tc_name,
+                                            'out')
+        self.cli.outdir      = outdir
+        arch                 = ObsCpio()
+        os.makedirs(outdir)
+        arch.create_archive(
+            scm_object,
+            cli      = self.cli,
+            basename = 'test',
+            dstname  = 'test',
+            version  = '0.1.1'
+        )
