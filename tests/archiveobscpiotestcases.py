@@ -11,6 +11,10 @@ import TarSCM
 from TarSCM.scm.git import Git
 from TarSCM.archive import ObsCpio
 
+from tests.gitfixtures import GitFixtures
+from tests.scmlogs import ScmInvocationLogs
+
+
 if sys.version_info < (2, 7):
     # pylint: disable=import-error
     import unittest2 as unittest
@@ -132,11 +136,24 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
     def test_obscpio_broken_link(self):
         tc_name              = inspect.stack()[0][3]
         cl_name              = self.__class__.__name__
+        c_dir                = os.path.join(self.tmp_dir, tc_name)
+        scmlogs              = ScmInvocationLogs('git', c_dir)
+        scmlogs.next('start-test')
+        fixture              = GitFixtures(c_dir, scmlogs)
+        fixture.init()
         scm_object           = Git(self.cli, self.tasks)
-        scm_object.clone_dir = os.path.join(self.fixtures_dir, tc_name, 'repo')
-        scm_object.arch_dir  = os.path.join(self.fixtures_dir, tc_name, 'repo')
+        scm_object.clone_dir = fixture.repo_path
+        scm_object.arch_dir  = fixture.repo_path
         outdir               = os.path.join(self.tmp_dir, cl_name, tc_name,
                                             'out')
+        cwd = os.getcwd()
+        print("cwd = %s" % cwd)
+        os.chdir(fixture.repo_path)
+        os.symlink('non-existant-file', 'broken-link')
+        fixture.run('add broken-link')
+        fixture.run("commit -m 'added broken-link'")
+        os.chdir(cwd)
+
         self.cli.outdir      = outdir
         arch                 = ObsCpio()
         os.makedirs(outdir)
