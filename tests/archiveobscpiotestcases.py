@@ -117,8 +117,6 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
             outdir
         )
 
-    @unittest.skip("Broken test, actually raises "
-                   "SystemExit: No such file or directory")
     def test_obscpio_extract_d(self):
         '''
         Test obscpio to extract directory from archive
