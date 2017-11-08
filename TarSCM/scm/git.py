@@ -213,6 +213,14 @@ class Git(Scm):
             sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
                      "as no parent tag was discovered.\033[0m")
 
+        rcode, output = self.helpers.run_cmd(
+            ["git", "merge-base", "--is-ancestor", parent_tag, "HEAD"],
+            self.clone_dir
+        )
+        if rcode != 0:
+            sys.exit("\033[31mparent_tag is not an ancestor of HEAD. " +
+                     "Cannot compute a (meaningful) distance.\033[0m")
+
         cmd = self._get_scm_cmd()
         cmd.extend(['rev-list', '--count', parent_tag + '..HEAD'])
         rcode, out = self.helpers.run_cmd(cmd, self.clone_dir)
