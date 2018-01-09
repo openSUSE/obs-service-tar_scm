@@ -69,7 +69,7 @@ class Changes():
 
         try:
             return ET.parse(servicedata_file, parser=xml_parser)
-        except StandardError as exc:
+        except Exception as exc:
             # Tolerate an empty file, but any other parse error should be
             # made visible.
             if str(exc).startswith("Document is empty") or \
