@@ -60,7 +60,7 @@ class Git(Scm):
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for git."""
         # clone if no .git dir exists
-        command = ['git', 'clone', self.url, self.clone_dir]
+        command = ['git', 'clone', '--depth', '1', self.url, self.clone_dir]
         if not self.is_sslverify_enabled():
             command += ['--config', 'http.sslverify=false']
         if self.repocachedir:
