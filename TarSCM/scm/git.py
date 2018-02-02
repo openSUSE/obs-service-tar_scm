@@ -115,7 +115,7 @@ class Git(Scm):
             interactive=sys.stdout.isatty()
         )
         self.helpers.safe_run(
-            ['git', 'fetch'],
+            ['git', 'fetch', '--prune'],
             cwd=self.clone_dir,
             interactive=sys.stdout.isatty()
         )
