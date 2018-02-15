@@ -41,7 +41,10 @@
     <description>Package just a subdirectory.</description>
   </parameter>
   <parameter name="version">
-    <description>Specify version to be used in tarball.  Defaults to automatically detected value formatted by versionformat parameter.</description>
+    <description>
+      Specify version to be used in tarball.  Defaults to automatically detected value formatted by versionformat parameter (_auto_).
+      Use _none_ to disable version rewriting and use what is defined in the spec or debian/changelog.
+    </description>
   </parameter>
   <parameter name="versionformat">
     <description>
