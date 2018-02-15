@@ -65,3 +65,23 @@ class SCMBaseTestCases(unittest.TestCase):
 
         with self.assertRaises(SystemExit) as ctx:
             scm_base.prep_tree_for_archive("test3", basedir, "test2")
+
+    def test_version_iso_cleanup(self):
+        # Avoid get_repocache_hash failure in Scm.__init__
+        self.cli.url = ""
+        scm_base = Scm(self.cli, None)
+        self.assertEqual(scm_base.version_iso_cleanup("2.0.1-3", True), "2.0.1-3")
+        self.assertEqual(scm_base.version_iso_cleanup("2.0.1-3", False), "2.0.13")
+        self.assertEqual(scm_base.version_iso_cleanup("2.0.1-3"), "2.0.13")
+        self.assertEqual(scm_base.version_iso_cleanup("1", True), "1")
+        self.assertEqual(scm_base.version_iso_cleanup("1", False), "1")
+        self.assertEqual(scm_base.version_iso_cleanup("1"), "1")
+        self.assertEqual(scm_base.version_iso_cleanup("1.54-1.2", True), "1.54-1.2")
+        self.assertEqual(scm_base.version_iso_cleanup("1.54-1.2", False), "1.541.2")
+        self.assertEqual(scm_base.version_iso_cleanup("1.54-1.2"), "1.541.2")
+        self.assertEqual(scm_base.version_iso_cleanup("2017-01-02 02:23:11 +0100", True),
+                         "20170102T022311")
+        self.assertEqual(scm_base.version_iso_cleanup("2017-01-02 02:23:11 +0100", False),
+                         "20170102T022311")
+        self.assertEqual(scm_base.version_iso_cleanup("2017-01-02 02:23:11 +0100"),
+                         "20170102T022311")
