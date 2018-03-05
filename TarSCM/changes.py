@@ -202,6 +202,7 @@ class Changes():
         shutil.move(tmp_fp.name, changes_filename)
 
     def get_changesauthor(self, args):
+        changesauthor = None
         # return changesauthor if given as cli option
         if args.changesauthor:
             return args.changesauthor
@@ -211,7 +212,6 @@ class Changes():
             files = [[os.path.join(os.environ['HOME'], '.oscrc'), False]]
             cfg = Config(files)
 
-            changesauthor = None
             section = cfg.get('general', 'apiurl')
             if section:
                 changesauthor = cfg.get(section, 'email')

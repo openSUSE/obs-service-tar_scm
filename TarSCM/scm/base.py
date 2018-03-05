@@ -17,7 +17,6 @@ if sys.version_info[0] < 3:
 else:
     import urllib
 
-
 class Scm():
     def __init__(self, args, task):
         # default settings
@@ -45,6 +44,12 @@ class Scm():
 
         self._calc_repocachedir()
         self._final_rename_needed = False
+
+	# proxy support
+	self.httpproxy		= None
+	self.httpsproxy		= None
+	self.noproxy		= None
+	self._calc_proxies()
 
     def switch_revision(self):
         '''Switch sources to revision. Dummy implementation for version control
@@ -141,6 +146,27 @@ class Scm():
             logging.debug("REPOCACHE: %s", repocachedir)
             self.repohash = self.get_repocache_hash(self.args.subdir)
             self.repocachedir = os.path.join(repocachedir, self.repohash)
+
+    def _calc_proxies(self):
+        # check for standard http/https proxy variables
+        #   - http_proxy
+	#   - https_proxy
+	#   - no_proxy
+        httpproxy  = os.getenv('http_proxy')
+        httpsproxy  = os.getenv('https_proxy')
+        noproxy  = os.getenv('no_proxy')
+
+        if httpproxy:
+            logging.debug("HTTP proxy found: %s", httpproxy)
+            self.httpproxy = httpproxy
+
+        if httpsproxy:
+            logging.debug("HTTPS proxy found: %s", httpsproxy)
+            self.httpsproxy = httpsproxy
+
+        if noproxy:
+            logging.debug("HTTP no proxy found: %s", noproxy)
+            self.noproxy = noproxy
 
     def prepare_clone_dir(self):
         # special case when using osc and creating an obscpio, use
@@ -249,4 +275,6 @@ class Scm():
             self.lock_file = None
 
     def finalize(self):
+	self.cleanup()
         pass
+

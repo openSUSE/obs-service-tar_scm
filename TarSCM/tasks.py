@@ -50,6 +50,9 @@ class Tasks():
         # gets raised
         if self.scm_object:
             self.scm_object.unlock_cache()
+	    # calls the corresponding cleanup routine
+	    self.scm_object.cleanup()
+
 
     def generate_list(self):
         '''

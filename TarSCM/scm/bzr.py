@@ -8,9 +8,16 @@ from TarSCM.scm.base import Scm
 class Bzr(Scm):
     scm = 'bzr'
 
+    def _get_scm_cmd(self):
+        """Compose a BZR-specific command line using http proxies."""
+        # Bazaar honors the http[s]_proxy variables, no action needed
+        scmcmd = ['bzr']
+
+        return scmcmd
+
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for bzr."""
-        command = ['bzr', 'checkout', self.url, self.clone_dir]
+        command = self._get_scm_cmd() + ['checkout', self.url, self.clone_dir]
         if self.revision:
             command.insert(3, '-r')
             command.insert(4, self.revision)
@@ -21,7 +28,7 @@ class Bzr(Scm):
 
     def update_cache(self):
         """Update sources via bzr."""
-        command = ['bzr', 'update']
+        command = self._get_scm_cmd() + ['update']
         if self.revision:
             command.insert(3, '-r')
             command.insert(4, self.revision)
@@ -39,12 +46,13 @@ class Bzr(Scm):
         if versionformat is None:
             versionformat = '%r'
 
-        version = self.helpers.safe_run(['bzr', 'revno'], self.clone_dir)[1]
+        version = self.helpers.safe_run(self._get_scm_cmd() +
+                                        ['revno'], self.clone_dir)[1]
         return re.sub('%r', version.strip(), versionformat)
 
     def get_timestamp(self):
         log = self.helpers.safe_run(
-            ['bzr', 'log', '--limit=1', '--log-format=long'],
+            self._get_scm_cmd() + ['log', '--limit=1', '--log-format=long'],
             self.clone_dir
         )[1]
         match = re.search(r'timestamp:(.*)', log, re.MULTILINE)
@@ -53,3 +61,7 @@ class Bzr(Scm):
         tsm = match.group(1).strip()
         timestamp = dateutil.parser.parse(tsm).strftime("%s")
         return int(timestamp)
+
+    # no cleanup is necessary for bzr
+    def cleanup(self):
+        pass
