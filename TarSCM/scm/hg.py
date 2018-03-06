@@ -1,6 +1,8 @@
 import sys
 import re
 import os
+import tempfile
+import shutil
 import logging
 from TarSCM.scm.base import Scm
 
@@ -8,13 +10,15 @@ from TarSCM.scm.base import Scm
 class Hg(Scm):
     scm = 'hg'
 
+    hgtmpdir = tempfile.mkdtemp()
+
     def _get_scm_cmd(self):
         """Compose a HG-specific command line using http proxies."""
         # Mercurial requires declaring proxies via a --config parameter
         scmcmd = ['hg']
         if self.httpproxy:
                 logging.debug("using " + self.hgtmpdir)
-                f = open(hgtmpdir + "/tempsettings.rc", "wb")
+                f = open(self.hgtmpdir + "/tempsettings.rc", "wb")
                 f.write('[http_proxy]\n')
 
                 regexp_proxy = re.match('http://(.*):(.*)',
@@ -34,7 +38,7 @@ class Hg(Scm):
                 f.close()
 
                 # we just point Mercurial to where the config file is
-                os.environ['HGRCPATH'] = hgtmpdir
+                os.environ['HGRCPATH'] = self.hgtmpdir
 
         return scmcmd
 

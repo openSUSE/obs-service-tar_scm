@@ -59,7 +59,7 @@ class Svn(Scm):
                         else:
                                 no_proxy_string += tmpstr
 
-                        if i < len(no_proxy_domains[0])-1:
+                        if i < len(no_proxy_domains[0]) - 1:
                                 no_proxy_string += ','
 
                 no_proxy_string += '\n'

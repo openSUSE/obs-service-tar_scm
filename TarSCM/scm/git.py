@@ -45,9 +45,9 @@ class Git(Scm):
                 found_revision = True
                 if os.getenv('OSC_VERSION'):
                     stash_text = self.helpers.safe_run(
-                                                      self._get_scm_cmd() +
-                                                      ['stash'],
-                                                      cwd=self.clone_dir)[1]
+                        self._get_scm_cmd() +
+                        ['stash'],
+                        cwd=self.clone_dir)[1]
                     text = self.helpers.safe_run(
                         self._get_scm_cmd() + ['reset', '--hard', rev],
                         cwd=self.clone_dir
@@ -55,9 +55,9 @@ class Git(Scm):
                     if stash_text != "No local changes to save\n":
                         logging.debug("[switch_revision] GIT STASHING")
                         text += self.helpers.safe_run(
-                                                      self._get_scm_cmd() +
-                                                      ['stash', 'pop'],
-                                                      cwd=self.clone_dir)[1]
+                            self._get_scm_cmd() +
+                            ['stash', 'pop'],
+                            cwd=self.clone_dir)[1]
                 else:
                     text = self.helpers.safe_run(
                         self._get_scm_cmd() + ['reset', '--hard', rev],
