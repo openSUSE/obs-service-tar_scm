@@ -23,4 +23,8 @@ fi
 
 echo "$me $*" >> "$SCM_INVOCATION_LOG"
 
-/usr/bin/$me "$@"
+if [ -x /usr/bin/$me ];then
+  /usr/bin/$me "$@"
+else
+  /bin/$me "$@"
+fi

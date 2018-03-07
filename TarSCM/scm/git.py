@@ -232,7 +232,7 @@ class Git(Scm):
 
         if last_rev == current_rev:
             logging.debug("No new commits, skipping changes file generation")
-            return
+            return None
 
         dbg_msg = "Generating changes between %s and %s" % (last_rev,
                                                             current_rev)
