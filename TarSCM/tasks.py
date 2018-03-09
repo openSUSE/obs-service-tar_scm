@@ -1,6 +1,7 @@
 '''
 This module contains the class tasks
 '''
+from __future__ import print_function
 
 import glob
 import copy
@@ -10,13 +11,13 @@ import os
 import shutil
 import sys
 import re
+import yaml
 
 import TarSCM.scm
 import TarSCM.archive
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
 from TarSCM.exceptions import OptionsError
-import yaml
 
 
 class Tasks():
@@ -157,6 +158,12 @@ class Tasks():
         # self.scm_object is need to unlock cache in cleanup
         # if exception occurs
         self.scm_object = scm_object   = scm_class(args, self)
+
+        try:
+            scm_object.check_scm()
+        except OSError:
+            print("Please install '%s'" % scm_object.scm)
+            sys.exit(1)
 
         scm_object.fetch_upstream()
 

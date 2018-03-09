@@ -7,6 +7,7 @@ import hashlib
 import shutil
 import fcntl
 import time
+import subprocess
 
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
@@ -45,6 +46,13 @@ class Scm():
 
         self._calc_repocachedir()
         self._final_rename_needed = False
+
+    def check_scm(self):
+        '''check version of scm to proof, it is installed and executable'''
+        subprocess.Popen(
+            [self.scm, '--version'],
+            stdout=subprocess.PIPE
+        ).communicate()
 
     def switch_revision(self):
         '''Switch sources to revision. Dummy implementation for version control
