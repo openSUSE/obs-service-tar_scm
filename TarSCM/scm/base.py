@@ -277,4 +277,3 @@ class Scm():
 
     def finalize(self):
         self.cleanup()
-        pass
