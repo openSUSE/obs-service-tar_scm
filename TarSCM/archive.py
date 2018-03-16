@@ -129,7 +129,8 @@ class Tar(BaseArchive):
         extension           = (args.extension or 'tar')
         exclude             = args.exclude
         include             = args.include
-        include_topdir      = args.include_topdir
+        path_filter_search  = args.path_filter_search
+        path_filter_replace = args.path_filter_replace
         package_metadata    = args.package_meta
         timestamp           = self.helpers.get_timestamp(
             scm_object,
@@ -151,6 +152,10 @@ class Tar(BaseArchive):
         for exc in exclude:
             pat = fnmatch.translate(os.path.join(topdir, exc))
             excl_patterns.append(re.compile(pat))
+
+        path_pattern = None
+        if path_filter_search:
+            path_pattern = re.compile(path_filter_search)
 
         def tar_exclude(filename):
             """
@@ -178,11 +183,18 @@ class Tar(BaseArchive):
                 tarinfo.mtime = timestamp
             return tarinfo
 
+        def path_filter(tarinfo):
+            if path_pattern and path_filter_replace is not None:
+                tarinfo.name = re.sub(
+                    path_pattern, path_filter_replace, tarinfo.name
+                ).strip(os.sep)
+            return reset(tarinfo)
+
         def tar_filter(tarinfo):
             if tar_exclude(tarinfo.name):
                 return None
 
-            return reset(tarinfo)
+            return path_filter(tarinfo)
 
         cwd = os.getcwd()
         os.chdir(workdir)
@@ -191,31 +203,18 @@ class Tar(BaseArchive):
             os.path.join(outdir, dstname + '.' + extension),
             "w"
         )
-        if include_topdir:
-            try:
-                tar.add(topdir, recursive=False, filter=reset)
-            except TypeError:
-                # Python 2.6 compatibility
-                tar.add(topdir, recursive=False)
+        try:
+            tar.add(topdir, recursive=False, filter=path_filter)
+        except TypeError:
+            # Python 2.6 compatibility
+            tar.add(topdir, recursive=False)
         for entry in map(lambda x: os.path.join(topdir, x),
                          sorted(os.listdir(topdir))):
             try:
-                if include_topdir:
-                    tar.add(entry, filter=tar_filter)
-                else:
-                    tar.add(
-                        entry, filter=tar_filter,
-                        arcname=entry.replace(topdir, '')
-                    )
+                tar.add(entry, filter=tar_filter)
             except TypeError:
                 # Python 2.6 compatibility
-                if include_topdir:
-                    tar.add(entry, exclude=tar_exclude)
-                else:
-                    tar.add(
-                        entry, exclude=tar_exclude,
-                        arcname=entry.replace(topdir, '')
-                    )
+                tar.add(entry, exclude=tar_exclude)
         tar.close()
 
         self.archivefile    = tar.name

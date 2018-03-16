@@ -96,10 +96,6 @@ class Cli():
                            default=[], metavar='REGEXP',
                            help='Specifies excludes when creating the '
                                 'tarball (can be repeated)')
-        parser.add_argument('--include_topdir',
-                            choices=['yes', 'no'], default='yes',
-                            help='Specifies if the tar archive should include '
-                                 'or not the top directory.')
         parser.add_argument('--package-meta',
                             choices=['yes', 'no'], default='no',
                             help='Package the meta data of SCM to allow the '
@@ -120,6 +116,14 @@ class Cli():
                             action='store_true',
                             help='do not cleanup directories before exiting '
                                  '(Only for debugging')
+        parser.add_argument('--path_filter_search', default=None,
+                            metavar='REGEXP',
+                            help='Specifies the regular expression to apply '
+                                 'to tarball files path')
+        parser.add_argument('--path_filter_replace', default=None,
+                            metavar='REGEXP',
+                            help='Specifies the replacement for the regular '
+                                 'expression applied to files path.')
         args = parser.parse_args(options)
 
         # basic argument validation
@@ -135,6 +139,14 @@ class Cli():
         if args.subdir == '..' or args.subdir.startswith('../'):
             sys.exit("--subdir path '%s' must stay within repo" % orig_subdir)
 
+        if args.path_filter_search and args.path_filter_replace is None:
+            sys.exit("--path_filter_replace is required if"
+                     "--path_filter_search is provided")
+
+        if args.path_filter_replace and args.path_filter_search is None:
+            sys.exit("--path_filter_search is required if"
+                     "--path_filter_replace is provided")
+
         if args.history_depth:
             print("history-depth parameter is obsolete and will be ignored")
 
@@ -143,7 +155,6 @@ class Cli():
         args.package_meta    = bool(args.package_meta == 'yes')
         args.sslverify       = bool(args.sslverify != 'disable')
         args.use_obs_scm     = bool(args.use_obs_scm)
-        args.include_topdir  = bool(args.include_topdir == 'yes')
 
         # force verbose mode in test-mode
         args.verbose = bool(os.getenv('DEBUG_TAR_SCM'))
