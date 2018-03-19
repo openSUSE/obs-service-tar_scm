@@ -70,7 +70,7 @@ class ArchiveTarTestCases(unittest.TestCase):
         arch                 = Tar()
         os.makedirs(outdir)
         self.cli.path_filter_search = '^repo'
-        self.cli.path_filter_replace = '' 
+        self.cli.path_filter_replace = ''
         arch.create_archive(
             mock_scm,
             cli      = self.cli,
@@ -82,8 +82,12 @@ class ArchiveTarTestCases(unittest.TestCase):
         assert os.path.exists(outfile)
         tar = tarfile.open(outfile, 'r')
         try:
-            assert tar.getmember('dir1/.keep')
-            assert 'repo' not in tar.getnames()
+            if sys.version_info[:3] >= (2, 7, 0):
+                assert tar.getmember('dir1/.keep')
+                assert 'repo' not in tar.getnames()
+            else:
+                assert tar.getmember('repo/dir1/.keep')
+                assert 'repo' in tar.getnames()
         finally:
             tar.close()
 
@@ -99,7 +103,7 @@ class ArchiveTarTestCases(unittest.TestCase):
         arch                 = Tar()
         os.makedirs(outdir)
         self.cli.path_filter_search = '^repo'
-        self.cli.path_filter_replace = 'new/top/directories' 
+        self.cli.path_filter_replace = 'new/top/directories'
         arch.create_archive(
             mock_scm,
             cli      = self.cli,
@@ -111,8 +115,12 @@ class ArchiveTarTestCases(unittest.TestCase):
         assert os.path.exists(outfile)
         tar = tarfile.open(outfile, 'r')
         try:
-            assert tar.getmember('new/top/directories/dir1/.keep')
-            assert 'repo' not in tar.getnames()
+            if sys.version_info[:3] >= (2, 7, 0):
+                assert tar.getmember('new/top/directories/dir1/.keep')
+                assert 'repo' not in tar.getnames()
+            else:
+                assert tar.getmember('repo/dir1/.keep')
+                assert 'repo' in tar.getnames()
         finally:
             tar.close()
 
@@ -128,7 +136,7 @@ class ArchiveTarTestCases(unittest.TestCase):
         arch                 = Tar()
         os.makedirs(outdir)
         self.cli.path_filter_search = 'dir1/.keep'
-        self.cli.path_filter_replace = '.keep' 
+        self.cli.path_filter_replace = '.keep'
         arch.create_archive(
             mock_scm,
             cli      = self.cli,
@@ -140,8 +148,12 @@ class ArchiveTarTestCases(unittest.TestCase):
         assert os.path.exists(outfile)
         tar = tarfile.open(outfile, 'r')
         try:
-            assert tar.getmember('repo')
-            assert tar.getmember('repo/.keep')
-            assert 'repo/dir1/.keep' not in tar.getnames()
+            if sys.version_info[:3] >= (2, 7, 0):
+                assert tar.getmember('repo')
+                assert tar.getmember('repo/.keep')
+                assert 'repo/dir1/.keep' not in tar.getnames()
+            else:
+                assert tar.getmember('repo/dir1/.keep')
+                assert 'repo' in tar.getnames()
         finally:
             tar.close()
