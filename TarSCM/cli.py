@@ -116,6 +116,14 @@ class Cli():
                             action='store_true',
                             help='do not cleanup directories before exiting '
                                  '(Only for debugging')
+        parser.add_argument('--path_filter_search', default=None,
+                            metavar='REGEXP',
+                            help='Specifies the regular expression to apply '
+                                 'to tarball files path')
+        parser.add_argument('--path_filter_replace', default=None,
+                            metavar='REGEXP',
+                            help='Specifies the replacement for the regular '
+                                 'expression applied to files path.')
         args = parser.parse_args(options)
 
         # basic argument validation
@@ -130,6 +138,14 @@ class Cli():
                      orig_subdir)
         if args.subdir == '..' or args.subdir.startswith('../'):
             sys.exit("--subdir path '%s' must stay within repo" % orig_subdir)
+
+        if args.path_filter_search and args.path_filter_replace is None:
+            sys.exit("--path_filter_replace is required if"
+                     "--path_filter_search is provided")
+
+        if args.path_filter_replace and args.path_filter_search is None:
+            sys.exit("--path_filter_search is required if"
+                     "--path_filter_replace is provided")
 
         if args.history_depth:
             print("history-depth parameter is obsolete and will be ignored")
