@@ -140,7 +140,7 @@ class Svn(Scm):
 
         if last_rev == current_rev:
             logging.debug("No new commits, skipping changes file generation")
-            return
+            return None
 
         if not first_run:
             # Increase last_rev by 1 so we dont get duplication of log messages

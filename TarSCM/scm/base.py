@@ -7,6 +7,7 @@ import hashlib
 import shutil
 import fcntl
 import time
+import subprocess
 
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
@@ -51,6 +52,13 @@ class Scm():
         self.httpsproxy     = None
         self.noproxy        = None
         self._calc_proxies()
+
+    def check_scm(self):
+        '''check version of scm to proof, it is installed and executable'''
+        subprocess.Popen(
+            [self.scm, '--version'],
+            stdout=subprocess.PIPE
+        ).communicate()
 
     def switch_revision(self):
         '''Switch sources to revision. Dummy implementation for version control

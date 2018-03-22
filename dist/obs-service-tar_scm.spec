@@ -31,9 +31,10 @@ Source:         %{name}-%{version}.tar.gz
 # based distributions
 #Patch0:         0001-Debianization-disable-running-mercurial-tests.patch
 %if %{with obs_scm_testsuite}
-BuildRequires:  bzr
 BuildRequires:  git-core
+BuildRequires:  bzr
 BuildRequires:  mercurial
+BuildRequires:  subversion
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
 %define py_compile(O)  \
 find %1 -name '*.pyc' -exec rm -f {} \\; \
@@ -50,15 +51,14 @@ BuildRequires:  python-PyYAML
 BuildRequires:  python-dateutil
 BuildRequires:  python-lxml
 BuildRequires:  python-mock
-BuildRequires:  subversion
 %endif
 BuildRequires:  python >= 2.6
 BuildRequires:  python-unittest2
-Requires:       bzr
 Requires:       git-core
-Requires:       mercurial
+Recommends:     bzr
+Recommends:     mercurial
+Recommends:     subversion
 Requires:       obs-service-obs_scm-common = %version-%release
-Requires:       subversion
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 
@@ -99,11 +99,11 @@ Creates a tar archive from local directory
 Summary:        Creates a OBS cpio from a remote SCM resource
 Group:          Development/Tools/Building
 Provides:       obs-service-tar_scm:/usr/lib/obs/service/obs_scm.service
-Requires:       bzr
 Requires:       git-core
-Requires:       mercurial
+Recommends:     bzr
+Recommends:     mercurial
+Recommends:     subversion
 Requires:       obs-service-obs_scm-common = %version-%release
-Requires:       subversion
 
 %description -n obs-service-obs_scm
 Creates a OBS cpio from a remote SCM resource.
@@ -114,11 +114,11 @@ into a tar ball during build time.
 %package -n     obs-service-appimage
 Summary:        Handles source downloads defined in appimage.yml files
 Group:          Development/Tools/Building
-Requires:       bzr
 Requires:       git-core
-Requires:       mercurial
+Recommends:     bzr
+Recommends:     mercurial
+Recommends:     subversion
 Requires:       obs-service-obs_scm-common = %version-%release
-Requires:       subversion
 
 %description -n obs-service-appimage
 Experimental appimage support: This parses appimage.yml files for SCM
@@ -128,11 +128,11 @@ resources and packages them.
 Summary:        Handles source downloads defined in snapcraft.yaml files
 Group:          Development/Tools/Building
 Provides:       obs-service-tar_scm:/usr/lib/obs/service/snapcraft.service
-Requires:       bzr
 Requires:       git-core
-Requires:       mercurial
+Recommends:     bzr
+Recommends:     mercurial
+Recommends:     subversion
 Requires:       obs-service-obs_scm-common = %version-%release
-Requires:       subversion
 
 %description -n obs-service-snapcraft
 Experimental snapcraft support: This parses snapcraft.yaml files for SCM
