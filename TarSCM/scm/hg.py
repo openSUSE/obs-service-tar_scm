@@ -1,26 +1,62 @@
 import sys
 import re
 import os
+import tempfile
+import shutil
+import logging
 from TarSCM.scm.base import Scm
 
 
 class Hg(Scm):
     scm = 'hg'
 
+    hgtmpdir = tempfile.mkdtemp()
+
+    def _get_scm_cmd(self):
+        """Compose a HG-specific command line using http proxies."""
+        # Mercurial requires declaring proxies via a --config parameter
+        scmcmd = ['hg']
+        if self.httpproxy:
+                logging.debug("using " + self.hgtmpdir)
+                f = open(self.hgtmpdir + "/tempsettings.rc", "wb")
+                f.write('[http_proxy]\n')
+
+                regexp_proxy = re.match('http://(.*):(.*)',
+                                        self.httpproxy,
+                                        re.M | re.I)
+
+                if regexp_proxy.group(1) is not None:
+                        print ('using proxy host: ' + regexp_proxy.group(1))
+                        f.write('host=' + regexp_proxy.group(1))
+                if regexp_proxy.group(2) is not None:
+                        print ('using proxy port: ' + regexp_proxy.group(2))
+                        f.write('port=' + regexp_proxy.group(2))
+                if self.noproxy is not None:
+                        print ('using proxy exceptions: ' +
+                               self.noproxy)
+                        f.write('no=' + self.noproxy)
+                f.close()
+
+                # we just point Mercurial to where the config file is
+                os.environ['HGRCPATH'] = self.hgtmpdir
+
+        return scmcmd
+
     def switch_revision(self):
         """Switch sources to revision."""
         if self.revision is None:
             self.revision = 'tip'
 
-        rcode, _  = self.helpers.run_cmd(['hg', 'update', self.revision],
-                                         cwd=self.clone_dir,
-                                         interactive=sys.stdout.isatty())
+        rcode, _ = self.helpers.run_cmd(self._get_scm_cmd() +
+                                        ['update', self.revision],
+                                        cwd=self.clone_dir,
+                                        interactive=sys.stdout.isatty())
         if rcode:
             sys.exit('%s: No such revision' % self.revision)
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for hg."""
-        command = ['hg', 'clone', self.url, self.clone_dir]
+        command = self._get_scm_cmd() + ['clone', self.url, self.clone_dir]
         if not self.is_sslverify_enabled():
             command += ['--insecure']
         wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
@@ -30,7 +66,8 @@ class Hg(Scm):
     def update_cache(self):
         """Update sources via hg."""
         try:
-            self.helpers.safe_run(['hg', 'pull'], cwd=self.clone_dir,
+            self.helpers.safe_run(self._get_scm_cmd() +
+                                  ['pull'], cwd=self.clone_dir,
                                   interactive=sys.stdout.isatty())
         except SystemExit as exc:
             # Contrary to the docs, hg pull returns exit code 1 when
@@ -43,11 +80,12 @@ class Hg(Scm):
         """
         Automatic detection of version number for checked-out HG repository.
         """
-        versionformat   = args['versionformat']
+        versionformat = args['versionformat']
         if versionformat is None:
             versionformat = '{rev}'
 
-        version = self.helpers.safe_run(['hg', 'id', '-n'], self.clone_dir)[1]
+        version = self.helpers.safe_run(self._get_scm_cmd() +
+                                        ['id', '-n'], self.clone_dir)[1]
 
         # Mercurial internally stores commit dates in its changelog
         # context objects as (epoch_secs, tz_delta_to_utc) tuples (see
@@ -76,8 +114,8 @@ class Hg(Scm):
         # in openSUSE 12.3).
 
         version = self.helpers.safe_run(
+            self._get_scm_cmd() +
             [
-                'hg',
                 'log',
                 '-l1',
                 "-r%s" % version.strip(),
@@ -93,3 +131,10 @@ class Hg(Scm):
         timestamp = self.detect_version(data)
         timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
         return int(timestamp)
+
+    def cleanup(self):
+        try:
+                shutil.rmtree(self.hgtmpdir, ignore_errors=True)
+        except:
+                logging.debug("error on cleanup:", sys.exc_info()[0])
+                raise
