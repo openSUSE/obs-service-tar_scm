@@ -8,6 +8,21 @@ from TarSCM.scm.base import Scm
 class Git(Scm):
     scm = 'git'
 
+    def _get_scm_cmd(self):
+        """Compose a GIT-specific command line using http proxies"""
+        # git should honor the http[s]_proxy variables, but we need to
+        # guarantee this, the variables do not work every time
+        # the no_proxy variable is honored everytime, so no action
+        # is needed here
+        scmcmd = ['git']
+        if self.httpproxy:
+                scmcmd += ['-c', 'http.proxy=' +
+                           self.httpproxy]
+        if self.httpsproxy:
+                scmcmd += ['-c', 'https.proxy=' +
+                           self.httpsproxy]
+        return scmcmd
+
     def switch_revision(self):
         """Switch sources to revision. The git revision may refer to any of the
         following:
@@ -29,19 +44,23 @@ class Git(Scm):
             if self._ref_exists(rev):
                 found_revision = True
                 if os.getenv('OSC_VERSION'):
-                    stash_text = self.helpers.safe_run(['git', 'stash'],
-                                                       cwd=self.clone_dir)[1]
+                    stash_text = self.helpers.safe_run(
+                        self._get_scm_cmd() +
+                        ['stash'],
+                        cwd=self.clone_dir)[1]
                     text = self.helpers.safe_run(
-                        ['git', 'reset', '--hard', rev],
+                        self._get_scm_cmd() + ['reset', '--hard', rev],
                         cwd=self.clone_dir
                     )[1]
                     if stash_text != "No local changes to save\n":
                         logging.debug("[switch_revision] GIT STASHING")
-                        text += self.helpers.safe_run(['git', 'stash', 'pop'],
-                                                      cwd=self.clone_dir)[1]
+                        text += self.helpers.safe_run(
+                            self._get_scm_cmd() +
+                            ['stash', 'pop'],
+                            cwd=self.clone_dir)[1]
                 else:
                     text = self.helpers.safe_run(
-                        ['git', 'reset', '--hard', rev],
+                        self._get_scm_cmd() + ['reset', '--hard', rev],
                         cwd=self.clone_dir
                     )[1]
                 # print (text.rstrip())
@@ -53,14 +72,14 @@ class Git(Scm):
         # only update submodules if they have been enabled
         if os.path.exists(os.path.join(self.clone_dir, '.git', 'modules')):
             self.helpers.safe_run(
-                ['git', 'submodule', 'update', '--recursive'],
+                self._get_scm_cmd() + ['submodule', 'update', '--recursive'],
                 cwd=self.clone_dir
             )
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for git."""
         # clone if no .git dir exists
-        command = ['git', 'clone', self.url, self.clone_dir]
+        command = self._get_scm_cmd() + ['clone', self.url, self.clone_dir]
         if not self.is_sslverify_enabled():
             command += ['--config', 'http.sslverify=false']
         if self.repocachedir:
@@ -75,8 +94,8 @@ class Git(Scm):
         if self.revision and not self._ref_exists(self.revision):
             # fetch reference from url and create locally
             self.helpers.safe_run(
-                ['git', 'fetch', self.url,
-                 self.revision + ':' + self.revision],
+                self._get_scm_cmd() + ['fetch', self.url,
+                                       self.revision + ':' + self.revision],
                 cwd=self.clone_dir, interactive=sys.stdout.isatty()
             )
 
@@ -87,7 +106,8 @@ class Git(Scm):
                 self.args.__dict__['submodules'] == 'enable'
         ):
             self.helpers.safe_run(
-                ['git', 'submodule', 'update', '--init', '--recursive'],
+                self._get_scm_cmd() + ['submodule', 'update', '--init',
+                                       '--recursive'],
                 cwd=self.clone_dir
             )
         elif (
@@ -95,8 +115,8 @@ class Git(Scm):
                 self.args.__dict__['submodules'] == 'master'
         ):
             self.helpers.safe_run(
-                ['git', 'submodule', 'update', '--init', '--recursive',
-                 '--remote'],
+                self._get_scm_cmd() + ['submodule', 'update', '--init',
+                                       '--recursive', '--remote'],
                 cwd=self.clone_dir
             )
 
@@ -104,18 +124,18 @@ class Git(Scm):
         """Update sources via git."""
         # Force origin to the wanted URL in case it switched
         self.helpers.safe_run(
-            ['git', 'config', 'remote.origin.url', self.url],
+            self._get_scm_cmd() + ['config', 'remote.origin.url', self.url],
             cwd=self.clone_dir,
             interactive=sys.stdout.isatty()
         )
 
         self.helpers.safe_run(
-            ['git', 'fetch', '--tags'],
+            self._get_scm_cmd() + ['fetch', '--tags'],
             cwd=self.clone_dir,
             interactive=sys.stdout.isatty()
         )
         self.helpers.safe_run(
-            ['git', 'fetch'],
+            self._get_scm_cmd() + ['fetch'],
             cwd=self.clone_dir,
             interactive=sys.stdout.isatty()
         )
@@ -126,8 +146,8 @@ class Git(Scm):
         """
         Automatic detection of version number for checked-out GIT repository.
         """
-        parent_tag      = args['parent_tag']
-        versionformat   = args['versionformat']
+        parent_tag = args['parent_tag']
+        versionformat = args['versionformat']
         if versionformat is None:
             versionformat = '%ct.%h'
 
@@ -145,15 +165,15 @@ class Git(Scm):
                 versionformat)
 
         version = self.helpers.safe_run(
-            ['git', 'log', '-n1', '--date=short',
-             "--pretty=format:%s" % versionformat],
+            self._get_scm_cmd() + ['log', '-n1', '--date=short',
+                                   "--pretty=format:%s" % versionformat],
             self.clone_dir
         )[1]
         return self.version_iso_cleanup(version)
 
     def _detect_parent_tag(self, args):
         parent_tag = ''
-        cmd = ['git', 'describe', '--tags', '--abbrev=0']
+        cmd = self._get_scm_cmd() + ['describe', '--tags', '--abbrev=0']
         try:
             if args['match_tag']:
                 cmd.append("--match=%s" % args['match_tag'])
@@ -183,7 +203,8 @@ class Git(Scm):
                      "as no parent tag was discovered.\033[0m")
 
         rcode, output = self.helpers.run_cmd(
-            ['git', 'rev-list', '--count', parent_tag + '..HEAD'],
+            self._get_scm_cmd() + ['rev-list', '--count', parent_tag +
+                                   '..HEAD'],
             self.clone_dir
         )
 
@@ -202,12 +223,13 @@ class Git(Scm):
         return int(timestamp)
 
     def get_current_commit(self):
-        return self.helpers.safe_run(['git', 'rev-parse', 'HEAD'],
+        return self.helpers.safe_run(self._get_scm_cmd() + ['rev-parse',
+                                                            'HEAD'],
                                      self.clone_dir)[1]
 
     def _ref_exists(self, rev):
         rcode, _ = self.helpers.run_cmd(
-            ['git', 'rev-parse', '--verify', '--quiet', rev],
+            self._get_scm_cmd() + ['rev-parse', '--verify', '--quiet', rev],
             cwd=self.clone_dir,
             interactive=sys.stdout.isatty()
         )
@@ -215,7 +237,7 @@ class Git(Scm):
 
     def _log_cmd(self, cmd_args, subdir):
         """ Helper function to call 'git log' with args"""
-        cmd = ['git', 'log'] + cmd_args
+        cmd = self._get_scm_cmd() + ['log'] + cmd_args
         if subdir:
             cmd += ['--', subdir]
         return self.helpers.safe_run(cmd, cwd=self.clone_dir)[1]
@@ -256,7 +278,7 @@ class Git(Scm):
 
         # We use a temporary shared clone to avoid race conditions
         # between multiple services
-        org_clone_dir  = self.clone_dir
+        org_clone_dir = self.clone_dir
         self.clone_dir = self.repodir
         command = ['git', 'clone']
         use_reference = True
@@ -275,3 +297,7 @@ class Git(Scm):
         wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
         self.helpers.safe_run(
             command, cwd=wdir, interactive=sys.stdout.isatty())
+
+    # no cleanup is necessary for git
+    def cleanup(self):
+        pass

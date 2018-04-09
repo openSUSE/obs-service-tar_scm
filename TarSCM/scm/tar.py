@@ -59,3 +59,7 @@ class Tar(Scm):
         """Execute final cleanup of workspace"""
         if self._final_rename_needed:
             os.rename(self.clone_dir, self.basename)
+
+    # no cleanup is necessary for tar
+    def cleanup(self):
+        pass
