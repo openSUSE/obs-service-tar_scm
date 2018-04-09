@@ -280,7 +280,7 @@ class Git(Scm):
         # between multiple services
         org_clone_dir = self.clone_dir
         self.clone_dir = self.repodir
-        command = ['git', 'clone']
+        command =  self._get_scm_cmd() + ['clone']
         use_reference = True
         try:
             if self.args.package_meta:
