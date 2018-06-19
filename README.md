@@ -158,6 +158,23 @@ following:
 
     make install
 
+## User documentation
+
+There isn't yet any comprehensive user documentation (see [issue
+#238](https://github.com/openSUSE/obs-service-tar_scm/issues/238)),
+but in the meantime, in addition to the information in this README,
+the following resources may be helpful:
+
+- The XML `.service` files which document the parameters for
+  each source service:
+  - the [`tar_scm.service.in` template](https://github.com/openSUSE/obs-service-tar_scm/blob/master/tar_scm.service.in)
+    which is used to generate `tar_scm.service` and `obs_scm.service`
+  - [`appimage.service`](https://github.com/openSUSE/obs-service-tar_scm/blob/master/appimage.service)
+  - [`snapcraft.service`](https://github.com/openSUSE/obs-service-tar_scm/blob/master/snapcraft.service)
+  - [`tar.service`](https://github.com/openSUSE/obs-service-tar_scm/blob/master/tar.service)
+- The ["Using Source Services" chapter](https://openbuildservice.org/help/manuals/obs-user-guide/cha.obs.source_service.html)
+  of [the OBS User Guide](https://openbuildservice.org/help/manuals/obs-user-guide/)
+
 ## Test suite
 
 See the [TESTING.md](TESTING.md) file.
