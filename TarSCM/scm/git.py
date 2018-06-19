@@ -85,8 +85,12 @@ class Git(Scm):
         if self.repocachedir:
             command.insert(2, '--mirror')
         wdir = os.path.abspath(os.path.join(self.repodir, os.pardir))
-        self.helpers.safe_run(
-            command, cwd=wdir, interactive=sys.stdout.isatty())
+        try:
+            self.helpers.safe_run(
+                command, cwd=wdir, interactive=sys.stdout.isatty())
+        except SystemExit as exc:
+            os.removedirs(os.path.join(wdir, self.clone_dir))
+            raise exc
 
         self.fetch_specific_revision()
 
