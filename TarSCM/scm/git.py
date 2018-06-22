@@ -1,7 +1,8 @@
-import sys
-import os
 import logging
+import os
 import re
+import sys
+
 from TarSCM.scm.base import Scm
 
 
