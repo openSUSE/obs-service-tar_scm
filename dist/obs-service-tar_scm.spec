@@ -1,7 +1,7 @@
 #
 # spec file for package obs-service-tar_scm
 #
-# Copyright (c) 2017 SUSE LINUX GmbH, Nuernberg, Germany.
+# Copyright (c) 2018 SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -19,11 +19,11 @@
 %bcond_without obs_scm_testsuite
 
 Name:           obs-service-tar_scm
-%define version_unconverted 0.8.0.1498846582.8799787
-Version:        0.8.0.1498846582.8799787
+%define version_unconverted 0.9.0.1523267117.de861d8
+Version:        0.9.0.1523267117.de861d8
 Release:        0
 Summary:        An OBS source service: create tar ball from svn/git/hg
-License:        GPL-2.0+
+License:        GPL-2.0-or-later
 Group:          Development/Tools/Building
 Url:            https://github.com/openSUSE/obs-service-tar_scm
 Source:         %{name}-%{version}.tar.gz
@@ -31,8 +31,8 @@ Source:         %{name}-%{version}.tar.gz
 # based distributions
 #Patch0:         0001-Debianization-disable-running-mercurial-tests.patch
 %if %{with obs_scm_testsuite}
-BuildRequires:  git-core
 BuildRequires:  bzr
+BuildRequires:  git-core
 BuildRequires:  mercurial
 BuildRequires:  subversion
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
@@ -55,9 +55,11 @@ BuildRequires:  python-unittest2
 %endif
 BuildRequires:  python >= 2.6
 Requires:       git-core
+%if 0%{?suse_version} >= 1315
 Recommends:     bzr
 Recommends:     mercurial
 Recommends:     subversion
+%endif
 Requires:       obs-service-obs_scm-common = %version-%release
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
@@ -100,9 +102,11 @@ Summary:        Creates a OBS cpio from a remote SCM resource
 Group:          Development/Tools/Building
 Provides:       obs-service-tar_scm:/usr/lib/obs/service/obs_scm.service
 Requires:       git-core
+%if 0%{?suse_version} >= 1315
 Recommends:     bzr
 Recommends:     mercurial
 Recommends:     subversion
+%endif
 Requires:       obs-service-obs_scm-common = %version-%release
 
 %description -n obs-service-obs_scm
@@ -115,9 +119,11 @@ into a tar ball during build time.
 Summary:        Handles source downloads defined in appimage.yml files
 Group:          Development/Tools/Building
 Requires:       git-core
+%if 0%{?suse_version} >= 1315
 Recommends:     bzr
 Recommends:     mercurial
 Recommends:     subversion
+%endif
 Requires:       obs-service-obs_scm-common = %version-%release
 
 %description -n obs-service-appimage
@@ -129,9 +135,11 @@ Summary:        Handles source downloads defined in snapcraft.yaml files
 Group:          Development/Tools/Building
 Provides:       obs-service-tar_scm:/usr/lib/obs/service/snapcraft.service
 Requires:       git-core
+%if 0%{?suse_version} >= 1315
 Recommends:     bzr
 Recommends:     mercurial
 Recommends:     subversion
+%endif
 Requires:       obs-service-obs_scm-common = %version-%release
 
 %description -n obs-service-snapcraft
