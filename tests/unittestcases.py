@@ -109,21 +109,21 @@ class UnitTestCases(unittest.TestCase):
         tc_name = inspect.stack()[0][3]
 
         try:
-            tmp = os.environ['DEBUG_TAR_SCM']
+            tmp = os.environ['TAR_SCM_CLEAN_ENV']
         except KeyError:
             tmp = None
 
-        os.environ['DEBUG_TAR_SCM'] = "1"
+        os.environ['TAR_SCM_CLEAN_ENV'] = "1"
 
         files = [[os.path.join(self.fixtures_dir, tc_name, 'test.rc'), True]]
         var = Config(files).get(None, 'var')
         self.assertEqual(var, None)
 
         if tmp:
-            os.environ['DEBUG_TAR_SCM'] = tmp
+            os.environ['TAR_SCM_CLEAN_ENV'] = tmp
         else:
-            os.environ['DEBUG_TAR_SCM'] = ''
-            os.unsetenv('DEBUG_TAR_SCM')
+            os.environ['TAR_SCM_CLEAN_ENV'] = ''
+            os.unsetenv('TAR_SCM_CLEAN_ENV')
 
     def test_changes_get_chga_args(self):
         '''Test if getting changesauthor from cli args works'''

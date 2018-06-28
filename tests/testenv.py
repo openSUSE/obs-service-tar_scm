@@ -44,8 +44,8 @@ class TestEnvironment:
             return
         print("--v-v-- begin setupClass for %s --v-v--" % cls.__name__)
         ScmInvocationLogs.setup_bin_wrapper(cls.scm, cls.tmp_dir)
-        os.putenv('DEBUG_TAR_SCM', 'yes')
-        os.environ['DEBUG_TAR_SCM'] = 'yes'
+        os.putenv('TAR_SCM_CLEAN_ENV', 'yes')
+        os.environ['TAR_SCM_CLEAN_ENV'] = 'yes'
         cls.is_setup = True
         print("--^-^-- end   setupClass for %s --^-^--" % cls.__name__)
         print

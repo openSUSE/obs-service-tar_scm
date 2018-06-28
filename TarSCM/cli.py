@@ -140,7 +140,8 @@ class Cli():
         args.sslverify       = bool(args.sslverify != 'disable')
         args.use_obs_scm     = bool(args.use_obs_scm)
 
-        # force verbose mode in test-mode
+        # Allow forcing verbose mode from the environment; this
+        # allows debugging when running "osc service disabledrun" etc.
         args.verbose = bool(os.getenv('DEBUG_TAR_SCM'))
 
         for attr in args.__dict__.keys():

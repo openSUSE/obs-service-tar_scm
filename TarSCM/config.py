@@ -34,7 +34,7 @@ class Config():
         self.default_section    = 'tar_scm'
         # We're in test-mode, so don't let any local site-wide
         # or per-user config impact the test suite.
-        if os.getenv('DEBUG_TAR_SCM'):
+        if os.getenv('TAR_SCM_CLEAN_ENV'):
             logging.info("Ignoring config files: test-mode detected")
 
         # fake a section header for configuration files
@@ -80,7 +80,7 @@ class Config():
         value = None
         # We're in test-mode, so don't let any local site-wide
         # or per-user config impact the test suite.
-        if os.getenv('DEBUG_TAR_SCM'):
+        if os.getenv('TAR_SCM_CLEAN_ENV'):
             return value
 
         if section is None and self.fakeheader:
