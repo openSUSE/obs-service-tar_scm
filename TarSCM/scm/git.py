@@ -1,7 +1,8 @@
-import sys
-import os
 import logging
+import os
 import re
+import sys
+
 from TarSCM.scm.base import Scm
 
 
@@ -43,7 +44,8 @@ class Git(Scm):
         for rev in revs:
             if self._ref_exists(rev):
                 found_revision = True
-                if os.getenv('OSC_VERSION'):
+                if os.getenv('OSC_VERSION') and \
+                   len(os.listdir(self.clone_dir)) > 1:
                     stash_text = self.helpers.safe_run(
                         self._get_scm_cmd() +
                         ['stash'],
