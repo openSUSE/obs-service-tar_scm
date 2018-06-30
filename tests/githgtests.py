@@ -56,3 +56,8 @@ class GitHgTests(CommonTests):
         basename = self.basename(version=self.abbrev_sha1s(self.rev(2)))
         th = self.assertTarOnly(basename)
         self.assertTarMemberContains(th, basename + '/a', '2')
+
+    def test_version_iso_cleanup(self):
+        self.tar_scm_std('--versionformat', '3.0-5:256',
+                         '--iso-cleanup-string', '==')
+        self.assertTarOnly(self.basename(version="3.0==5==256"))

@@ -250,7 +250,7 @@ class Scm():
         version = re.sub(r'([0-9]{4})-([0-9]{2})-([0-9]{2}) +'
                          r'([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?'
                          r'( +[-+][0-9]{3,4})', r'\1\2\3T\4\6\8', version)
-        version = re.sub(r'[-:]', '', version)
+        version = re.sub(r'[-:]', self.args.iso_cleanup_string, version)
         return version
 
     def prepare_working_copy(self):
