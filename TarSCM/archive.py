@@ -81,11 +81,11 @@ class ObsCpio(BaseArchive):
             files = [f for f in files if re.match(includes, f)]
 
             for name in dirs:
-                if not METADATA_PATTERN.match(name):
+                if not METADATA_PATTERN.match(name) or args.package_meta:
                     cpiolist.append(name)
 
             for name in files:
-                if not METADATA_PATTERN.match(name):
+                if not METADATA_PATTERN.match(name) or args.package_meta:
                     cpiolist.append(name)
 
         tstamp = self.helpers.get_timestamp(scm_object, args, topdir)
