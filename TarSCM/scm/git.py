@@ -17,11 +17,11 @@ class Git(Scm):
         # is needed here
         scmcmd = ['git']
         if self.httpproxy:
-                scmcmd += ['-c', 'http.proxy=' +
-                           self.httpproxy]
+            scmcmd += ['-c', 'http.proxy=' +
+                       self.httpproxy]
         if self.httpsproxy:
-                scmcmd += ['-c', 'https.proxy=' +
-                           self.httpsproxy]
+            scmcmd += ['-c', 'https.proxy=' +
+                       self.httpsproxy]
         return scmcmd
 
     def switch_revision(self):
@@ -129,24 +129,37 @@ class Git(Scm):
     def update_cache(self):
         """Update sources via git."""
         # Force origin to the wanted URL in case it switched
-        self.helpers.safe_run(
-            self._get_scm_cmd() + ['config', 'remote.origin.url', self.url],
-            cwd=self.clone_dir,
-            interactive=sys.stdout.isatty()
-        )
+        try:
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['config', 'remote.origin.url',
+                                       self.url],
+                cwd=self.clone_dir,
+                interactive=sys.stdout.isatty()
+            )
 
-        self.helpers.safe_run(
-            self._get_scm_cmd() + ['fetch', '--tags'],
-            cwd=self.clone_dir,
-            interactive=sys.stdout.isatty()
-        )
-        self.helpers.safe_run(
-            self._get_scm_cmd() + ['fetch'],
-            cwd=self.clone_dir,
-            interactive=sys.stdout.isatty()
-        )
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['fetch', '--tags'],
+                cwd=self.clone_dir,
+                interactive=sys.stdout.isatty()
+            )
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['fetch'],
+                cwd=self.clone_dir,
+                interactive=sys.stdout.isatty()
+            )
 
-        self.fetch_specific_revision()
+            self.fetch_specific_revision()
+        except SystemExit as exc:
+            logging.error("Corrupt clone_dir '%s' detected.", self.clone_dir)
+            obs_service_daemon = os.getenv('OBS_SERVICE_DAEMON')
+            osc_version = os.getenv('OSC_VERSION')
+            if (obs_service_daemon and not osc_version):
+                logging.info("Removing corrupt cache!")
+                os.removedirs(self.clone_dir)
+                self.fetch_upstream_scm()
+            else:
+                logging.info("Please fix corrupt cache directory!")
+                raise exc
 
     def detect_version(self, args):
         """
