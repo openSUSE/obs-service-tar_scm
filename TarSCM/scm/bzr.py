@@ -8,6 +8,8 @@ from TarSCM.scm.base import Scm
 class Bzr(Scm):
     scm = 'bzr'
 
+    Scm.__init__
+
     def _get_scm_cmd(self):
         """Compose a BZR-specific command line using http proxies."""
         # Bazaar honors the http[s]_proxy variables, no action needed

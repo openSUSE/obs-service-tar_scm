@@ -14,6 +14,7 @@ from TarSCM.scm.base import Scm
 class Svn(Scm):
     scm = 'svn'
 
+    Scm.__init__
     svntmpdir = tempfile.mkdtemp()
 
     def _get_scm_cmd(self):

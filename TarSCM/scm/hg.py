@@ -10,6 +10,7 @@ from TarSCM.scm.base import Scm
 class Hg(Scm):
     scm = 'hg'
 
+    Scm.__init__
     hgtmpdir = tempfile.mkdtemp()
 
     def _get_scm_cmd(self):
