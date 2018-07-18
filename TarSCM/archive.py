@@ -41,11 +41,12 @@ class ObsCpio(BaseArchive):
     def create_archive(self, scm_object, **kwargs):
         """Create an OBS cpio archive of repodir in destination directory.
         """
-        basename = kwargs['basename']
-        dstname  = kwargs['dstname']
-        version  = kwargs['version']
-        args     = kwargs['cli']
-        commit   = scm_object.get_current_commit()
+        basename         = kwargs['basename']
+        dstname          = kwargs['dstname']
+        version          = kwargs['version']
+        args             = kwargs['cli']
+        commit           = scm_object.get_current_commit()
+        package_metadata = args.package_meta
 
         (workdir, topdir) = os.path.split(scm_object.arch_dir)
         extension = 'obscpio'
@@ -81,11 +82,11 @@ class ObsCpio(BaseArchive):
             files = [f for f in files if re.match(includes, f)]
 
             for name in dirs:
-                if not METADATA_PATTERN.match(name):
+                if not METADATA_PATTERN.match(name) or package_metadata:
                     cpiolist.append(name)
 
             for name in files:
-                if not METADATA_PATTERN.match(name):
+                if not METADATA_PATTERN.match(name) or package_metadata:
                     cpiolist.append(name)
 
         tstamp = self.helpers.get_timestamp(scm_object, args, topdir)
