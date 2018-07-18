@@ -16,4 +16,8 @@
   <parameter name="extension">
     <description>Specify suffix name of package, which is used together with filename to determine tarball name.</description>
   </parameter>
+  <parameter name="package-meta">
+    <description>Package the metadata of SCM to allow the user or OBS to update after un-tar.</description>
+    <allowedvalue>yes</allowedvalue>
+  </parameter>
 </service>
