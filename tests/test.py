@@ -22,10 +22,7 @@ from tests.scm import SCMBaseTestCases
 from tests.tartests import TarTestCases
 from tests.archiveobscpiotestcases import ArchiveOBSCpioTestCases
 
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
+import unittest
 
 
 def str_to_class(string):

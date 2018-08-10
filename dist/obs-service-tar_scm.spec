@@ -51,7 +51,6 @@ BuildRequires:  python-PyYAML
 BuildRequires:  python-dateutil
 BuildRequires:  python-lxml
 BuildRequires:  python-mock
-BuildRequires:  python-unittest2
 %endif
 BuildRequires:  python >= 2.6
 Requires:       git-core

@@ -16,11 +16,7 @@ from TarSCM.changes import Changes
 from TarSCM.scm.git import Git
 from TarSCM.scm.svn import Svn
 
-if sys.version_info < (2, 7):
-    # pylint: disable=import-error
-    import unittest2 as unittest
-else:
-    import unittest
+import unittest
 
 
 # pylint: disable=duplicate-code

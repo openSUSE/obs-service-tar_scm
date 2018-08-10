@@ -16,11 +16,7 @@ from tests.gitfixtures import GitFixtures
 from tests.scmlogs import ScmInvocationLogs
 
 
-if sys.version_info < (2, 7):
-    # pylint: disable=import-error
-    import unittest2 as unittest
-else:
-    import unittest
+import unittest
 
 
 class ArchiveOBSCpioTestCases(unittest.TestCase):
