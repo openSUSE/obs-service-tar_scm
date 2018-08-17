@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import sys
+import shutil
 
 from TarSCM.scm.base import Scm
 
@@ -155,7 +156,7 @@ class Git(Scm):
             osc_version = os.getenv('OSC_VERSION')
             if (obs_service_daemon and not osc_version):
                 logging.info("Removing corrupt cache!")
-                os.removedirs(self.clone_dir)
+                shutil.rmtree(self.clone_dir)
                 self.fetch_upstream_scm()
             else:
                 logging.info("Please fix corrupt cache directory!")
