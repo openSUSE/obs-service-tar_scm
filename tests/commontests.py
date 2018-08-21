@@ -71,6 +71,12 @@ class CommonTests(TestEnvironment, TestAssertions):
             self.assertRegexpMatches(
                 stderr, "--subdir path '%s' must stay within repo" % path)
 
+    def test_extract_parent(self):
+        for path in ('..', '../', '../foo', 'foo/../../bar'):
+            (_stdout, stderr, _ret) = self.tar_scm_std_fail('--extract', path)
+            self.assertRegexpMatches(
+                stderr, '--extract is not allowed to contain ".."')
+
     def test_subdir(self):
         self.tar_scm_std('--subdir', self.fixtures.subdir)
         self.assertTarOnly(self.basename(), tarchecker=self.assertSubdirTar)
