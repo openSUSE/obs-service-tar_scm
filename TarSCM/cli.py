@@ -5,6 +5,17 @@ import os
 import sys
 
 
+def contains_dotdot(files):
+    if files:
+        for index, fname in enumerate(files):
+            fname = os.path.normpath(fname)
+            for part in fname.split('/'):
+                if part == '..':
+                    return 1
+            files[index] = fname
+    return 0
+
+
 class Cli():
     # pylint: disable=too-few-public-methods
     DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
@@ -128,11 +139,15 @@ class Cli():
         if args.subdir.startswith('/'):
             sys.exit("Absolute path '%s' is not allowed for --subdir" %
                      orig_subdir)
-        if args.subdir == '..' or args.subdir.startswith('../'):
+
+        if contains_dotdot([args.subdir]):
             sys.exit("--subdir path '%s' must stay within repo" % orig_subdir)
 
         if args.history_depth:
             print("history-depth parameter is obsolete and will be ignored")
+
+        if contains_dotdot(args.extract):
+            sys.exit('--extract is not allowed to contain ".."')
 
         # booleanize non-standard parameters
         args.changesgenerate = bool(args.changesgenerate == 'enable')
