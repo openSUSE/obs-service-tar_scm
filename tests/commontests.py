@@ -77,6 +77,12 @@ class CommonTests(TestEnvironment, TestAssertions):
             self.assertRegexpMatches(
                 stderr, '--extract is not allowed to contain ".."')
 
+    def test_filename(self):
+        for path in ('/tmp/somepkg.tar', '../somepkg.tar'):
+            (_stdout, stderr, _ret) = self.tar_scm_std_fail('--filename', path)
+            self.assertRegexpMatches(
+                stderr, '--filename must not specify a path')
+
     def test_subdir(self):
         self.tar_scm_std('--subdir', self.fixtures.subdir)
         self.assertTarOnly(self.basename(), tarchecker=self.assertSubdirTar)
