@@ -169,3 +169,30 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
             dstname  = 'test',
             version  = '0.1.1'
         )
+
+    def test_extract_link_outside_repo(self):
+        '''
+        Test if a link outside the repo gets detected
+        '''
+        tc_name = inspect.stack()[0][3]
+        cl_name = self.__class__.__name__
+        files   = ['dir1/etc/passwd']
+
+        # create repodir
+        repodir = os.path.join(self.tmp_dir, tc_name, 'repo')
+        os.makedirs(repodir)
+
+        # create outdir
+        outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
+        os.makedirs(outdir)
+
+        os.symlink("/", os.path.join(repodir, 'dir1'))
+        arch    = TarSCM.archive.ObsCpio()
+        self.assertRaisesRegexp(
+            SystemExit,
+            re.compile('tries to escape the repository'),
+            arch.extract_from_archive,
+            repodir,
+            files,
+            outdir
+        )
