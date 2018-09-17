@@ -171,6 +171,11 @@ class Tasks():
         # if exception occurs
         self.scm_object = scm_object   = scm_class(args, self)
 
+        # TODO: find a way to mock this function in tests to a stub
+        if not bool(os.getenv('TAR_SCM_TESTMODE')):
+            if not scm_object.check_url():
+                sys.exit("--url does not match remote repository")
+
         try:
             scm_object.check_scm()
         except OSError:

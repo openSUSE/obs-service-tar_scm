@@ -290,3 +290,6 @@ class Scm():
 
     def finalize(self):
         self.cleanup()
+
+    def check_url(self):
+        return True
