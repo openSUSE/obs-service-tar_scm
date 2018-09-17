@@ -334,3 +334,61 @@ class UnitTestCases(unittest.TestCase):
                 print("%r %s" % (scm, url))
                 scm.url = url
                 self.assertFalse(scm.check_url())
+
+    def test_scm_tar_invalid_params(self):
+        tc_name    = inspect.stack()[0][3]
+        cl_name    = self.__class__.__name__
+        scm_object = TarSCM.scm.Tar(self.cli, self.tasks)
+        wdir       = os.path.join(self.tmp_dir, cl_name, tc_name)
+        os.makedirs(os.path.join(wdir, 'test'))
+        info = os.path.join(wdir, "test.obsinfo")
+
+        print("INFOFILE: '%s'" % info)
+
+        # check for slash in name
+        f_h = open(info, 'w')
+        f_h.write(
+            "name: test/test\n" +
+            "version: 0.1.1\n" +
+            "mtime: 1476683264\n" +
+            "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        )
+        f_h.close()
+        os.chdir(wdir)
+        self.assertRaisesRegexp(
+            SystemExit,
+            re.compile("name in obsinfo contains '/'."),
+            scm_object.fetch_upstream
+        )
+
+        # check for slash in version
+        f_h = open(info, 'w')
+        f_h.write(
+            "name: test\n" +
+            "version: a/0.1.1\n" +
+            "mtime: 1476683264\n" +
+            "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        )
+        f_h.close()
+        os.chdir(wdir)
+        self.assertRaisesRegexp(
+            SystemExit,
+            re.compile("verion in obsinfo contains '/' or '..'."),
+            scm_object.fetch_upstream
+        )
+
+        # check for .. in version
+        f_h = open(info, 'w')
+        f_h.write(
+            "name: test\n" +
+            "version: ..0.1.1\n" +
+            "mtime: 1476683264\n" +
+            "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        )
+        f_h.close()
+        os.chdir(wdir)
+        self.assertRaisesRegexp(
+            SystemExit,
+            re.compile("verion in obsinfo contains '/' or '..'."),
+            scm_object.fetch_upstream
+        )
