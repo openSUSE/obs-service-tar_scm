@@ -129,6 +129,16 @@ class Tasks():
                 outfile.write(yaml.dump(self.data_map,
                                         default_flow_style=False))
 
+        # execute also download_files for downloading single sources
+        if args.snapcraft or args.appimage:
+            download_files = '/usr/lib/obs/service/download_files'
+            if os.path.exists(download_files):
+                cmd = [download_files, '--outdir', args.outdir]
+                rcode, output = self.helpers.run_cmd(cmd, None)
+
+                if rcode != 0:
+                    raise RuntimeError("download_files has failed:%s" % output)
+
     def process_single_task(self, args):
         '''
         do the work for a single task

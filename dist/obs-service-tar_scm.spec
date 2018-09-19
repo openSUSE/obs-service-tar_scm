@@ -123,6 +123,7 @@ Requires:       git-core
 Recommends:     bzr
 Recommends:     mercurial
 Recommends:     subversion
+Recommends:     obs-service-download_files
 %endif
 Requires:       obs-service-obs_scm-common = %version-%release
 
@@ -139,6 +140,7 @@ Requires:       git-core
 Recommends:     bzr
 Recommends:     mercurial
 Recommends:     subversion
+Recommends:     obs-service-download_files
 %endif
 Requires:       obs-service-obs_scm-common = %version-%release
 
