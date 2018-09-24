@@ -273,6 +273,7 @@ class UnitTestCases(unittest.TestCase):
                     'ftp://example.com',
                     'ftps://example.com',
                     'git://example.com',
+                    'ssh://example.com',
                 ]
             },
             {
@@ -318,6 +319,7 @@ class UnitTestCases(unittest.TestCase):
             'Xbzr://example.com',
             'Xlp://example.com',
             'Xgit://example.com',
+            'Xssh://example.com',
             'Xsvn://example.com',
             '/lala/nana'
         ]

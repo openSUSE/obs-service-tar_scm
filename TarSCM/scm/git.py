@@ -324,6 +324,6 @@ class Git(Scm):
 
     def check_url(self):
         """check if url is a remote url"""
-        if not re.match("^(https?|ftps?|git)://", self.url):
+        if not re.match("^(https?|ftps?|git|ssh)://", self.url):
             return False
         return True
