@@ -324,6 +324,17 @@ class Git(Scm):
 
     def check_url(self):
         """check if url is a remote url"""
-        if not re.match("^(https?|ftps?|git|ssh)://", self.url):
+
+        # no local path allowed
+        if re.match('^file:', self.url):
             return False
-        return True
+
+        if '://' in self.url:
+            return bool(re.match("^(https?|ftps?|git|ssh)://", self.url))
+
+        # e.g. user@host.xy:path/to/repo
+        if re.match('^[^/]+:', self.url):
+            return True
+
+        # Deny by default, might be local path
+        return False
