@@ -15,6 +15,8 @@ from TarSCM.config  import Config
 from TarSCM.changes import Changes
 from TarSCM.scm.git import Git
 from TarSCM.scm.svn import Svn
+from TarSCM.scm.hg  import Hg
+from TarSCM.scm.bzr import Bzr
 
 if sys.version_info < (2, 7):
     # pylint: disable=import-error
@@ -258,5 +260,135 @@ class UnitTestCases(unittest.TestCase):
         self.assertRaisesRegexp(
             SystemExit,
             re.compile('ERROR: no .obsinfo file found in directory:'),
+            scm_object.fetch_upstream
+        )
+
+    def test_check_url_valid(self):
+        tc_arr = [
+            {
+                'obj'  : Git(self.cli, self.tasks),
+                'urls' : [
+                    'http://example.com',
+                    'https://example.com',
+                    'ftp://example.com',
+                    'ftps://example.com',
+                    'git://example.com',
+                ]
+            },
+            {
+                'obj'  : Bzr(self.cli, self.tasks),
+                'urls' : [
+                    'http://example.com',
+                    'https://example.com',
+                    'ftp://example.com',
+                    'aftp://example.com',
+                    'bzr://example.com',
+                    'lp://example.com',
+                ]
+            },
+            {
+                'obj'  : Hg(self.cli, self.tasks),
+                'urls' : [
+                    'http://example.com',
+                    'https://example.com',
+                ]
+            },
+            {
+                'obj'  : Svn(self.cli, self.tasks),
+                'urls' : [
+                    'http://example.com',
+                    'https://example.com',
+                    'svn://example.com',
+                ]
+            },
+        ]
+
+        for tca in tc_arr:
+            for url in tca['urls']:
+                tca['obj'].url = url
+                self.assertTrue(tca['obj'].check_url())
+
+    def test_check_url_invalid(self):
+        invalid = [
+            'Xhttp://example.com',
+            'Xhttps://example.com',
+            'Xftp://example.com',
+            'Xftps://example.com',
+            'Xaftp://example.com',
+            'Xbzr://example.com',
+            'Xlp://example.com',
+            'Xgit://example.com',
+            'Xsvn://example.com',
+            '/lala/nana'
+        ]
+
+        scms = [
+            Git(self.cli, self.tasks),
+            Bzr(self.cli, self.tasks),
+            Hg(self.cli, self.tasks),
+            Svn(self.cli, self.tasks),
+        ]
+
+        for scm in scms:
+            for url in invalid:
+                print("%r %s" % (scm, url))
+                scm.url = url
+                self.assertFalse(scm.check_url())
+
+    def test_scm_tar_invalid_params(self):
+        tc_name    = inspect.stack()[0][3]
+        cl_name    = self.__class__.__name__
+        scm_object = TarSCM.scm.Tar(self.cli, self.tasks)
+        wdir       = os.path.join(self.tmp_dir, cl_name, tc_name)
+        os.makedirs(os.path.join(wdir, 'test'))
+        info = os.path.join(wdir, "test.obsinfo")
+
+        print("INFOFILE: '%s'" % info)
+
+        # check for slash in name
+        f_h = open(info, 'w')
+        f_h.write(
+            "name: test/test\n" +
+            "version: 0.1.1\n" +
+            "mtime: 1476683264\n" +
+            "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        )
+        f_h.close()
+        os.chdir(wdir)
+        self.assertRaisesRegexp(
+            SystemExit,
+            re.compile("name in obsinfo contains '/'."),
+            scm_object.fetch_upstream
+        )
+
+        # check for slash in version
+        f_h = open(info, 'w')
+        f_h.write(
+            "name: test\n" +
+            "version: a/0.1.1\n" +
+            "mtime: 1476683264\n" +
+            "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        )
+        f_h.close()
+        os.chdir(wdir)
+        self.assertRaisesRegexp(
+            SystemExit,
+            re.compile("verion in obsinfo contains '/' or '..'."),
+            scm_object.fetch_upstream
+        )
+
+        # check for .. in version
+        f_h = open(info, 'w')
+        f_h.write(
+            "name: test\n" +
+            "version: ..0.1.1\n" +
+            "mtime: 1476683264\n" +
+            "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        )
+        f_h.close()
+        os.chdir(wdir)
+        self.assertRaisesRegexp(
+            SystemExit,
+            re.compile("verion in obsinfo contains '/' or '..'."),
             scm_object.fetch_upstream
         )

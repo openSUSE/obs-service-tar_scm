@@ -33,6 +33,10 @@ class BaseArchive():
             if not os.path.exists(src):
                 sys.exit("%s: No such file or directory" % src)
 
+            r_src = os.path.realpath(src)
+            if not r_src.startswith(repodir):
+                sys.exit("%s: tries to escape the repository" % src)
+
             if shutil.copy(src, outdir):
                 sys.exit("%s: Failed to copy file" % src)
 

@@ -45,6 +45,7 @@ class SCMBaseTestCases(unittest.TestCase):
         dir1 = os.path.join(basedir, "test1")
         scm_base.clone_dir = basedir
         os.makedirs(dir1)
+        os.symlink('/', os.path.join(basedir, "test3"))
 
         with self.assertRaises(Exception) as ctx:
             scm_base.prep_tree_for_archive(
@@ -59,3 +60,6 @@ class SCMBaseTestCases(unittest.TestCase):
         scm_base.prep_tree_for_archive("test1", basedir, "test2")
 
         self.assertEqual(scm_base.arch_dir, os.path.join(basedir, "test2"))
+
+        with self.assertRaises(SystemExit) as ctx:
+            scm_base.prep_tree_for_archive("test3", basedir, "test2")

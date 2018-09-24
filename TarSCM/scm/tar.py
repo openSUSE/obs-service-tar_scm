@@ -1,5 +1,7 @@
 import glob
 import os
+import sys
+
 from TarSCM.scm.base import Scm
 
 
@@ -20,8 +22,16 @@ class Tar(Scm):
             self.args.obsinfo,
             "name"
         )
-        self.clone_dir += "-" + self.read_from_obsinfo(self.args.obsinfo,
-                                                       "version")
+        if "/" in self.clone_dir:
+            sys.exit("name in obsinfo contains '/'.")
+
+        version = self.read_from_obsinfo(self.args.obsinfo, "version")
+
+        if "/" in version or '..' in version:
+            sys.exit("verion in obsinfo contains '/' or '..'.")
+
+        self.clone_dir += "-" + version
+
         if not os.path.exists(self.clone_dir):
             self._final_rename_needed = True
             # not need in case of local osc build

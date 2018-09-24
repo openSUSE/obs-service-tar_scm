@@ -138,3 +138,9 @@ class Hg(Scm):
         except:
                 logging.debug("error on cleanup:", sys.exc_info()[0])
                 raise
+
+    def check_url(self):
+        """check if url is a remote url"""
+        if not re.match("^https?://", self.url):
+            return False
+        return True

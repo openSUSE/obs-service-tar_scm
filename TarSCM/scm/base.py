@@ -270,6 +270,11 @@ class Scm():
              os.path.samefile(os.path.dirname(src), dst)):
             return
 
+        r_path = os.path.realpath(src)
+        c_dir  = os.path.realpath(self.clone_dir)
+        if not r_path.startswith(c_dir):
+            sys.exit("--subdir %s tries to escape repository." % subdir)
+
         shutil.copytree(src, dst, symlinks=True)
 
     def lock_cache(self):
@@ -285,3 +290,6 @@ class Scm():
 
     def finalize(self):
         self.cleanup()
+
+    def check_url(self):
+        return True

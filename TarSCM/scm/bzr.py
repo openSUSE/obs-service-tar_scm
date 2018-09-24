@@ -65,3 +65,9 @@ class Bzr(Scm):
     # no cleanup is necessary for bzr
     def cleanup(self):
         pass
+
+    def check_url(self):
+        """check if url is a remote url"""
+        if not re.match("^((a?ftp|bzr|https?)://|lp:)", self.url):
+            return False
+        return True

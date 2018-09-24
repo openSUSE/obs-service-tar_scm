@@ -127,7 +127,10 @@ class Cli():
                             action='store_true',
                             help='do not cleanup directories before exiting '
                                  '(Only for debugging')
-        args = parser.parse_args(options)
+
+        self.verify_args(parser.parse_args(options))
+
+    def verify_args(self, args):
 
         # basic argument validation
         if not os.path.isdir(args.outdir):
@@ -148,6 +151,9 @@ class Cli():
 
         if contains_dotdot(args.extract):
             sys.exit('--extract is not allowed to contain ".."')
+
+        if args.filename and "/" in args.filename:
+            sys.exit('--filename must not specify a path')
 
         # booleanize non-standard parameters
         args.changesgenerate = bool(args.changesgenerate == 'enable')
