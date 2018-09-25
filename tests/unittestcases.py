@@ -274,6 +274,10 @@ class UnitTestCases(unittest.TestCase):
                     'ftps://example.com',
                     'git://example.com',
                     'ssh://example.com',
+                    'example.com:/path/to/remote/repo',
+                    'user@example.com:/path/to/remote/repo',
+                    'user+ext@example.com:/path/to/remote/repo',
+                    'user.name@example.com:/path/to/remote/repo',
                 ]
             },
             {
@@ -321,7 +325,9 @@ class UnitTestCases(unittest.TestCase):
             'Xgit://example.com',
             'Xssh://example.com',
             'Xsvn://example.com',
-            '/lala/nana'
+            '/lala/nana',
+            '/tmp/user@example.com:my/local/path'
+            '/tmp/example.com:my/local/path'
         ]
 
         scms = [
