@@ -26,14 +26,14 @@ class Hg(Scm):
                                         re.M | re.I)
 
                 if regexp_proxy.group(1) is not None:
-                        print ('using proxy host: ' + regexp_proxy.group(1))
+                        print('using proxy host: ' + regexp_proxy.group(1))
                         f.write('host=' + regexp_proxy.group(1))
                 if regexp_proxy.group(2) is not None:
-                        print ('using proxy port: ' + regexp_proxy.group(2))
+                        print('using proxy port: ' + regexp_proxy.group(2))
                         f.write('port=' + regexp_proxy.group(2))
                 if self.noproxy is not None:
-                        print ('using proxy exceptions: ' +
-                               self.noproxy)
+                        print('using proxy exceptions: ' +
+                              self.noproxy)
                         f.write('no=' + self.noproxy)
                 f.close()
 

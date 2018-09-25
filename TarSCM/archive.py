@@ -60,8 +60,15 @@ class ObsCpio(BaseArchive):
 
         archivefilename = os.path.join(args.outdir, dstname + '.' + extension)
         archivefile     = open(archivefilename, "w")
+
+        # detect reproducible support
+        params = ['cpio', '--create', '--format=newc']
+        if os.system("cpio --create --format=newc" +
+                     "--reproducible </dev/null >/dev/null") == 0:
+            params.append('--reproducible')
+
         proc            = subprocess.Popen(
-            ['cpio', '--create', '--format=newc'],
+            params,
             shell  = False,
             stdin  = subprocess.PIPE,
             stdout = archivefile,
