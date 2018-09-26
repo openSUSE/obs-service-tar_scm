@@ -106,7 +106,7 @@ test3:
 	TAR_SCM_TESTMODE=1 PYTHONPATH=. python3 tests/test.py 2>&1 | tee ./test3.log
 
 .PHONY: pylint
-pylint: pylint2
+pylint: pylint2 pylinttest2
 
 .PHONY: pylint3
 pylint3:
@@ -121,10 +121,18 @@ pylint3:
 pylint2:
 	@if [ "x$(PYLINT2)" != "x" ]; then \
 		$(PYLINT2) --rcfile=./.pylintrc $(PYLINT_READY_MODULES); \
+	else \
+		echo "PYLINT2 not set - Skipping tests"; \
+	fi
+
+.PHONY: pylinttest2
+pylinttest2:
+	@if [ "x$(PYLINT2)" != "x" ]; then \
 		PYTHONPATH=tests $(PYLINT2) --rcfile=./.pylinttestsrc $(PYLINT_READY_TEST_MODULES); \
 	else \
 		echo "PYLINT2 not set - Skipping tests"; \
 	fi
+
 
 cover:
 	PYTHONPATH=. coverage2 run tests/test.py 2>&1 | tee ./cover.log
