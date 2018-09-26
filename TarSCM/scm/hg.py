@@ -17,28 +17,30 @@ class Hg(Scm):
         # Mercurial requires declaring proxies via a --config parameter
         scmcmd = ['hg']
         if self.httpproxy:
-                logging.debug("using " + self.hgtmpdir)
-                f = open(self.hgtmpdir + "/tempsettings.rc", "wb")
-                f.write('[http_proxy]\n')
+            logging.debug("using tempdir: %s", self.hgtmpdir)
+            cfg = open(self.hgtmpdir + "/tempsettings.rc", "wb")
+            cfg.write('[http_proxy]\n')
 
-                regexp_proxy = re.match('http://(.*):(.*)',
-                                        self.httpproxy,
-                                        re.M | re.I)
+            regexp_proxy = re.match('http://(.*):(.*)',
+                                    self.httpproxy,
+                                    re.M | re.I)
 
-                if regexp_proxy.group(1) is not None:
-                        print('using proxy host: ' + regexp_proxy.group(1))
-                        f.write('host=' + regexp_proxy.group(1))
-                if regexp_proxy.group(2) is not None:
-                        print('using proxy port: ' + regexp_proxy.group(2))
-                        f.write('port=' + regexp_proxy.group(2))
-                if self.noproxy is not None:
-                        print('using proxy exceptions: ' +
-                              self.noproxy)
-                        f.write('no=' + self.noproxy)
-                f.close()
+            proxy_host = regexp_proxy.group(1)
+            proxy_port = regexp_proxy.group(2)
 
-                # we just point Mercurial to where the config file is
-                os.environ['HGRCPATH'] = self.hgtmpdir
+            if proxy_host is not None:
+                logging.debug('using proxy host: %s', proxy_host)
+                cfg.write('host=' + proxy_host)
+            if proxy_port is not None:
+                logging.debug('using proxy port: %s', proxy_port)
+                cfg.write('port=' + proxy_port)
+            if self.noproxy is not None:
+                logging.debug('using proxy exceptions: %s', self.noproxy)
+                cfg.write('no=' + self.noproxy)
+            cfg.close()
+
+            # we just point Mercurial to where the config file is
+            os.environ['HGRCPATH'] = self.hgtmpdir
 
         return scmcmd
 
@@ -47,8 +49,8 @@ class Hg(Scm):
         if self.revision is None:
             self.revision = 'tip'
 
-        rcode, _ = self.helpers.run_cmd(self._get_scm_cmd() +
-                                        ['update', self.revision],
+        cmd = self._get_scm_cmd() + ['update', self.revision]
+        rcode, _ = self.helpers.run_cmd(cmd,
                                         cwd=self.clone_dir,
                                         interactive=sys.stdout.isatty())
         if rcode:
@@ -66,8 +68,8 @@ class Hg(Scm):
     def update_cache(self):
         """Update sources via hg."""
         try:
-            self.helpers.safe_run(self._get_scm_cmd() +
-                                  ['pull'], cwd=self.clone_dir,
+            self.helpers.safe_run(self._get_scm_cmd() + ['pull'],
+                                  cwd=self.clone_dir,
                                   interactive=sys.stdout.isatty())
         except SystemExit as exc:
             # Contrary to the docs, hg pull returns exit code 1 when
@@ -84,8 +86,8 @@ class Hg(Scm):
         if versionformat is None:
             versionformat = '{rev}'
 
-        version = self.helpers.safe_run(self._get_scm_cmd() +
-                                        ['id', '-n'], self.clone_dir)[1]
+        cmd = self._get_scm_cmd() + ['id', '-n']
+        version = self.helpers.safe_run(cmd, self.clone_dir)[1]
 
         # Mercurial internally stores commit dates in its changelog
         # context objects as (epoch_secs, tz_delta_to_utc) tuples (see
@@ -113,17 +115,16 @@ class Hg(Scm):
         # 'sub(...)' which is only available since 2.4 (first introduced
         # in openSUSE 12.3).
 
-        version = self.helpers.safe_run(
-            self._get_scm_cmd() +
-            [
-                'log',
-                '-l1',
-                "-r%s" % version.strip(),
-                '--template',
-                versionformat
-            ],
-            self.clone_dir
-        )[1]
+        cmd = self._get_scm_cmd()
+        cmd.extend([
+            'log',
+            '-l1',
+            "-r%s" % version.strip(),
+            '--template',
+            versionformat
+        ])
+
+        version = self.helpers.safe_run(cmd, self.clone_dir)[1]
         return self.version_iso_cleanup(version)
 
     def get_timestamp(self):
@@ -134,10 +135,10 @@ class Hg(Scm):
 
     def cleanup(self):
         try:
-                shutil.rmtree(self.hgtmpdir, ignore_errors=True)
+            shutil.rmtree(self.hgtmpdir, ignore_errors=True)
         except:
-                logging.debug("error on cleanup:", sys.exc_info()[0])
-                raise
+            logging.debug("error on cleanup: %s", sys.exc_info()[0])
+            raise
 
     def check_url(self):
         """check if url is a remote url"""

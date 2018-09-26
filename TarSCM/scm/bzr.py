@@ -11,9 +11,7 @@ class Bzr(Scm):
     def _get_scm_cmd(self):
         """Compose a BZR-specific command line using http proxies."""
         # Bazaar honors the http[s]_proxy variables, no action needed
-        scmcmd = ['bzr']
-
-        return scmcmd
+        return [self.scm]
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for bzr."""
@@ -46,8 +44,8 @@ class Bzr(Scm):
         if versionformat is None:
             versionformat = '%r'
 
-        version = self.helpers.safe_run(self._get_scm_cmd() +
-                                        ['revno'], self.clone_dir)[1]
+        version = self.helpers.safe_run(self._get_scm_cmd() + ['revno'],
+                                        self.clone_dir)[1]
         return re.sub('%r', version.strip(), versionformat)
 
     def get_timestamp(self):

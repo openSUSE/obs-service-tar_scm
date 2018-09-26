@@ -181,8 +181,9 @@ class Changes():
         logging.debug("Writing changes file %s", changes_filename)
 
         tmp_fp = tempfile.NamedTemporaryFile(delete=False)
-        os.chmod(tmp_fp.name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP |
-                 stat.S_IROTH)
+        mode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
+        os.chmod(tmp_fp.name, mode)
+
         tmp_fp.write('-' * 67 + '\n')
         tmp_fp.write("%s - %s\n" % (
             datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y'),
