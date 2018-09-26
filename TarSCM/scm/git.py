@@ -10,6 +10,8 @@ from TarSCM.scm.base import Scm
 class Git(Scm):
     scm = 'git'
 
+    Scm.__init__
+
     def _get_scm_cmd(self):
         """Compose a GIT-specific command line using http proxies"""
         # git should honor the http[s]_proxy variables, but we need to
