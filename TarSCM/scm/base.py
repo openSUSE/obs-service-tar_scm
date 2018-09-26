@@ -181,10 +181,11 @@ class Scm():
         # special case when using osc and creating an obscpio, use
         # current work directory to allow the developer to work inside
         # of the git repo and fetch local changes
-        if sys.argv[0].endswith("snapcraft") or \
-           (self.args.use_obs_scm and
-                os.getenv('OSC_VERSION') and
-                os.path.isdir('.git')):
+        is_snap = sys.argv[0].endswith("snapcraft")
+        is_obs_scm = self.args.use_obs_scm
+        in_osc = bool(os.getenv('OSC_VERSION'))
+        in_git = os.path.isdir('.git')
+        if is_snap or (is_obs_scm and in_osc and in_git):
             self.repodir = os.getcwd()
 
         # construct repodir (the parent directory of the checkout)
@@ -265,10 +266,11 @@ class Scm():
             raise Exception("%s: No such file or directory" % src)
 
         self.arch_dir = dst = os.path.join(outdir, dstname)
-        if os.path.exists(dst) and \
-            (os.path.samefile(src, dst) or
-             os.path.samefile(os.path.dirname(src), dst)):
-            return
+        if os.path.exists(dst):
+            same = os.path.samefile(src, dst) or \
+                os.path.samefile(os.path.dirname(src), dst)
+            if same:
+                return
 
         r_path = os.path.realpath(src)
         c_dir  = os.path.realpath(self.clone_dir)

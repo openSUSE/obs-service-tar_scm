@@ -63,11 +63,12 @@ class ObsCpio(BaseArchive):
 
         # detect reproducible support
         params = ['cpio', '--create', '--format=newc']
-        if os.system("cpio --create --format=newc" +
-                     " --reproducible </dev/null >/dev/null 2>&1") == 0:
+        chkcmd = "cpio --create --format=newc --reproducible "
+        chkcmd += "</dev/null >/dev/null 2>&1"
+        if os.system(chkcmd) == 0:
             params.append('--reproducible')
 
-        proc            = subprocess.Popen(
+        proc = subprocess.Popen(
             params,
             shell  = False,
             stdin  = subprocess.PIPE,

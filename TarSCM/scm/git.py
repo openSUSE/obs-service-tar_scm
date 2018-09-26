@@ -18,11 +18,9 @@ class Git(Scm):
         # is needed here
         scmcmd = ['git']
         if self.httpproxy:
-            scmcmd += ['-c', 'http.proxy=' +
-                       self.httpproxy]
+            scmcmd += ['-c', 'http.proxy=' + self.httpproxy]
         if self.httpsproxy:
-            scmcmd += ['-c', 'https.proxy=' +
-                       self.httpsproxy]
+            scmcmd += ['-c', 'https.proxy=' + self.httpsproxy]
         return scmcmd
 
     def switch_revision(self):
@@ -48,8 +46,7 @@ class Git(Scm):
                 if os.getenv('OSC_VERSION') and \
                    len(os.listdir(self.clone_dir)) > 1:
                     stash_text = self.helpers.safe_run(
-                        self._get_scm_cmd() +
-                        ['stash'],
+                        self._get_scm_cmd() + ['stash'],
                         cwd=self.clone_dir)[1]
                     text = self.helpers.safe_run(
                         self._get_scm_cmd() + ['reset', '--hard', rev],
@@ -58,8 +55,7 @@ class Git(Scm):
                     if stash_text != "No local changes to save\n":
                         logging.debug("[switch_revision] GIT STASHING")
                         text += self.helpers.safe_run(
-                            self._get_scm_cmd() +
-                            ['stash', 'pop'],
+                            self._get_scm_cmd() + ['stash', 'pop'],
                             cwd=self.clone_dir)[1]
                 else:
                     text = self.helpers.safe_run(
@@ -108,19 +104,14 @@ class Git(Scm):
 
     def fetch_submodules(self):
         """Recursively initialize git submodules."""
-        if (
-                'submodules' in self.args.__dict__ and
-                self.args.__dict__['submodules'] == 'enable'
-        ):
+        argsd = self.args.__dict__
+        if ('submodules' in argsd and argsd['submodules'] == 'enable'):
             self.helpers.safe_run(
                 self._get_scm_cmd() + ['submodule', 'update', '--init',
                                        '--recursive'],
                 cwd=self.clone_dir
             )
-        elif (
-                'submodules' in self.args.__dict__ and
-                self.args.__dict__['submodules'] == 'master'
-        ):
+        elif ('submodules' in argsd and argsd['submodules'] == 'master'):
             self.helpers.safe_run(
                 self._get_scm_cmd() + ['submodule', 'update', '--init',
                                        '--recursive', '--remote'],
@@ -222,17 +213,16 @@ class Git(Scm):
             sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
                      "as no parent tag was discovered.\033[0m")
 
-        rcode, output = self.helpers.run_cmd(
-            self._get_scm_cmd() + ['rev-list', '--count', parent_tag +
-                                   '..HEAD'],
-            self.clone_dir
-        )
+        cmd = self._get_scm_cmd()
+        cmd.extend(['rev-list', '--count', parent_tag + '..HEAD'])
+        rcode, out = self.helpers.run_cmd(cmd, self.clone_dir)
 
         if rcode:
-            sys.exit("\033[31m@TAG_OFFSET@ can not be expanded: " +
-                     output + "\033[0m")
+            msg = "\033[31m@TAG_OFFSET@ can not be expanded: %s\033[0m"
+            msg.format(out)
+            sys.exit(msg)
 
-        tag_offset = output.strip()
+        tag_offset = out.strip()
         versionformat = re.sub('@TAG_OFFSET@', tag_offset,
                                versionformat)
         return versionformat

@@ -23,50 +23,48 @@ class Svn(Scm):
         # config directory that will be added via '--config-dir'
         scmcmd = ['svn']
         if self.httpproxy:
-                logging.debug("using " + self.svntmpdir)
-                f = open(self.svntmpdir + "/servers", "wb")
-                f.write('[global]\n')
+            logging.debug("using %s", self.svntmpdir)
+            cfg = open(self.svntmpdir + "/servers", "wb")
+            cfg.write('[global]\n')
 
-                regexp_proxy = re.match('http://(.*):(.*)',
-                                        self.httpproxy,
-                                        re.M | re.I)
+            re_proxy = re.match('http://(.*):(.*)',
+                                self.httpproxy,
+                                re.M | re.I)
 
-                if regexp_proxy.group(1) is not None:
-                        logging.debug('using proxy host: ' +
-                                      regexp_proxy.group(1))
-                        f.write('http-proxy-host=' +
-                                regexp_proxy.group(1) + '\n')
+            proxy_host = re_proxy.group(1)
+            proxy_port = re_proxy.group(2)
 
-                if regexp_proxy.group(2) is not None:
-                        logging.debug('using proxy port: ' +
-                                      regexp_proxy.group(2))
-                        f.write('http-proxy-port=' +
-                                regexp_proxy.group(2) + '\n')
+            if proxy_host is not None:
+                logging.debug('using proxy host: %s', proxy_host)
+                cfg.write('http-proxy-host=' + proxy_host + '\n')
 
-                if self.noproxy is not None:
-                        logging.debug('using proxy exceptions: ' +
-                                      self.noproxy)
-                        no_proxy_domains = []
-                        no_proxy_domains.append(tuple(self.noproxy.split(",")))
-                        no_proxy_string = ""
+            if proxy_port is not None:
+                logging.debug('using proxy port: %s', proxy_port)
+                cfg.write('http-proxy-port=' + proxy_port + '\n')
 
-                # for some odd reason subversion expects the domains
-                # to have an asterisk
-                for i in range(len(no_proxy_domains[0])):
-                        tmpstr = str(no_proxy_domains[0][i]).strip()
-                        if tmpstr.startswith('.'):
-                                no_proxy_string += '*' + tmpstr
-                        else:
-                                no_proxy_string += tmpstr
+            if self.noproxy is not None:
+                logging.debug('using proxy exceptions: %s', self.noproxy)
+                no_proxy_domains = []
+                no_proxy_domains.append(tuple(self.noproxy.split(",")))
+                no_proxy_string = ""
 
-                        if i < len(no_proxy_domains[0]) - 1:
-                                no_proxy_string += ','
+            # for some odd reason subversion expects the domains
+            # to have an asterisk
+            for i in range(len(no_proxy_domains[0])):
+                tmpstr = str(no_proxy_domains[0][i]).strip()
+                if tmpstr.startswith('.'):
+                    no_proxy_string += '*' + tmpstr
+                else:
+                    no_proxy_string += tmpstr
 
-                no_proxy_string += '\n'
-                logging.debug('no_proxy string = ' + no_proxy_string)
-                f.write('http-proxy-exceptions=' + no_proxy_string)
-                f.close()
-                scmcmd += ['--config-dir', self.svntmpdir]
+                if i < len(no_proxy_domains[0]) - 1:
+                    no_proxy_string += ','
+
+            no_proxy_string += '\n'
+            logging.debug('no_proxy string = %s', no_proxy_string)
+            cfg.write('http-proxy-exceptions=' + no_proxy_string)
+            cfg.close()
+            scmcmd += ['--config-dir', self.svntmpdir]
 
         return scmcmd
 
@@ -191,10 +189,10 @@ class Svn(Scm):
 
     def cleanup(self):
         try:
-                shutil.rmtree(self.svntmpdir, ignore_errors=True)
+            shutil.rmtree(self.svntmpdir, ignore_errors=True)
         except:
-                logging.debug("error on cleanup:", sys.exc_info()[0])
-                raise
+            logging.debug("error on cleanup: %s", sys.exc_info()[0])
+            raise
 
     def check_url(self):
         """check if url is a remote url"""

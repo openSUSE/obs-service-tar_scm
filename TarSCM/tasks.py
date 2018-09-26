@@ -171,10 +171,10 @@ class Tasks():
         # if exception occurs
         self.scm_object = scm_object   = scm_class(args, self)
 
-        # TODO: find a way to mock this function in tests to a stub
-        if not bool(os.getenv('TAR_SCM_TESTMODE')):
-            if not scm_object.check_url():
-                sys.exit("--url does not match remote repository")
+        # TODO: find a way to mock this function in tests to a stub # noqa: E501 # pylint: disable=fixme
+        tmode = bool(os.getenv('TAR_SCM_TESTMODE'))
+        if not tmode and not scm_object.check_url():
+            sys.exit("--url does not match remote repository")
 
         try:
             scm_object.check_scm()
@@ -221,24 +221,30 @@ class Tasks():
         )
 
         if detected_changes:
-            changesauthor = self.changes.get_changesauthor(args)
-
-            logging.debug("AUTHOR: %s", changesauthor)
-
-            if not version:
-                args.version = "_auto_"
-                changesversion = self.get_version()
-
-            for filename in glob.glob('*.changes'):
-                new_changes_file = os.path.join(args.outdir, filename)
-                shutil.copy(filename, new_changes_file)
-                self.changes.write_changes(new_changes_file,
-                                           detected_changes['lines'],
-                                           changesversion, changesauthor)
-            self.changes.write_changes_revision(args.url, args.outdir,
-                                                detected_changes['revision'])
+            self._process_changes(args,
+                                  version,
+                                  changesversion,
+                                  detected_changes)
 
         scm_object.finalize()
+
+    def _process_changes(self, args, ver, changesversion, detected_changes):
+        changesauthor = self.changes.get_changesauthor(args)
+
+        logging.debug("AUTHOR: %s", changesauthor)
+
+        if not ver:
+            args.version = "_auto_"
+            changesversion = self.get_version()
+
+        for filename in glob.glob('*.changes'):
+            new_changes_file = os.path.join(args.outdir, filename)
+            shutil.copy(filename, new_changes_file)
+            self.changes.write_changes(new_changes_file,
+                                       detected_changes['lines'],
+                                       changesversion, changesauthor)
+        self.changes.write_changes_revision(args.url, args.outdir,
+                                            detected_changes['revision'])
 
     def get_version(self):
         '''
