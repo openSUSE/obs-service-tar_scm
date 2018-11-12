@@ -18,7 +18,7 @@ def contains_dotdot(files):
 
 class Cli():
     # pylint: disable=too-few-public-methods
-    DEFAULT_AUTHOR = 'opensuse-packaging@opensuse.org'
+    DEFAULT_AUTHOR = 'obs-service-tar-scm@invalid'
 
     def __init__(self):
         self.use_obs_scm = False

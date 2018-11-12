@@ -152,7 +152,7 @@ class UnitTestCases(unittest.TestCase):
         chg                 = Changes()
         author              = chg.get_changesauthor(self.cli)
         os.environ['HOME']  = home
-        self.assertEqual(author, 'opensuse-packaging@opensuse.org')
+        self.assertEqual(author, 'obs-service-tar-scm@invalid')
 
     def test_changes_get_chga_home_rc(self):
         '''Test if getting changesauthor from rcfile in home dir'''
