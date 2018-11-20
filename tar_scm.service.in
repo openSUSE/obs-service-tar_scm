@@ -124,7 +124,7 @@
     <description>Specify subset of files/subdirectories to pack in the tarball.</description>
   </parameter>
   <parameter name="extract">
-    <description>Specify a file to be exported directly. Useful for build descriptions like spec files
+    <description>Specify a file/glob to be exported directly. Useful for build descriptions like spec files
 which get maintained in the SCM. Can be used multiple times.</description>
   </parameter>
   <parameter name="package-meta">
