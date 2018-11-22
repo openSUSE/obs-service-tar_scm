@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tarfile
 import shutil
+import glob
 
 from TarSCM.helpers import Helpers
 
@@ -29,16 +30,18 @@ class BaseArchive():
             return
 
         for filename in files:
-            src = os.path.join(repodir, filename)
-            if not os.path.exists(src):
-                sys.exit("%s: No such file or directory" % src)
+            path = os.path.join(repodir, filename)
+            path_glob = glob.glob(path)
 
-            r_src = os.path.realpath(src)
-            if not r_src.startswith(repodir):
-                sys.exit("%s: tries to escape the repository" % src)
+            if not path_glob:
+                sys.exit("%s: No such file or directory" % path)
 
-            if shutil.copy(src, outdir):
-                sys.exit("%s: Failed to copy file" % src)
+            for src in path_glob:
+                r_src = os.path.realpath(src)
+                if not r_src.startswith(repodir):
+                    sys.exit("%s: tries to escape the repository" % src)
+
+                shutil.copy2(src, outdir)
 
 
 class ObsCpio(BaseArchive):

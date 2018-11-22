@@ -196,3 +196,21 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
             files,
             outdir
         )
+
+    def test_obscpio_extract_glob(self):
+        '''
+        Test obscpio to extract file glob from archive
+        '''
+        tc_name = inspect.stack()[0][3]
+        cl_name = self.__class__.__name__
+
+        repodir = os.path.join(self.fixtures_dir, tc_name, 'repo')
+        files   = ["test.*"]
+        files_expected = ["test.spec", "test.rpmlintrc"]
+        outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
+        arch    = ObsCpio()
+        os.makedirs(outdir)
+        arch.extract_from_archive(repodir, files, outdir)
+        for fname in files_expected:
+            self.assertTrue(os.path.exists(
+                os.path.join(outdir, fname)))
