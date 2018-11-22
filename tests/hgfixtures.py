@@ -36,7 +36,7 @@ class HgFixtures(Fixtures):
         print("created repo %s" % self.repo_path)
 
     def get_metadata(self, formatstr):
-        return self.safe_run('log -l1 --template "%s"' % formatstr)[0]
+        return self.safe_run('log -l1 --template "%s"' % formatstr)[0].decode()
 
     def record_rev(self, wd, rev_num):
         tag = str(rev_num - 1)  # hg starts counting changesets at 0

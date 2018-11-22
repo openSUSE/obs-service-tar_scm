@@ -204,7 +204,11 @@ class TestEnvironment:
             ret = 1
             succeeded = False
         except Exception as e:
-            sys.stderr.write(e.message)
+            if (hasattr(e, 'message')):
+                msg = e.message
+            else:
+                msg = e
+            sys.stderr.write(str(msg))
             ret = 1
             succeeded = False
         finally:

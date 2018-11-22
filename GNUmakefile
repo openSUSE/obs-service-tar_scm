@@ -81,7 +81,13 @@ PYLINT3 = $(call first_in_path_opt,$(ALL_PYLINT3))
 default: check
 
 .PHONY: check check_all
-check: flake8 pylint test # test3
+check: flake8 pylint test test3
+
+.PHONY: check2
+check2: flake8 pylint test
+
+.PHONY: check3
+check3: flake8 pylint test3
 
 .PHONY: list-py-files
 list-py-files:
@@ -94,6 +100,7 @@ flake8:
 	else \
 		echo "Running flake8";\
 		flake8;\
+		echo "Finished flake8";\
 	fi
 
 .PHONY: test

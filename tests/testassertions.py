@@ -22,32 +22,6 @@ class TestAssertions(unittest.TestCase):
     with operations which the tar_scm unit tests commonly need.
     """
 
-    ######################################################################
-    # backported from 2.7 just in case we're running on an older Python
-    def assertRegexpMatches(self, text, expected_regexp, msg=None):
-        """Fail the test unless the text matches the regular expression."""
-        if isinstance(expected_regexp, basestring):
-            expected_regexp = re.compile(expected_regexp)
-        if not expected_regexp.search(text):
-            msg = msg or "Regexp didn't match"
-            msg = '%s: %r not found in %r' % \
-                  (msg, expected_regexp.pattern, text)
-            raise self.failureException(msg)
-
-    def assertNotRegexpMatches(self, text, unexpected_regexp, msg=None):
-        """Fail the test if the text matches the regular expression."""
-        if isinstance(unexpected_regexp, basestring):
-            unexpected_regexp = re.compile(unexpected_regexp)
-        match = unexpected_regexp.search(text)
-        if match:
-            msg = msg or "Regexp matched"
-            msg = '%s: %r matches %r in %r' % (msg,
-                                               text[match.start():match.end()],
-                                               unexpected_regexp.pattern,
-                                               text)
-            raise self.failureException(msg)
-    ######################################################################
-
     def assertNumDirents(self, dir, expected, msg=''):
         dirents = os.listdir(dir)
         got = len(dirents)
@@ -91,20 +65,20 @@ class TestAssertions(unittest.TestCase):
 
     def assertStandardTar(self, tar, top):
         th, entries = self.assertNumTarEnts(tar, 5)
-        entries.sort(lambda x, y: cmp(x.name, y.name))
+        entries.sort(key=lambda x: x.name)
         self.assertDirents(entries[:3], top)
         self.assertSubdirDirents(entries[3:], top + '/subdir')
         return th
 
     def assertSubdirTar(self, tar, top):
         th, entries = self.assertNumTarEnts(tar, 2)
-        entries.sort(lambda x, y: cmp(x.name, y.name))
+        entries.sort(key=lambda x: x.name)
         self.assertSubdirDirents(entries, top)
         return th
 
     def assertIncludeSubdirTar(self, tar, top):
         th, entries = self.assertNumTarEnts(tar, 3)
-        entries.sort(lambda x, y: cmp(x.name, y.name))
+        entries.sort(key=lambda x: x.name)
         self.assertEqual(entries[0].name, top)
         self.assertSubdirDirents(entries[1:], top + '/subdir')
         return th
@@ -147,7 +121,7 @@ class TestAssertions(unittest.TestCase):
 
     def assertTarMemberContains(self, th, tarmember, contents):
         f = th.extractfile(tarmember)
-        self.assertEqual(contents, "\n".join(f.readlines()))
+        self.assertEqual(contents, f.read().decode())
 
     def assertRanInitialClone(self, logpath, loglines):
         self._find(logpath, loglines,

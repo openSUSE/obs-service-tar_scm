@@ -42,8 +42,8 @@ class GitFixtures(Fixtures):
         self.safe_run('config user.email ' + self.user_email)
         print("created repo %s" % repo_path)
 
-    def get_metadata(self, formatstr):
-        return self.safe_run('log -n1 --pretty=format:"%s"' % formatstr)[0]
+    def get_metadata(self, fmt):
+        return self.safe_run('log -n1 --pretty=format:"%s"' % fmt)[0].decode()
 
     def record_rev(self, wd, rev_num):
         tag = 'tag' + str(rev_num)

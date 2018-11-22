@@ -54,8 +54,12 @@ class SCMBaseTestCases(unittest.TestCase):
                 "test1"
             )
 
-        self.assertRegexpMatches(ctx.exception.message,
-                                 'No such file or directory')
+        if (hasattr(ctx.exception, 'message')):
+            msg = ctx.exception.message
+        else:
+            msg = ctx.exception
+
+        self.assertRegexpMatches(str(msg), 'No such file or directory')
 
         scm_base.prep_tree_for_archive("test1", basedir, "test2")
 

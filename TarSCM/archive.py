@@ -110,8 +110,8 @@ class ObsCpio(BaseArchive):
                 os.utime(name, (tstamp, tstamp))
             except OSError:
                 pass
-            proc.stdin.write(name)
-            proc.stdin.write("\n")
+            proc.stdin.write(name.encode())
+            proc.stdin.write("\n".encode())
         proc.stdin.close()
         ret_code = proc.wait()
         if ret_code != 0:
@@ -157,7 +157,7 @@ class Tar(BaseArchive):
         for i in include:
             # for backward compatibility add a trailing '*' if i isn't a
             # pattern
-            if fnmatch.translate(i) == i + fnmatch.translate(r''):
+            if fnmatch.translate(i) == fnmatch.translate(i + r''):
                 i += r'*'
 
             pat = fnmatch.translate(os.path.join(topdir, i))
