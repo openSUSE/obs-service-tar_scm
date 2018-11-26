@@ -3,6 +3,8 @@
 import os
 import textwrap
 import re
+import shutil
+import glob
 
 from commontests import CommonTests
 from utils       import run_git, run_svn
@@ -204,6 +206,40 @@ class GitSvnTests(CommonTests):
                 \* 8
                 \* 7
                 \* 6
+              """) % self.changesrevision(rev, abbrev=True)
+        )
+        self._check_changes(orig_changes, expected_changes_regexp)
+
+    def test_changesgenerate_old_servicedata(self):
+        self._write_servicedata(2)
+        orig_changes = self._write_changes_file()
+        self.fixtures.create_commits(3)
+        rev = 5
+        sd_file = os.path.join(self.pkgdir, '_servicedata')
+        old_dir = os.path.join(self.pkgdir, '.old')
+        os.mkdir(old_dir)
+        shutil.move(sd_file, old_dir)
+        for filename in glob.glob(os.path.join(self.pkgdir, '*.changes')):
+            shutil.move(filename, old_dir)
+
+        tar_scm_args = self.tar_scm_args()
+
+        tar_scm_args += [
+            '--changesauthor', self.fixtures.user_email,
+        ]
+
+        self.tar_scm_std(*tar_scm_args)
+
+        self._check_servicedata(revision=rev, expected_dirents=3)
+
+        expected_author = self.fixtures.user_email
+        expected_changes_regexp = self._new_change_entry_regexp(
+            expected_author,
+            textwrap.dedent("""\
+              - Update to version 0.6.%s:
+                \* 5
+                \* 4
+                \* 3
               """) % self.changesrevision(rev, abbrev=True)
         )
         self._check_changes(orig_changes, expected_changes_regexp)
