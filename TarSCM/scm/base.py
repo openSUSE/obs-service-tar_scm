@@ -8,6 +8,7 @@ import shutil
 import fcntl
 import time
 import subprocess
+import glob
 
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
@@ -112,6 +113,13 @@ class Scm():
         """Detect changes between revisions."""
         if not self.args.changesgenerate:
             return None
+
+        old_servicedata = os.path.join(os.getcwd(), '.old', '_servicedata')
+        old_changes_glob = os.path.join(os.getcwd(), '.old', '*.changes')
+        if (os.path.isfile(old_servicedata)):
+            shutil.copy2(old_servicedata, os.getcwd())
+            for filename in glob.glob(old_changes_glob):
+                shutil.copy2(filename, os.getcwd())
 
         chgs = self.changes.read_changes_revision(self.url, os.getcwd(),
                                                   self.args.outdir)
