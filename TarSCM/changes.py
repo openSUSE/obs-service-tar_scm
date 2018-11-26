@@ -196,7 +196,7 @@ class Changes():
         tmp_fp.write(str('\n').encode('utf-8'))
 
         old_fp = open(changes_filename, 'r')
-        tmp_fp.write(str(old_fp.read()).encode('utf-8'))
+        tmp_fp.write(old_fp.read())
         old_fp.close()
 
         tmp_fp.close()
