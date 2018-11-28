@@ -5,6 +5,7 @@ import shutil
 import sys
 import tempfile
 import stat
+import io
 
 from TarSCM.cli    import Cli
 from TarSCM.config import Config
@@ -196,7 +197,8 @@ class Changes():
         tmp_fp.write(str('\n').encode())
 
         old_fp = open(changes_filename, 'r')
-        tmp_fp.write(str(old_fp.read()).encode())
+        old_data = old_fp.read()
+        tmp_fp.write(old_data)
         old_fp.close()
 
         tmp_fp.close()
