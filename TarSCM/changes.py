@@ -190,13 +190,13 @@ class Changes():
             author)).encode())
         tmp_fp.write(b'\n')
         tmp_fp.write(
-            str("- Update to version %s:\n" % version).encode('utf-8'))
+            str("- Update to version %s:\n" % version).encode())
         for line in changes:
-            tmp_fp.write(str("  * %s\n" % line).encode('utf-8'))
-        tmp_fp.write(str('\n').encode('utf-8'))
+            tmp_fp.write(str("  * %s\n" % line).encode())
+        tmp_fp.write(str('\n').encode())
 
         old_fp = open(changes_filename, 'r')
-        tmp_fp.write(str(old_fp.read()).encode('utf-8'))
+        tmp_fp.write(str(old_fp.read()).encode())
         old_fp.close()
 
         tmp_fp.close()
