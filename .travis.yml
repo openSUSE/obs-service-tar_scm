@@ -11,5 +11,5 @@ install:
   - mkdir bin
   - ln -s /usr/bin/true bin/obs-service-download_files # we don't test other services here
   - export PATH="$PWD/bin:$PATH"
-  - if [[ ${TRAVIS_PYTHON_VERSION:0:3} == 3.6 ]]; then pip install flake8 pylint; fi
+  - if [[ ${TRAVIS_PYTHON_VERSION:0:3} == 2.7 ]]; then pip install flake8 pylint; fi
 script: make check${TRAVIS_PYTHON_VERSION:0:1}
