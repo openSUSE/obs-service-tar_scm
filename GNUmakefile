@@ -106,11 +106,11 @@ flake8:
 .PHONY: test
 test:
 	: Running the test suite.  Please be patient - this takes a few minutes ...
-	TAR_SCM_TESTMODE=1 PYTHONPATH=. $(PYTHON) tests/test.py 2>&1 | tee ./test.log
+	LANG=C TAR_SCM_TESTMODE=1 PYTHONPATH=. $(PYTHON) tests/test.py 2>&1 | tee ./test.log
 
 test3:
 	: Running the test suite.  Please be patient - this takes a few minutes ...
-	TAR_SCM_TESTMODE=1 PYTHONPATH=. python3 tests/test.py 2>&1 | tee ./test3.log
+	LANG=C TAR_SCM_TESTMODE=1 PYTHONPATH=. python3 tests/test.py 2>&1 | tee ./test3.log
 
 .PHONY: pylint
 pylint: pylint2 pylinttest2
