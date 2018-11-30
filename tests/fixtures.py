@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 import os
 import shutil
@@ -133,5 +134,25 @@ class Fixtures:
         os.symlink('/../nir/va/na', 'c')
         newly_created.append('c')
         self.do_commit(wd, new_rev, newly_created)
+        self.record_rev(wd, new_rev)
+        self.scmlogs.annotate("Created 1 commit; now at %s" % (new_rev))
+
+    def create_commit_unicode(self, wd=None):
+        self.scmlogs.annotate("Creating commit with unicode commit message")
+
+        if wd is None:
+            wd = self.wd
+        os.chdir(wd)
+
+        new_rev = self.next_commit_rev(wd)
+        fname = 'd'
+        cfh = open(fname, 'w')
+        cfh.write(str(new_rev))
+        cfh.close()
+        self.scmlogs.annotate("Wrote %s to %s" % (new_rev, fname))
+        #self.do_commit(wd, new_rev, newly_created)
+        self.safe_run('add .')
+        date = self.get_committer_date()
+        self.safe_run('commit -m"füfüfü nününü %d" %s' % (new_rev, date))
         self.record_rev(wd, new_rev)
         self.scmlogs.annotate("Created 1 commit; now at %s" % (new_rev))

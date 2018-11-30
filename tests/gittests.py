@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: UTF-8 -*-
 
 import datetime
 import os
@@ -319,3 +320,19 @@ class GitTests(GitHgTests, GitSvnTests):
 
         p_tag = git._detect_parent_tag(f_args)
         self.assertEqual(p_tag, '')
+
+    def test_changesgenerate_unicode(self):
+        self._write_servicedata(2)
+        orig_changes = self._write_changes_file()
+        self.fixtures.create_commit_unicode()
+        rev = 3
+
+        tar_scm_args = self.tar_scm_args()
+
+        tar_scm_args += [
+            '--changesauthor', self.fixtures.user_email,
+        ]
+
+        self.tar_scm_std(*tar_scm_args)
+
+        self._check_servicedata(revision=rev, expected_dirents=3)

@@ -192,7 +192,7 @@ class Changes():
         tmp_fp.write(
             str("- Update to version %s:\n" % version).encode())
         for line in changes:
-            tmp_fp.write(str("  * %s\n" % line).encode())
+            tmp_fp.write("  * %s\n" % line.encode('utf-8'))
         tmp_fp.write(str('\n').encode())
 
         old_fp = open(changes_filename, 'r')
