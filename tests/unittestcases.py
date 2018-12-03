@@ -400,3 +400,12 @@ class UnitTestCases(unittest.TestCase):
             re.compile("verion in obsinfo contains '/' or '..'."),
             scm_object.fetch_upstream
         )
+
+    def test_unicode_in_filename(self):
+        tc_name    = inspect.stack()[0][3]
+        cl_name    = self.__class__.__name__
+        scm_object = TarSCM.scm.Tar(self.cli, self.tasks)
+        scm_object.clone_dir = os.path.join(self.fixtures_dir, tc_name)
+        wdir       = os.path.join(self.tmp_dir, cl_name, tc_name)
+        os.makedirs(wdir)
+        scm_object.prep_tree_for_archive('test', wdir, 'test')

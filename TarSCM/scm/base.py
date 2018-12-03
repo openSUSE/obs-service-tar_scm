@@ -285,6 +285,9 @@ class Scm():
         if not r_path.startswith(c_dir):
             sys.exit("--subdir %s tries to escape repository." % subdir)
 
+        logging.debug("copying tree: '%s' to '%s'", src, dst)
+        src = u"%s" % src
+        dst = u"%s" % dst
         shutil.copytree(src, dst, symlinks=True)
 
     def lock_cache(self):
