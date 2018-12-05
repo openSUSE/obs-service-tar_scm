@@ -286,8 +286,8 @@ class Scm():
             sys.exit("--subdir %s tries to escape repository." % subdir)
 
         logging.debug("copying tree: '%s' to '%s'", src, dst)
-        src = u"%s" % src
-        dst = u"%s" % dst
+        src = src.encode('utf-8')
+        dst = dst.encode('utf-8')
         shutil.copytree(src, dst, symlinks=True)
 
     def lock_cache(self):
