@@ -45,7 +45,7 @@ class Tasks():
         for dirname in self.cleanup_dirs:
             if not os.path.exists(dirname):
                 continue
-            shutil.rmtree(dirname)
+            shutil.rmtree(dirname.encode('utf-8'))
         self.cleanup_dirs = []
         # Unlock to prevent dead lock in cachedir if exception
         # gets raised
