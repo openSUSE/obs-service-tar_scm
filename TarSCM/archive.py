@@ -86,7 +86,7 @@ class ObsCpio(BaseArchive):
 
         # add topdir without filtering for now
         cpiolist = []
-        for root, dirs, files in os.walk(topdir, topdown=False):
+        for root, dirs, files in os.walk(topdir.encode(), topdown=False):
             # excludes
             dirs[:] = [os.path.join(root, d) for d in dirs]
             dirs[:] = [d for d in dirs if not re.match(excludes, d)]
@@ -110,8 +110,8 @@ class ObsCpio(BaseArchive):
                 os.utime(name, (tstamp, tstamp))
             except OSError:
                 pass
-            proc.stdin.write(name.encode())
-            proc.stdin.write("\n".encode())
+            proc.stdin.write(name)
+            proc.stdin.write("\n")
         proc.stdin.close()
         ret_code = proc.wait()
         if ret_code != 0:
