@@ -86,8 +86,18 @@ class Svn(Scm):
         command = self._get_scm_cmd() + ['update']
         if self.revision:
             command.insert(3, "-r%s" % self.revision)
-        self.helpers.safe_run(command, cwd=self.clone_dir,
-                              interactive=sys.stdout.isatty())
+        try:
+            self.helpers.safe_run(command, cwd=self.clone_dir,
+                                  interactive=sys.stdout.isatty())
+        except SystemExit as exc:
+            logging.warn("Could not update cache: >>>%s<<<!", exc.message)
+            osd = os.getenv('OBS_SERVICE_DAEMON')
+            if (re.match(r".*run 'cleanup'.*", exc.message) and osd):
+                logging.warn("Removing old cache dir '%s'!", self.clone_dir)
+                shutil.rmtree(self.clone_dir)
+                self.fetch_upstream_scm()
+            else:
+                raise exc
 
     def detect_version(self, args):
         """
