@@ -136,7 +136,6 @@ class Scm():
     def get_repocache_hash(self, subdir):
         """Calculate hash fingerprint for repository cache."""
         u_url = self.url
-        u_url = u_url.encode("utf-8")
         return hashlib.sha256(u_url).hexdigest()
 
     def get_current_commit(self):
@@ -286,8 +285,6 @@ class Scm():
             sys.exit("--subdir %s tries to escape repository." % subdir)
 
         logging.debug("copying tree: '%s' to '%s'", src, dst)
-        src = src.encode('utf-8')
-        dst = dst.encode('utf-8')
         shutil.copytree(src, dst, symlinks=True)
 
     def lock_cache(self):

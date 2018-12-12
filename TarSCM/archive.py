@@ -86,7 +86,7 @@ class ObsCpio(BaseArchive):
 
         # add topdir without filtering for now
         cpiolist = []
-        for root, dirs, files in os.walk(topdir.encode(), topdown=False):
+        for root, dirs, files in os.walk(topdir, topdown=False):
             # excludes
             dirs[:] = [os.path.join(root, d) for d in dirs]
             dirs[:] = [d for d in dirs if not re.match(excludes, d)]
@@ -214,7 +214,7 @@ class Tar(BaseArchive):
         for entry in map(lambda x: os.path.join(topdir, x),
                          sorted(os.listdir(topdir))):
             try:
-                tar.add(entry.encode('utf-8'), filter=tar_filter)
+                tar.add(entry, filter=tar_filter)
             except TypeError:
                 # Python 2.6 compatibility
                 tar.add(entry, exclude=tar_exclude)

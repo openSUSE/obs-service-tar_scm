@@ -184,16 +184,16 @@ class Changes():
         mode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
         os.chmod(tmp_fp.name, mode)
 
-        tmp_fp.write(str('-' * 67 + '\n').encode())
+        tmp_fp.write('-' * 67 + '\n')
         tmp_fp.write(str("%s - %s\n" % (
             datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y'),
-            author)).encode())
+            author)))
         tmp_fp.write(b'\n')
         tmp_fp.write(
-            str("- Update to version %s:\n" % version).encode())
+            "- Update to version %s:\n" % version)
         for line in changes:
-            tmp_fp.write("  * %s\n" % line.encode('utf-8'))
-        tmp_fp.write(str('\n').encode())
+            tmp_fp.write("  * %s\n" % line)
+        tmp_fp.write('\n')
 
         old_fp = open(changes_filename, 'r')
         tmp_fp.write(old_fp.read())

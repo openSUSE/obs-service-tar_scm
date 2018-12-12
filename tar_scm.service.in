@@ -153,4 +153,7 @@ which get maintained in the SCM. Can be used multiple times.</description>
   <parameter name="changesauthor">
     <description>Specify author of the changes file entry to be written.  Defaults to first email entry in ~/.oscrc, or "opensuse-packaging@opensuse.org" if there is no .oscrc found.</description>
   </parameter>
+  <parameter name="locale">
+    <description>Set locale while execution of service</description>
+  </parameter>
 </service>
