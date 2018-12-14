@@ -10,6 +10,16 @@ import dateutil.parser
 
 from TarSCM.scm.base import Scm
 
+ENCODING_RE = re.compile(r".*("
+                         "Can't convert string from '.*' to native encoding:"
+                         "|"
+                         "Can't convert string from native encoding to ).*")
+
+ENCODING_MSG = ("Encoding error! "
+                "Please specify proper --locale parameter "
+                "or '<param name=\"locale\">...</param>' "
+                "in your service file!")
+
 
 class Svn(Scm):
     scm = 'svn'
@@ -79,13 +89,21 @@ class Svn(Scm):
 
         wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
 
-        self.helpers.safe_run(command, wdir, interactive=sys.stdout.isatty())
+        try:
+            self.helpers.safe_run(command, wdir,
+                                  interactive=sys.stdout.isatty())
+        except SystemExit as exc:
+            if re.search(ENCODING_RE, exc.message):
+                raise SystemExit(ENCODING_MSG)
+            else:
+                raise exc
 
     def update_cache(self):
         """Update sources via svn."""
         command = self._get_scm_cmd() + ['update']
         if self.revision:
             command.insert(3, "-r%s" % self.revision)
+
         try:
             self.helpers.safe_run(command, cwd=self.clone_dir,
                                   interactive=sys.stdout.isatty())
@@ -96,6 +114,8 @@ class Svn(Scm):
                 logging.warn("Removing old cache dir '%s'!", self.clone_dir)
                 shutil.rmtree(self.clone_dir)
                 self.fetch_upstream_scm()
+            elif re.search(ENCODING_RE, exc.message):
+                raise SystemExit(ENCODING_MSG)
             else:
                 raise exc
 
