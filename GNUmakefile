@@ -150,11 +150,8 @@ tar_scm: tar_scm.py
 	sed 's,^\#!/usr/bin/.*,#!$(PYTHON),' $< > $@
 
 .PHONY: install
-install: tar_scm service
-	mkdir -p $(DESTDIR)$(mylibdir)
-	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM
-	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM/scm
-	mkdir -p $(DESTDIR)$(mycfgdir)
+
+install: dirs tar_scm service
 	install -m 0755 tar_scm $(DESTDIR)$(mylibdir)/tar_scm
 	install -m 0644 tar_scm.rc $(DESTDIR)$(mycfgdir)/tar_scm
 	# Recreate links, otherwise reinstalling would fail
@@ -168,7 +165,15 @@ install: tar_scm service
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/snapcraft
 	find ./TarSCM/ -name '*.py*' -exec install -m 644 {} $(DESTDIR)$(mylibdir)/{} \;
 
-service:
+.PHONY: dirs
+dirs:
+	mkdir -p $(DESTDIR)$(mylibdir)
+	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM
+	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM/scm
+	mkdir -p $(DESTDIR)$(mycfgdir)
+
+.PHONY: service
+service: dirs
 	install -m 0644 tar.service $(DESTDIR)$(mylibdir)/
 	install -m 0644 snapcraft.service $(DESTDIR)$(mylibdir)/
 	install -m 0644 appimage.service $(DESTDIR)$(mylibdir)/
