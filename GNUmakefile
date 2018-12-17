@@ -150,7 +150,7 @@ tar_scm: tar_scm.py
 	sed 's,^\#!/usr/bin/.*,#!$(PYTHON),' $< > $@
 
 .PHONY: install
-install: tar_scm
+install: tar_scm service
 	mkdir -p $(DESTDIR)$(mylibdir)
 	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM
 	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM/scm
@@ -166,12 +166,14 @@ install: tar_scm
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/appimage
 	[ ! -L $(DESTDIR)$(mylibdir)/snapcraft ] || rm $(DESTDIR)$(mylibdir)/snapcraft
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/snapcraft
+	find ./TarSCM/ -name '*.py*' -exec install -m 644 {} $(DESTDIR)$(mylibdir)/{} \;
+
+service:
 	install -m 0644 tar.service $(DESTDIR)$(mylibdir)/
 	install -m 0644 snapcraft.service $(DESTDIR)$(mylibdir)/
 	install -m 0644 appimage.service $(DESTDIR)$(mylibdir)/
 	sed -e '/^===OBS_ONLY/,/^===/d' -e '/^===/d' tar_scm.service.in > $(DESTDIR)$(mylibdir)/tar_scm.service
 	sed -e '/^===TAR_ONLY/,/^===/d' -e '/^===/d' tar_scm.service.in > $(DESTDIR)$(mylibdir)/obs_scm.service
-	find ./TarSCM/ -name '*.py*' -exec install -m 644 {} $(DESTDIR)$(mylibdir)/{} \;
 
 show-python:
 	@echo "$(PYTHON)"

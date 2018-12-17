@@ -110,8 +110,8 @@ class ObsCpio(BaseArchive):
                 os.utime(name, (tstamp, tstamp))
             except OSError:
                 pass
-            proc.stdin.write(name.encode())
-            proc.stdin.write("\n".encode())
+            proc.stdin.write(name)
+            proc.stdin.write("\n")
         proc.stdin.close()
         ret_code = proc.wait()
         if ret_code != 0:
@@ -214,7 +214,7 @@ class Tar(BaseArchive):
         for entry in map(lambda x: os.path.join(topdir, x),
                          sorted(os.listdir(topdir))):
             try:
-                tar.add(entry.encode('utf-8'), filter=tar_filter)
+                tar.add(entry, filter=tar_filter)
             except TypeError:
                 # Python 2.6 compatibility
                 tar.add(entry, exclude=tar_exclude)

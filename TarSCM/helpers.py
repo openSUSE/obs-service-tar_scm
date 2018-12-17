@@ -45,11 +45,6 @@ class Helpers():
         else:
             output = proc.communicate()[0]
 
-        try:
-            output = output.decode('utf-8')
-        except:
-            print("could not decode >>>%r<<<" % output)
-
         if proc.returncode and raisesysexit:
             logging.info("ERROR(%d): %s", proc.returncode, repr(output))
             raise SystemExit(

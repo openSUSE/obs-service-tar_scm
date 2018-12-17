@@ -35,6 +35,7 @@ BuildRequires:  bzr
 BuildRequires:  git-core
 BuildRequires:  mercurial
 BuildRequires:  subversion
+BuildRequires:  glibc-locale
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
 %define py_compile(O)  \
 find %1 -name '*.pyc' -exec rm -f {} \\; \
@@ -59,6 +60,7 @@ Requires:       git-core
 Recommends:     bzr
 Recommends:     mercurial
 Recommends:     subversion
+Recommends:     glibc-locale
 %endif
 Requires:       obs-service-obs_scm-common = %version-%release
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build

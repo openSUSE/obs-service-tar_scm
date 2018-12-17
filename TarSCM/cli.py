@@ -3,6 +3,7 @@ from __future__ import print_function
 import argparse
 import os
 import sys
+import locale
 
 
 def contains_dotdot(files):
@@ -126,7 +127,10 @@ class Cli():
         parser.add_argument('--skip-cleanup', default = False,
                             action='store_true',
                             help='do not cleanup directories before exiting '
-                                 '(Only for debugging')
+                                 '(Only for debugging)')
+
+        parser.add_argument('--locale',
+                            help='set locale while service run')
 
         self.verify_args(parser.parse_args(options))
 
@@ -167,5 +171,9 @@ class Cli():
 
         for attr in args.__dict__.keys():
             self.__dict__[attr] = args.__dict__[attr]
+
+        if args.locale:
+            locale.setlocale(locale.LC_CTYPE, args.locale)
+            os.environ["LC_CTYPE"] = args.locale
 
         return args
