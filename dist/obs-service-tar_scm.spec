@@ -1,7 +1,7 @@
 #
 # spec file for package obs-service-tar_scm
 #
-# Copyright (c) 2018 SUSE LINUX GmbH, Nuernberg, Germany.
+# Copyright (c) 2019 SUSE LINUX GmbH, Nuernberg, Germany.
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -12,15 +12,15 @@
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
 
-# Please submit bugfixes or comments via http://bugs.opensuse.org/
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
 
 %bcond_without obs_scm_testsuite
 
 Name:           obs-service-tar_scm
-%define version_unconverted 0.9.0.1523267117.de861d8
-Version:        0.9.0.1523267117.de861d8
+%define version_unconverted 0.9.5.1545082095.8dbc95f
+Version:        0.9.5.1545082095.8dbc95f
 Release:        0
 Summary:        An OBS source service: create tar ball from svn/git/hg
 License:        GPL-2.0-or-later
@@ -47,6 +47,7 @@ python -O -c "import sys, os, compileall; br='%{buildroot}'; compileall.compile_
 
 BuildRequires:  PyYAML
 %else
+BuildRequires:  glibc-locale
 BuildRequires:  python-PyYAML
 %endif
 BuildRequires:  python-dateutil
@@ -56,6 +57,11 @@ BuildRequires:  python-unittest2
 %endif
 BuildRequires:  python >= 2.6
 Requires:       git-core
+
+%if (0%{?fedora_version} && 0%{?fedora_version} < 26) || 0%{?centos} == 6 || 0%{?centos} == 7
+BuildRequires:  python-argparse
+Requires:       python-argparse
+%endif
 %if 0%{?suse_version} >= 1315
 Recommends:     bzr
 Recommends:     mercurial
