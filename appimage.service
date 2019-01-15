@@ -1,4 +1,15 @@
 <service name="appimage">
-<summary>handle sources specified in appimage.yml</summary>
-   <description>This service needs to be executed to download sources according to appimage.yml file</description>
+  <summary>handle sources specified in appimage.yml</summary>
+  <description>This service needs to be executed to download sources according to appimage.yml file</description>
+  <parameter name="submodules">
+    <description>Specify whether to include git submodules.  Default is 'enable'.</description>
+    <allowedvalue>enable</allowedvalue>
+    <allowedvalue>master</allowedvalue>
+    <allowedvalue>disable</allowedvalue>
+  </parameter>
+  <parameter name="sslverify">
+    <description>Specify Whether or not to check server certificate against installed CAs.  Default is 'enable'.</description>
+    <allowedvalue>enable</allowedvalue>
+    <allowedvalue>disable</allowedvalue>
+  </parameter>
 </service>

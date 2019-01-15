@@ -1,4 +1,15 @@
 <service name="snapcraft">
-<summary>handle sources specified in snapcraft.yaml</summary>
-   <description>This service needs to be executed to download sources according to snapcraft.yaml file. It also patches the snapcraft tile to use local sources during build.</description>
+  <summary>handle sources specified in snapcraft.yaml</summary>
+  <description>This service needs to be executed to download sources according to snapcraft.yaml file. It also patches the snapcraft tile to use local sources during build.</description>
+  <parameter name="submodules">
+    <description>Specify whether to include git submodules.  Default is 'enable'.</description>
+    <allowedvalue>enable</allowedvalue>
+    <allowedvalue>master</allowedvalue>
+    <allowedvalue>disable</allowedvalue>
+  </parameter>
+  <parameter name="sslverify">
+    <description>Specify Whether or not to check server certificate against installed CAs.  Default is 'enable'.</description>
+    <allowedvalue>enable</allowedvalue>
+    <allowedvalue>disable</allowedvalue>
+  </parameter>
 </service>
