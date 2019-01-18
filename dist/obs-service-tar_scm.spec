@@ -58,10 +58,6 @@ BuildRequires:  python-unittest2
 BuildRequires:  python >= 2.6
 Requires:       git-core
 
-%if (0%{?fedora_version} && 0%{?fedora_version} < 26) || 0%{?centos} == 6 || 0%{?centos} == 7
-BuildRequires:  python-argparse
-Requires:       python-argparse
-%endif
 %if 0%{?suse_version} >= 1315
 Recommends:     bzr
 Recommends:     mercurial
@@ -101,6 +97,10 @@ Summary:        Creates a tar archive from local directory
 Group:          Development/Tools/Building
 Requires:       obs-service-obs_scm-common = %version-%release
 Provides:       obs-service-tar_scm:/usr/lib/obs/service/tar.service
+%if (0%{?fedora_version} && 0%{?fedora_version} < 26) || 0%{?centos} == 6 || 0%{?centos} == 7
+BuildRequires:  python-argparse
+Requires:       python-argparse
+%endif
 
 %description -n obs-service-tar
 Creates a tar archive from local directory
