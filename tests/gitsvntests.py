@@ -138,7 +138,7 @@ class GitSvnTests(CommonTests):
 
         rev = self.changesrevision(rev, abbrev=True)
 
-        expected_author = author or 'opensuse-packaging@opensuse.org'
+        expected_author = author or 'obs-service-tar-scm@invalid'
         expected_changes_regexp = self._new_change_entry_regexp(
             expected_author,
             textwrap.dedent("""\
