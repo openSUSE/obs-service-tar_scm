@@ -137,33 +137,22 @@ class UnitTestCases(unittest.TestCase):
 
     def test_changes_get_chga_oscrc(self):
         '''Test if getting changesauthor from .oscrc works'''
-        tc_name             = inspect.stack()[0][3]
-        home                = os.environ['HOME']
-        os.environ['HOME']  = os.path.join(self.fixtures_dir, tc_name)
+        os.environ["VC_MAILADDR"] = 'devel@example.com'
         chg                 = Changes()
         author              = chg.get_changesauthor(self.cli)
-        os.environ['HOME']  = home
         self.assertEqual(author, 'devel@example.com')
+        os.environ["VC_MAILADDR"] = ''
 
     def test_changes_get_chga_default(self):
-        '''Test if getting changesauthor from .oscrc'''
+        '''Test if getting default changesauthor if running inside OBS'''
+        os.environ['OBS_SERVICE_DAEMON'] = "1"
         home                = os.environ['HOME']
         os.environ['HOME']  = '/nir/va/na'
         chg                 = Changes()
         author              = chg.get_changesauthor(self.cli)
         os.environ['HOME']  = home
         self.assertEqual(author, 'obs-service-tar-scm@invalid')
-
-    def test_changes_get_chga_home_rc(self):
-        '''Test if getting changesauthor from rcfile in home dir'''
-        home                = os.environ['HOME']
-        tc_name             = inspect.stack()[0][3]
-        home                = os.environ['HOME']
-        os.environ['HOME']  = os.path.join(self.fixtures_dir, tc_name)
-        chg                 = Changes()
-        author              = chg.get_changesauthor(self.cli)
-        os.environ['HOME']  = home
-        self.assertEqual(author, 'devel@example.com')
+        os.environ['OBS_SERVICE_DAEMON'] = "0"
 
     def test_git_repoc_hash_wo_subdir(self):
         '''Test to get git repocache dir without subdir'''

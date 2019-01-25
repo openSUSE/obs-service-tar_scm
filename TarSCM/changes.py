@@ -204,25 +204,26 @@ class Changes():
         shutil.move(tmp_fp.name, changes_filename)
 
     def get_changesauthor(self, args):
-        changesauthor = None
         # return changesauthor if given as cli option
         if args.changesauthor:
             return args.changesauthor
 
-        # find changesauthor in $HOME/.oscrc
-        try:
-            files = [[os.path.join(os.environ['HOME'], '.oscrc'), False]]
-            cfg = Config(files)
+        # return changesauthor if set by osc
+        if os.getenv('VC_MAILADDR'):
+            return os.environ['VC_MAILADDR']
 
-            section = cfg.get('general', 'apiurl')
-            if section:
-                changesauthor = cfg.get(section, 'email')
-        except KeyError:
-            pass
+        # return default changesauthor if running on server side
+        if os.getenv('OBS_SERVICE_DAEMON'):
+            return Cli.DEFAULT_AUTHOR
 
-        if not changesauthor:
-            changesauthor = Cli.DEFAULT_AUTHOR
-
-        logging.debug("AUTHOR: %s", changesauthor)
-
-        return changesauthor
+        # exit if running locally (non server mode) and now changesauthor
+        # could be determined
+        raise SystemExit(
+            """No changesauthor defined!\n"""
+            """You can define it by:\n"""
+            """ * configure 'email=' in ~/.config/osc/oscrc """
+            """in your default api section\n"""
+            """ * configure <param name="changesauthor">"""
+            """...</param> in your _service file\n"""
+            """ * using '--changesauthor' on the cli\n"""
+        )
