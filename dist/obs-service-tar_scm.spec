@@ -31,7 +31,6 @@ Source:         %{name}-%{version}.tar.gz
 # based distributions
 #Patch0:         0001-Debianization-disable-running-mercurial-tests.patch
 %if %{with obs_scm_testsuite}
-BuildRequires:  bzr
 BuildRequires:  git-core
 BuildRequires:  mercurial
 BuildRequires:  subversion
@@ -177,6 +176,9 @@ make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}"
 # No need to run PEP8 tests here; that would require a potentially
 # brittle BuildRequires: python-pep8, and any style issues are already
 # caught by Travis CI.
+# export a custom testclass list which does *not* include bzr
+# because bzr is not py3 compatible
+export TAR_SCM_TC=UnitTestCases,TasksTestCases,ArchiveOBSCpioTestCases,SCMBaseTestCases,GitTests,SvnTests,HgTests,TarTestCases
 make test
 %endif
 %endif
