@@ -184,7 +184,7 @@ class Svn(Scm):
 
     def get_repocache_hash(self, subdir):
         """Calculate hash fingerprint for repository cache."""
-        return hashlib.sha256(self.url + '/' + subdir).hexdigest()
+        return hashlib.sha256(self.url.encode() + b'/' + subdir.encode()).hexdigest()
 
     def _get_log(self, clone_dir, revision1, revision2):
         new_lines = []
