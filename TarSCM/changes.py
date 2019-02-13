@@ -176,6 +176,9 @@ class Changes():
     def write_changes(self, changes_filename, changes, version, author):
         """Add changes to given *.changes file."""
         if changes is None:
+            logging.debug(
+                "No changes found."
+                " Skipping write_changes to %s", changes_filename)
             return
 
         logging.debug("Writing changes file %s", changes_filename)
@@ -206,14 +209,20 @@ class Changes():
     def get_changesauthor(self, args):
         # return changesauthor if given as cli option
         if args.changesauthor:
+            logging.debug("Found changesauthor in args.changesauthor='%s'",
+                          args.changesauthor)
             return args.changesauthor
 
         # return changesauthor if set by osc
         if os.getenv('VC_MAILADDR'):
+            logging.debug("Found changesauthor in VC_MAILADDR='%s'",
+                          os.environ['VC_MAILADDR'])
             return os.environ['VC_MAILADDR']
 
         # return default changesauthor if running on server side
         if os.getenv('OBS_SERVICE_DAEMON'):
+            logging.debug("Running in daemon mode. Using DEFAULT_AUHTOR='%s'",
+                          Cli.DEFAULT_AUTHOR)
             return Cli.DEFAULT_AUTHOR
 
         # exit if running locally (non server mode) and now changesauthor
