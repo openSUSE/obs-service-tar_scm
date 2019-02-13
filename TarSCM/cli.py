@@ -83,7 +83,7 @@ class Cli():
         parser.add_argument('--changesauthor',
                             help='The author of the changes file entry to be '
                                  'written, defaults to first email entry in '
-                                 '~/.oscrc or "%s" '
+                                 'osc rc files or "%s" '
                                  'if there is no ~/.oscrc found.' %
                             self.DEFAULT_AUTHOR)
         parser.add_argument('--subdir', default='',

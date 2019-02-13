@@ -176,6 +176,9 @@ class Changes():
     def write_changes(self, changes_filename, changes, version, author):
         """Add changes to given *.changes file."""
         if changes is None:
+            logging.debug(
+                "No changes found."
+                " Skipping write_changes to %s", changes_filename)
             return
 
         logging.debug("Writing changes file %s", changes_filename)
@@ -204,25 +207,32 @@ class Changes():
         shutil.move(tmp_fp.name, changes_filename)
 
     def get_changesauthor(self, args):
-        changesauthor = None
         # return changesauthor if given as cli option
         if args.changesauthor:
+            logging.debug("Found changesauthor in args.changesauthor='%s'",
+                          args.changesauthor)
             return args.changesauthor
 
-        # find changesauthor in $HOME/.oscrc
-        try:
-            files = [[os.path.join(os.environ['HOME'], '.oscrc'), False]]
-            cfg = Config(files)
+        # return changesauthor if set by osc
+        if os.getenv('VC_MAILADDR'):
+            logging.debug("Found changesauthor in VC_MAILADDR='%s'",
+                          os.environ['VC_MAILADDR'])
+            return os.environ['VC_MAILADDR']
 
-            section = cfg.get('general', 'apiurl')
-            if section:
-                changesauthor = cfg.get(section, 'email')
-        except KeyError:
-            pass
+        # return default changesauthor if running on server side
+        if os.getenv('OBS_SERVICE_DAEMON'):
+            logging.debug("Running in daemon mode. Using DEFAULT_AUHTOR='%s'",
+                          Cli.DEFAULT_AUTHOR)
+            return Cli.DEFAULT_AUTHOR
 
-        if not changesauthor:
-            changesauthor = Cli.DEFAULT_AUTHOR
-
-        logging.debug("AUTHOR: %s", changesauthor)
-
-        return changesauthor
+        # exit if running locally (non server mode) and now changesauthor
+        # could be determined
+        raise SystemExit(
+            """No changesauthor defined!\n"""
+            """You can define it by:\n"""
+            """ * configure 'email=' in ~/.config/osc/oscrc """
+            """in your default api section\n"""
+            """ * configure <param name="changesauthor">"""
+            """...</param> in your _service file\n"""
+            """ * using '--changesauthor' on the cli\n"""
+        )

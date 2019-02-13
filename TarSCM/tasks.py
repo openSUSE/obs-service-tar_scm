@@ -236,6 +236,7 @@ class Tasks():
             args.version = "_auto_"
             changesversion = self.get_version()
 
+        logging.debug("Searching for '*.changes' in %s", os.getcwd())
         for filename in glob.glob('*.changes'):
             new_changes_file = os.path.join(args.outdir, filename)
             shutil.copy(filename, new_changes_file)

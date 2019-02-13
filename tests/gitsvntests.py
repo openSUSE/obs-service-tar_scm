@@ -14,28 +14,35 @@ class GitSvnTests(CommonTests):
 
     """Unit tests which are shared between git and svn."""
 
+    def _tar_scm_changesgenerate(self, mode, **kwargs):
+        self.tar_scm_std(
+            '--changesauthor', 'a@b.c',
+            '--changesgenerate', mode,
+            **kwargs
+        )
+
     def test_changesgenerate_disabled(self):
-        self.tar_scm_std('--changesgenerate', 'disable')
+        self._tar_scm_changesgenerate('disable')
 
     def test_changesgenerate_no_servicedata(self):
-        self.tar_scm_std('--changesgenerate', 'enable')
+        self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
     def test_changesgenerate_corrupt_servicedata(self):
         with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sd:
             sd.write('this is not valid xml')
-        self.tar_scm_std('--changesgenerate', 'enable', should_succeed=False)
+        self._tar_scm_changesgenerate('enable', should_succeed=False)
 
     def test_changesgenerate_empty_servicedata_file(self):
         sd = open(os.path.join(self.pkgdir, '_servicedata'), 'w')
         sd.close()
-        self.tar_scm_std('--changesgenerate', 'enable')
+        self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
     def test_changesgenerate_empty_servicedata_element(self):
         with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sd:
             sd.write("<servicedata>\n</servicedata>\n")
-        self.tar_scm_std('--changesgenerate', 'enable')
+        self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
     def test_changesgenerate_no_changesrevision(self):
@@ -47,7 +54,7 @@ class GitSvnTests(CommonTests):
                 </service>
               </servicedata>
             """ % self.fixtures.repo_url))
-        self.tar_scm_std('--changesgenerate', 'enable')
+        self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
     def _write_changes_file(self):
@@ -68,19 +75,19 @@ class GitSvnTests(CommonTests):
 
     def test_changesgenerate_no_change_or_changes_file(self):
         self._write_servicedata(2)
-        self.tar_scm_std('--changesgenerate', 'enable')
+        self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
     def test_changesgenerate_no_change_same_changes_file(self):
         self._write_servicedata(2)
         self._write_changes_file()
-        self.tar_scm_std('--changesgenerate', 'enable')
+        self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
     def test_changesgenerate_new_commit_no_changes_file(self):
         self._write_servicedata(2)
         self.fixtures.create_commits(1)
-        self.tar_scm_std('--changesgenerate', 'enable')
+        self._tar_scm_changesgenerate('enable')
         self._check_servicedata(revision=3)
 
     def _new_change_entry_regexp(self, author, changes):
@@ -108,7 +115,9 @@ class GitSvnTests(CommonTests):
             self.fixtures.user_email)
 
     def test_changesgenerate_new_commit_and_changes_file_default_author(self):
+        os.environ['OBS_SERVICE_DAEMON'] = "1"
         self._test_changesgenerate_new_commit_and_changes_file()
+        os.environ['OBS_SERVICE_DAEMON'] = "0"
 
     def _write_servicedata(self, rev):
         with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sd:
