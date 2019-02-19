@@ -4,15 +4,12 @@ import sys
 import os
 import inspect
 import shutil
+import unittest
+import six
 from mock import MagicMock
 
 from tar_scm import TarSCM
 from tests.fake_classes import FakeSCM
-
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
 
 
 class TasksTestCases(unittest.TestCase):

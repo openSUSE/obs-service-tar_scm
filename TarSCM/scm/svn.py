@@ -33,7 +33,7 @@ class Svn(Scm):
         # config directory that will be added via '--config-dir'
         scmcmd = ['svn']
         if self.httpproxy:
-            logging.debug("using %s", self.svntmpdir)
+            logging.debug("using svntmpdir %s", self.svntmpdir)
             cfg = open(self.svntmpdir + "/servers", "wb")
             cfg.write('[global]\n')
 
@@ -93,7 +93,7 @@ class Svn(Scm):
             self.helpers.safe_run(command, wdir,
                                   interactive=sys.stdout.isatty())
         except SystemExit as exc:
-            if re.search(ENCODING_RE, exc.message):
+            if re.search(ENCODING_RE, exc.code):
                 raise SystemExit(ENCODING_MSG)
             else:
                 raise exc
@@ -108,13 +108,13 @@ class Svn(Scm):
             self.helpers.safe_run(command, cwd=self.clone_dir,
                                   interactive=sys.stdout.isatty())
         except SystemExit as exc:
-            logging.warn("Could not update cache: >>>%s<<<!", exc.message)
+            logging.warning("Could not update cache: >>>%s<<<!", exc.code)
             osd = os.getenv('OBS_SERVICE_DAEMON')
-            if (re.match(r".*run 'cleanup'.*", exc.message) and osd):
-                logging.warn("Removing old cache dir '%s'!", self.clone_dir)
+            if (re.match(r".*run 'cleanup'.*", exc.code) and osd):
+                logging.warning("Removing old cache dir '%s'!", self.clone_dir)
                 shutil.rmtree(self.clone_dir)
                 self.fetch_upstream_scm()
-            elif re.search(ENCODING_RE, exc.message):
+            elif re.search(ENCODING_RE, exc.code):
                 raise SystemExit(ENCODING_MSG)
             else:
                 raise exc
@@ -131,7 +131,10 @@ class Svn(Scm):
                                          self.clone_dir)[1]
 
         version = ''
-        match = re.search('Last Changed Rev: (.*)', svn_info, re.MULTILINE)
+        match = re.search(
+            r'Last Changed Rev: (.*)',
+            svn_info.decode(),
+            re.MULTILINE)
         if match:
             version = match.group(1).strip()
         return re.sub('%r', version, versionformat)
@@ -141,7 +144,11 @@ class Svn(Scm):
                                                                 '-rHEAD'],
                                          self.clone_dir)[1]
 
-        match = re.search('Last Changed Date: (.*)', svn_info, re.MULTILINE)
+        match = re.search(
+            r'Last Changed Date: (.*)',
+            svn_info.decode(),
+            re.MULTILINE)
+
         if not match:
             return 0
 
@@ -184,7 +191,8 @@ class Svn(Scm):
 
     def get_repocache_hash(self, subdir):
         """Calculate hash fingerprint for repository cache."""
-        return hashlib.sha256(self.url + '/' + subdir).hexdigest()
+        string = self.url.encode() + b'/' + subdir.encode()
+        return hashlib.sha256(string).hexdigest()
 
     def _get_log(self, clone_dir, revision1, revision2):
         new_lines = []
@@ -195,7 +203,7 @@ class Svn(Scm):
             clone_dir
         )[1]
 
-        lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
+        lines = re.findall(r"<msg>.*?</msg>", xml_lines.decode(), re.S)
 
         for line in lines:
             line = line.replace("<msg>", "").replace("</msg>", "")
@@ -204,17 +212,17 @@ class Svn(Scm):
         return new_lines
 
     def _get_rev(self, clone_dir, num_commits):
-        revisions = self.helpers.safe_run(
-            self._get_scm_cmd() + ['log', '-l%d' % num_commits, '-q',
-                                   '--incremental'], cwd=clone_dir
-        )[1].split('\n')
+        cmd = self._get_scm_cmd()
+        cmd.extend(['log', '-l%d' % num_commits, '-q', '--incremental'])
+        raw = self.helpers.safe_run(cmd, cwd=clone_dir)
+        revisions = raw[1].split(b"\n")
         # remove blank entry on end
         revisions.pop()
         # return last entry
         revision = revisions[-1]
         # retrieve the revision number and remove r
-        revision = re.search(r'^r[0-9]*', revision, re.M).group().replace("r",
-                                                                          "")
+        revision = re.search(r'^r[0-9]*', revision.decode(), re.M)
+        revision = revision.group().replace("r", "")
         return revision
 
     def cleanup(self):

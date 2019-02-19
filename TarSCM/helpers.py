@@ -40,7 +40,7 @@ class Helpers():
                 for line in proc.stdout:
                     print(line.rstrip())
                     stdout_lines.append(line.rstrip())
-            output = '\n'.join(stdout_lines)
+            output = b'\n'.join(stdout_lines)
             output = output
         else:
             output = proc.communicate()[0]
@@ -48,7 +48,7 @@ class Helpers():
         if proc.returncode and raisesysexit:
             logging.info("ERROR(%d): %s", proc.returncode, repr(output))
             raise SystemExit(
-                "Command failed(%d): '%s'" % (proc.returncode, output)
+                "Command failed(%d): '%s'" % (proc.returncode, output.decode())
             )
         else:
             logging.debug("RESULT(%d): %s", proc.returncode, repr(output))
@@ -59,7 +59,8 @@ class Helpers():
         """Execute the command cmd in the working directory cwd and check return
         value. If the command returns non-zero raise a SystemExit exception.
         """
-        return self.run_cmd(cmd, cwd, interactive, raisesysexit=True)
+        result = self.run_cmd(cmd, cwd, interactive, raisesysexit=True)
+        return result
 
     def get_timestamp(self, scm_object, args, clone_dir):
         """Returns the commit timestamp for checked-out repository."""

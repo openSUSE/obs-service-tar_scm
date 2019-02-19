@@ -46,14 +46,14 @@ class Bzr(Scm):
 
         version = self.helpers.safe_run(self._get_scm_cmd() + ['revno'],
                                         self.clone_dir)[1]
-        return re.sub('%r', version.strip(), versionformat)
+        return re.sub('%r', version.strip().decode(), versionformat)
 
     def get_timestamp(self):
         log = self.helpers.safe_run(
             self._get_scm_cmd() + ['log', '--limit=1', '--log-format=long'],
             self.clone_dir
         )[1]
-        match = re.search(r'timestamp:(.*)', log, re.MULTILINE)
+        match = re.search(r'timestamp:(.*)', log.decode(), re.MULTILINE)
         if not match:
             return 0
         tsm = match.group(1).strip()

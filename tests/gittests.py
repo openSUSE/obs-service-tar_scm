@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
 import datetime
@@ -206,14 +206,12 @@ class GitTests(GitHgTests, GitSvnTests):
         self.assertTrue('_servicedata' in dirents,
                         '_servicedata in %s' % repr(dirents))
         sd = open(os.path.join(self.outdir, '_servicedata')).read()
-        expected = """\
-          <servicedata>
-            <service name="tar_scm">
-              <param name="url">%s</param>
-              <param name="changesrevision">([0-9a-f]{40})</param>
-            </service>
-          </servicedata>""" % self.fixtures.repo_url
-        (expected, count) = re.subn('\s{2,}', '\s*', expected)
+        expected = (r"\s*<servicedata>"
+                   r"\s*<service name=\"tar_scm\">"
+                   r"\s*<param name=\"url\">%s</param>" 
+                   r"\s*<param name=\"changesrevision\">([0-9a-f]{40})</param>" 
+                   r"\s*</service>" 
+                   r"\s*</servicedata>" % self.fixtures.repo_url)
         m = re.match(expected, sd)
         self.assertTrue(m, "\n'%s'\n!~ /%s/" % (sd, expected))
         sha1 = m.group(1)

@@ -1,11 +1,12 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 from __future__ import print_function
 
-import sys
 import os
 import re
 import inspect
 import shutil
+import unittest
+import six
 
 import TarSCM
 
@@ -14,13 +15,6 @@ from TarSCM.archive import ObsCpio
 
 from tests.gitfixtures import GitFixtures
 from tests.scmlogs import ScmInvocationLogs
-
-
-if sys.version_info < (2, 7):
-    # pylint: disable=import-error
-    import unittest2 as unittest
-else:
-    import unittest
 
 
 class ArchiveOBSCpioTestCases(unittest.TestCase):
@@ -108,7 +102,8 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
         outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
         arch    = ObsCpio()
         os.makedirs(outdir)
-        self.assertRaisesRegexp(
+        six.assertRaisesRegex(
+            self,
             SystemExit,
             re.compile('No such file or directory'),
             arch.extract_from_archive,
@@ -129,7 +124,8 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
         outdir  = os.path.join(self.tmp_dir, cl_name, tc_name, 'out')
         arch    = TarSCM.archive.ObsCpio()
         os.makedirs(outdir)
-        self.assertRaisesRegexp(
+        six.assertRaisesRegex(
+            self,
             IOError,
             re.compile('Is a directory:'),
             arch.extract_from_archive,
@@ -188,7 +184,8 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
 
         os.symlink("/", os.path.join(repodir, 'dir1'))
         arch    = TarSCM.archive.ObsCpio()
-        self.assertRaisesRegexp(
+        six.assertRaisesRegex(
+            self,
             SystemExit,
             re.compile('tries to escape the repository'),
             arch.extract_from_archive,

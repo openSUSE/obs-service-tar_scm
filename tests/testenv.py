@@ -1,10 +1,9 @@
-#!/usr/bin/env python2
-
 import datetime
 import os
 import shutil
 import sys
 import logging
+import trace
 from utils import mkfreshdir, run_cmd
 from scmlogs import ScmInvocationLogs
 import TarSCM
@@ -188,14 +187,23 @@ class TestEnvironment:
         print(">>>>>>>>>>>")
         print("Running %s" % cmdstr)
         print()
-
+        print("start TarSCM.run")
         try:
-            TarSCM.run()
+            tracer = trace.Trace(
+                ignoredirs=[sys.prefix, sys.exec_prefix],
+                trace=1,
+                count=0)
+            tracer.runfunc(TarSCM.run)
+            #r = tracer.results()
+            #r.write_results(show_missing=True, coverdir=".")
         except SystemExit as e:
+            print("raised system exit %r" % e)
             if e.code == 0:
+                print("e.code is ok")
                 ret = 0
                 succeeded = True
             else:
+                print("e.code is not 0")
                 sys.stderr.write(e.code)
                 ret = 1
                 succeeded = False
@@ -204,6 +212,7 @@ class TestEnvironment:
             ret = 1
             succeeded = False
         except Exception as e:
+            print("Raised Exception %r" % e)
             if (hasattr(e, 'message')):
                 msg = e.message
             else:
@@ -228,7 +237,7 @@ class TestEnvironment:
             print("--v-v-- begin STDERR from tar_scm --v-v--")
             print(stderr)
             print("--^-^-- end   STDERR from tar_scm --^-^--")
-
+        print("succeeded: %r - should_succeed %r" % (succeeded, should_succeed))
         self.assertEqual(succeeded, should_succeed,
                          "expected tar_scm to " +
                          ("succeed" if should_succeed else "fail"))

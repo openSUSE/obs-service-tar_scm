@@ -1,11 +1,12 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 from __future__ import print_function
 
-import sys
 import os
 import re
 import inspect
 import copy
+import unittest
+import six
 from mock import patch
 
 import TarSCM
@@ -17,12 +18,6 @@ from TarSCM.scm.git import Git
 from TarSCM.scm.svn import Svn
 from TarSCM.scm.hg  import Hg
 from TarSCM.scm.bzr import Bzr
-
-if sys.version_info < (2, 7):
-    # pylint: disable=import-error
-    import unittest2 as unittest
-else:
-    import unittest
 
 
 # pylint: disable=duplicate-code
@@ -80,7 +75,8 @@ class UnitTestCases(unittest.TestCase):
 
     def test_safe_run_exception(self):
         helpers = Helpers()
-        self.assertRaisesRegexp(
+        six.assertRaisesRegex(
+            self,
             SystemExit,
             re.compile(r"Command failed\(1\): ''"),
             helpers.safe_run,
@@ -237,7 +233,8 @@ class UnitTestCases(unittest.TestCase):
         )
         f_h.close()
 
-        self.assertRaisesRegexp(
+        six.assertRaisesRegex(
+            self,
             SystemExit,
             re.compile('Error while moving from '),
             scm_object.fetch_upstream
@@ -246,7 +243,8 @@ class UnitTestCases(unittest.TestCase):
         # testing with no info
         os.chdir(cur_cwd)
         scm_object.args.obsinfo = None
-        self.assertRaisesRegexp(
+        six.assertRaisesRegex(
+            self,
             SystemExit,
             re.compile('ERROR: no .obsinfo file found in directory:'),
             scm_object.fetch_upstream
@@ -352,7 +350,8 @@ class UnitTestCases(unittest.TestCase):
         )
         f_h.close()
         os.chdir(wdir)
-        self.assertRaisesRegexp(
+        six.assertRaisesRegex(
+            self,
             SystemExit,
             re.compile("name in obsinfo contains '/'."),
             scm_object.fetch_upstream
@@ -368,7 +367,8 @@ class UnitTestCases(unittest.TestCase):
         )
         f_h.close()
         os.chdir(wdir)
-        self.assertRaisesRegexp(
+        six.assertRaisesRegex(
+            self,
             SystemExit,
             re.compile("verion in obsinfo contains '/' or '..'."),
             scm_object.fetch_upstream
@@ -384,7 +384,8 @@ class UnitTestCases(unittest.TestCase):
         )
         f_h.close()
         os.chdir(wdir)
-        self.assertRaisesRegexp(
+        six.assertRaisesRegex(
+            self,
             SystemExit,
             re.compile("verion in obsinfo contains '/' or '..'."),
             scm_object.fetch_upstream

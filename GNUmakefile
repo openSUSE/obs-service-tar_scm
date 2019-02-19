@@ -61,7 +61,7 @@ PYTHON2 = python2 python2.7 python-2.7 python2.6 python-2.6 python
 ALL_PYTHONS = $(PYTHON3) $(PYTHON2)
 PYTHON_MAJOR := $(shell python -c "import sys; print sys.version[:1]" 2>/dev/null)
 ifeq ($(PYTHON_MAJOR), 2)
-PYTHON := $(shell which python)
+PYTHON := $(shell which python2)
 else
 PYTHON = $(call first_in_path,$(ALL_PYTHONS))
 endif
@@ -73,21 +73,24 @@ LIST_PY_FILES=git ls-tree --name-only -r HEAD | grep '\.py$$'
 PY_FILES=$(shell $(LIST_PY_FILES))
 
 ALL_PYLINT2 = pylint-2.7 pylint2.7 pylint
-ALL_PYLINT3 = pylint-3.4 pylint3.4 pylint-3.5 pylint3.5 pylint-3.6 pylint3.6
+ALL_PYLINT3 = pylint-3.4 pylint3.4 pylint-3.5 pylint3.5 pylint-3.6 pylint3.6 pylint-3.7 pylint3.7
+ALL_FLAKE83 = flake8-3.6 flake8-36 flake8-37 flake8-3.7 flake8
 
 PYLINT2 = $(call first_in_path_opt,$(ALL_PYLINT2))
 PYLINT3 = $(call first_in_path_opt,$(ALL_PYLINT3))
 
+FLAKE83 = $(call first_in_path_opt,$(ALL_FLAKE83))
+
 default: check
 
 .PHONY: check check_all
-check: flake8 pylint test test3
+check: check2 check3
 
 .PHONY: check2
 check2: flake8 pylint test
 
 .PHONY: check3
-check3: flake8 pylint test3
+check3: flake83 pylint3 test3
 
 .PHONY: list-py-files
 list-py-files:
@@ -103,14 +106,25 @@ flake8:
 		echo "Finished flake8";\
 	fi
 
+.PHONY: flake83
+flake83:
+	@if [ "x$(FLAKE83)" != "x" ]; then \
+		echo "Running flake83";\
+		$(FLAKE83);\
+		echo "Finished flake83";\
+	else \
+		echo "flake8 for python3 not found";\
+	fi
+
+
 .PHONY: test
 test:
 	: Running the test suite.  Please be patient - this takes a few minutes ...
-	LANG=C TAR_SCM_TESTMODE=1 PYTHONPATH=. $(PYTHON) tests/test.py 2>&1 | tee ./test.log
+	LANG= LC_TYPE= TAR_SCM_TESTMODE=1 PYTHONPATH=. $(PYTHON) tests/test.py 2>&1 | tee ./test.log
 
 test3:
 	: Running the test suite.  Please be patient - this takes a few minutes ...
-	LANG=C TAR_SCM_TESTMODE=1 PYTHONPATH=. python3 tests/test.py 2>&1 | tee ./test3.log
+	LANG= LC_TYPE= TAR_SCM_TESTMODE=1 PYTHONPATH=. python3 tests/test.py 2>&1 | tee ./test3.log
 
 .PHONY: pylint
 pylint: pylint2 pylinttest2

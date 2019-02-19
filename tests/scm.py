@@ -5,16 +5,14 @@ import inspect
 import re
 import copy
 import shutil
+import unittest
+import six
+
 from mock import MagicMock
 
 from TarSCM.scm.base import Scm
 
 import TarSCM
-
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
 
 
 class SCMBaseTestCases(unittest.TestCase):

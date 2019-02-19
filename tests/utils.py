@@ -1,5 +1,5 @@
-#!/usr/bin/env python2
-#
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # Simple utility functions to help executing processes.
 from __future__ import print_function
 
@@ -24,7 +24,8 @@ def mkfreshdir(path):
 def run_cmd(cmd):
     proc = subprocess.Popen(cmd, shell=True,
                             stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+                            stderr=subprocess.PIPE,
+                           )
     (stdout, stderr) = proc.communicate()
     return (stdout, stderr, proc.returncode)
 

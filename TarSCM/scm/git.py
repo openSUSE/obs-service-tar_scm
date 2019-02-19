@@ -62,7 +62,6 @@ class Git(Scm):
                         self._get_scm_cmd() + ['reset', '--hard', rev],
                         cwd=self.clone_dir
                     )[1]
-                # print (text.rstrip())
                 break
 
         if found_revision is None:
@@ -196,6 +195,9 @@ class Git(Scm):
             # strip to remove newlines
             parent_tag = output.strip()
 
+        if isinstance(parent_tag, bytes):
+            parent_tag = parent_tag.decode()
+
         return parent_tag
 
     def _detect_version_parent_tag(self, parent_tag, versionformat):  # noqa pylint: disable=no-self-use
@@ -222,7 +224,7 @@ class Git(Scm):
             msg.format(out)
             sys.exit(msg)
 
-        tag_offset = out.strip()
+        tag_offset = out.strip().decode()
         versionformat = re.sub('@TAG_OFFSET@', tag_offset,
                                versionformat)
         return versionformat
@@ -259,8 +261,10 @@ class Git(Scm):
         if last_rev is None:
             last_rev = self._log_cmd(
                 ['-n1', '--pretty=format:%H', '--skip=10'], subdir)
+            last_rev = last_rev.decode()
 
         current_rev = self._log_cmd(['-n1', '--pretty=format:%H'], subdir)
+        current_rev = current_rev.decode()
 
         if last_rev == current_rev:
             logging.debug("No new commits, skipping changes file generation")
@@ -279,7 +283,7 @@ class Git(Scm):
                               subdir)
 
         chgs['revision'] = current_rev
-        chgs['lines'] = lines.split('\n')
+        chgs['lines'] = lines.split(b'\n')
         return chgs
 
     def prepare_working_copy(self):

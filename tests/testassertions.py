@@ -1,15 +1,12 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 import os
 from pprint import pprint, pformat
 import re
 import sys
 import tarfile
-
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
+import unittest
+import six
 
 line_start = '(^|\n)'
 

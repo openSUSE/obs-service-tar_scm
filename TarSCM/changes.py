@@ -5,6 +5,7 @@ import shutil
 import sys
 import tempfile
 import stat
+import chardet
 
 from TarSCM.cli    import Cli
 from TarSCM.config import Config
@@ -183,25 +184,36 @@ class Changes():
 
         logging.debug("Writing changes file %s", changes_filename)
 
+        print(changes)
+        enc = 'ascii'
+        for i in changes:
+            if isinstance(i, bytes):
+                tenc = chardet.detect(i)['encoding']
+                if tenc != 'ascii':
+                    enc = tenc
+
         tmp_fp = tempfile.NamedTemporaryFile(delete=False)
         mode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
         os.chmod(tmp_fp.name, mode)
 
-        tmp_fp.write('-' * 67 + '\n')
-        tmp_fp.write(str("%s - %s\n" % (
-            datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y'),
-            author)))
-        tmp_fp.write(b'\n')
-        tmp_fp.write(
-            "- Update to version %s:\n" % version)
+        dtime = datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y')
+
+        text = '-' * 67 + '\n'
+        text += "%s - %s\n" % (dtime, author)
+        text += '\n'
+        text += "- Update to version %s:\n" % version
         for line in changes:
-            tmp_fp.write("  * %s\n" % line)
-        tmp_fp.write('\n')
+            if isinstance(line, bytes):
+                text += "  * %s\n" % line.decode(enc)
+            else:
+                text += "  * %s\n" % line
+        text += '\n'
 
         old_fp = open(changes_filename, 'r')
-        tmp_fp.write(old_fp.read())
+        text += old_fp.read()
         old_fp.close()
 
+        tmp_fp.write(text.encode(enc))
         tmp_fp.close()
 
         shutil.move(tmp_fp.name, changes_filename)
