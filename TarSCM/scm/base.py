@@ -14,10 +14,10 @@ from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
 from TarSCM.config import Config
 
-if sys.version_info[0] < 3:
+try:
+    from urllib.parse import urlparse, urlencode
+except ImportError:
     from urlparse import urlparse
-else:
-    import urllib
 
 
 class Scm():
@@ -135,7 +135,7 @@ class Scm():
 
     def get_repocache_hash(self, subdir):
         """Calculate hash fingerprint for repository cache."""
-        u_url = self.url
+        u_url = self.url.encode()
         return hashlib.sha256(u_url).hexdigest()
 
     def get_current_commit(self):
@@ -203,10 +203,7 @@ class Scm():
 
     def _calc_dir_to_clone_to(self, prefix):
         # separate path from parameters etc.
-        try:
-            url_path = urlparse(self.url)[2].rstrip('/')
-        except:
-            url_path = urllib.parse.urlparse(self.url)[2].rstrip('/')
+        url_path = urlparse(self.url)[2].rstrip('/')
 
         # remove trailing scm extension
         logging.debug("Stripping '%s' extension from '%s'", self.scm, url_path)
@@ -257,7 +254,9 @@ class Scm():
         """Reformat timestamp value."""
         version = re.sub(r'([0-9]{4})-([0-9]{2})-([0-9]{2}) +'
                          r'([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?'
-                         r'( +[-+][0-9]{3,4})', r'\1\2\3T\4\6\8', version)
+                         r'( +[-+][0-9]{3,4})',
+                         r'\1\2\3T\4\6\8',
+                         version.decode())
         version = re.sub(r'[-:]', '', version)
         return version
 

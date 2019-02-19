@@ -1,4 +1,5 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 '''
 This CLI tool is responsible for running the tests.
 See TESTING.md for more information.
@@ -9,7 +10,7 @@ import os
 import re
 import shutil
 import sys
-
+import unittest
 
 from tests.gittests import GitTests
 from tests.svntests import SvnTests
@@ -22,10 +23,6 @@ from tests.scm import SCMBaseTestCases
 from tests.tartests import TarTestCases
 from tests.archiveobscpiotestcases import ArchiveOBSCpioTestCases
 
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
 
 
 def str_to_class(string):

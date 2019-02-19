@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 import os
 
@@ -29,8 +29,9 @@ class GitHgTests(CommonTests):
 
     def test_versionformat_dateYYYYMMDDHHMMSS(self):
         self.tar_scm_std('--versionformat', self.yyyymmddhhmmss_format)
-        self.assertTarOnly(
-            self.basename(version=self.dateYYYYMMDDHHMMSS(self.rev(2))))
+        ver = self.dateYYYYMMDDHHMMSS(self.rev(2))
+        print(ver)
+        self.assertTarOnly(self.basename(version=ver))
 
     def _mixed_version_format(self):
         return self.mixed_version_template % \

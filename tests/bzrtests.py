@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 from commontests import CommonTests
 from bzrfixtures import BzrFixtures

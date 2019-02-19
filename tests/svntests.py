@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 import os
 import re
@@ -59,13 +59,17 @@ class SvnTests(GitSvnTests):
         self.assertTrue('_servicedata' in dirents,
                         '_servicedata in %s' % repr(dirents))
         sd = open(os.path.join(self.outdir, '_servicedata')).read()
-        expected = """\
-          <servicedata>
-            <service name="tar_scm">
-              <param name="url">%s</param>
-              <param name="changesrevision">([0-9].*)</param>
-            </service>
-          </servicedata>""" % self.fixtures.repo_url
-        (expected, count) = re.subn('\s{2,}', '\s*', expected)
+        expected = (
+            r"<servicedata>"
+            r"\s*<service name=\"tar_scm\">"
+            r"\s*<param name=\"url\">%s</param>"
+            r"\s*<param name=\"changesrevision\">([0-9].*)</param>"
+            r"\s*</service>"
+            r"\s*</servicedata>" % self.fixtures.repo_url
+        )
         m = re.match(expected, sd)
+        if m:
+            print("matched")
+        else:
+            print("matched not")
         self.assertTrue(m, "\n'%s'\n!~ /%s/" % (sd, expected))

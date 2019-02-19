@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 import os
 import textwrap
@@ -52,8 +52,7 @@ class GitSvnTests(CommonTests):
                 <service name="tar_scm">
                   <param name="url">%s</param>
                 </service>
-              </servicedata>
-            """ % self.fixtures.repo_url))
+              </servicedata>""" % self.fixtures.repo_url))
         self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
@@ -110,7 +109,7 @@ class GitSvnTests(CommonTests):
             m = re.match(expected_changes_regexp, new_changes, re.DOTALL)
             self.assertEqual(m.group(1), orig_changes)
 
-    def test_changesgenerate_new_commit_and_changes_file(self):
+    def t_test_changesgenerate_new_commit_and_changes_fileest_changesgenerate_new_commit_and_changes_file(self):
         self._test_changesgenerate_new_commit_and_changes_file(
             self.fixtures.user_email)
 
@@ -127,26 +126,28 @@ class GitSvnTests(CommonTests):
                   <param name="url">%s</param>
                   <param name="changesrevision">%s</param>
                 </service>
-              </servicedata>
-            """ % (self.fixtures.repo_url, self.changesrevision(rev))))
+              </servicedata>""" % (self.fixtures.repo_url, self.changesrevision(rev))))
 
     def _test_changesgenerate_new_commit_and_changes_file(self, author=None):
         self._write_servicedata(2)
         orig_changes = self._write_changes_file()
         self.fixtures.create_commits(3)
         rev = 5
-
+        print("XXXX 1")
         tar_scm_args = self.tar_scm_args()
 
         if author is not None:
             tar_scm_args += ['--changesauthor', self.fixtures.user_email]
 
+        print("XXXX 2")
         self.tar_scm_std(*tar_scm_args)
 
+        print("XXXX 3")
         self._check_servicedata(revision=rev, expected_dirents=3)
 
         rev = self.changesrevision(rev, abbrev=True)
 
+        print("XXXX 4")
         expected_author = author or 'obs-service-tar-scm@invalid'
         expected_changes_regexp = self._new_change_entry_regexp(
             expected_author,
