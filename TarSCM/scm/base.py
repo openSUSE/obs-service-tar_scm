@@ -9,6 +9,7 @@ import fcntl
 import time
 import subprocess
 import glob
+import locale
 
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
@@ -284,6 +285,11 @@ class Scm():
             sys.exit("--subdir %s tries to escape repository." % subdir)
 
         logging.debug("copying tree: '%s' to '%s'", src, dst)
+        if self.args.locale:
+            ploc = locale.getpreferredencoding()
+            logging.debug("converting src/dst to locale %s", ploc)
+            src = src.decode(ploc)
+            dst = dst.decode(ploc)
         shutil.copytree(src, dst, symlinks=True)
 
     def lock_cache(self):
