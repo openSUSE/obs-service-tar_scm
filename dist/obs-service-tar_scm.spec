@@ -35,8 +35,8 @@ BuildRequires:  bzr
 BuildRequires:  git-core
 BuildRequires:  mercurial
 BuildRequires:  subversion
-BuildRequires:  glibc-locale
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
+BuildRequires:  glibc-common
 %define py_compile(O)  \
 find %1 -name '*.pyc' -exec rm -f {} \\; \
 python -c "import sys, os, compileall; br='%{buildroot}'; compileall.compile_dir(sys.argv[1], ddir=br and (sys.argv[1][len(os.path.abspath(br)):]+'/') or None)" %1 \
