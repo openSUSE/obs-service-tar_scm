@@ -175,5 +175,7 @@ class Cli():
         if args.locale:
             locale.setlocale(locale.LC_CTYPE, args.locale)
             os.environ["LC_CTYPE"] = args.locale
+            locale.setlocale(locale.LC_ALL, args.locale)
+            os.environ["LC_ALL"] = args.locale
 
         return args

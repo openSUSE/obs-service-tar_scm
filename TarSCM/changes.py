@@ -6,6 +6,8 @@ import sys
 import tempfile
 import stat
 import chardet
+import io
+import locale
 
 from TarSCM.cli    import Cli
 from TarSCM.config import Config
@@ -209,7 +211,8 @@ class Changes():
                 text += "  * %s\n" % line
         text += '\n'
 
-        old_fp = open(changes_filename, 'r')
+        old_fp = io.open(
+            changes_filename, 'r', encoding=locale.getpreferredencoding())
         text += old_fp.read()
         old_fp.close()
 
