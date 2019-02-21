@@ -6,6 +6,8 @@ import sys
 import tarfile
 import shutil
 import glob
+import locale
+import six
 
 from TarSCM.helpers import Helpers
 
@@ -204,15 +206,20 @@ class Tar(BaseArchive):
 
         tar = tarfile.open(
             os.path.join(outdir, dstname + '.' + extension),
-            "w"
+            "w",
+            encoding=locale.getpreferredencoding()
         )
+
         try:
             tar.add(topdir, recursive=False, filter=reset)
         except TypeError:
             # Python 2.6 compatibility
             tar.add(topdir, recursive=False)
+        ploc = locale.getpreferredencoding()
         for entry in map(lambda x: os.path.join(topdir, x),
                          sorted(os.listdir(topdir))):
+            if six.PY2:
+                entry = entry.encode(ploc)
             try:
                 tar.add(entry, filter=tar_filter)
             except TypeError:

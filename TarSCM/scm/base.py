@@ -287,9 +287,13 @@ class Scm():
         logging.debug("copying tree: '%s' to '%s'", src, dst)
         if self.args.locale:
             ploc = locale.getpreferredencoding()
+            print("converting to %s", ploc)
             logging.debug("converting src/dst to locale %s", ploc)
-            src = src.decode(ploc)
-            dst = dst.decode(ploc)
+            src = src.encode(ploc)
+            dst = dst.encode(ploc)
+        else:
+            print("no locale set")
+
         shutil.copytree(src, dst, symlinks=True)
 
     def lock_cache(self):
