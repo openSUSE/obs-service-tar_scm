@@ -11,6 +11,7 @@ import os
 import shutil
 import sys
 import re
+import locale
 import yaml
 
 import TarSCM.scm
@@ -45,7 +46,8 @@ class Tasks():
         for dirname in self.cleanup_dirs:
             if not os.path.exists(dirname):
                 continue
-            shutil.rmtree(dirname)
+            ploc = locale.getpreferredencoding()
+            shutil.rmtree(dirname.encode(ploc))
         self.cleanup_dirs = []
         # Unlock to prevent dead lock in cachedir if exception
         # gets raised
