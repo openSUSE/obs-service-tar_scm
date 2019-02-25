@@ -186,15 +186,12 @@ class Changes():
 
         logging.debug("Writing changes file %s", changes_filename)
 
-        enc = locale.getpreferredencoding()
-        for i in changes:
-            if isinstance(i, bytes):
-                tenc = chardet.detect(i)['encoding']
-                if tenc != 'ascii':
-                    enc = tenc
         tmp_fp = tempfile.NamedTemporaryFile(delete=False)
         mode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
         os.chmod(tmp_fp.name, mode)
+        tmp_filename = tmp_fp.name
+        tmp_fp.close()
+        tmp_fp=io.open(tmp_filename, 'w', encoding="UTF-8")
 
         dtime = datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y')
 
@@ -203,24 +200,14 @@ class Changes():
         text += '\n'
         text += "- Update to version %s:\n" % version
         for line in changes:
-            if isinstance(line, bytes) and enc:
-                text += "  * %s\n" % line.decode(enc)
-            else:
-                text += "  * %s\n" % line
+          text += "  * %s\n" % line.encode('UTF-8')
         text += '\n'
 
-        old_fp = io.open(changes_filename, 'rb')
-        old_text = old_fp.read()
-        char = chardet.detect(old_text)
-        if char['encoding']:
-            old_text = old_text.decode(char['encoding'])
-        text += old_text
+        old_fp = io.open(changes_filename, 'r', encoding='UTF-8')
+        text += old_fp.read()
         old_fp.close()
         if not enc and char['encoding']:
             enc = char['encoding']
-
-        if enc:
-            text = text.encode(enc)
 
         tmp_fp.write(text)
         tmp_fp.close()

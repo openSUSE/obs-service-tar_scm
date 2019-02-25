@@ -129,7 +129,7 @@ class Cli():
                             help='do not cleanup directories before exiting '
                                  '(Only for debugging)')
 
-        parser.add_argument('--locale',
+        parser.add_argument('--locale', default="en_US.UTF-8",
                             help='set locale while service run')
 
         self.verify_args(parser.parse_args(options))
