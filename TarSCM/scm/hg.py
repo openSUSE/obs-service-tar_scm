@@ -119,7 +119,7 @@ class Hg(Scm):
         cmd.extend([
             'log',
             '-l1',
-            "-r%s" % version.strip().decode(),
+            "-r%s" % version.strip(),
             '--template',
             versionformat
         ])

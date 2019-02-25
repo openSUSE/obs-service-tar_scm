@@ -129,7 +129,7 @@ class Cli():
                             help='do not cleanup directories before exiting '
                                  '(Only for debugging)')
 
-        parser.add_argument('--locale',
+        parser.add_argument('--locale', default="en_US.UTF-8",
                             help='set locale while service run')
 
         self.verify_args(parser.parse_args(options))
@@ -173,9 +173,8 @@ class Cli():
             self.__dict__[attr] = args.__dict__[attr]
 
         if args.locale:
-            locale.setlocale(locale.LC_CTYPE, args.locale)
-            os.environ["LC_CTYPE"] = args.locale
             locale.setlocale(locale.LC_ALL, args.locale)
             os.environ["LC_ALL"] = args.locale
+            os.environ["LANG"] = args.locale
 
         return args

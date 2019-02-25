@@ -7,7 +7,6 @@ import tarfile
 import shutil
 import glob
 import locale
-import six
 
 from TarSCM.helpers import Helpers
 
@@ -127,7 +126,7 @@ class ObsCpio(BaseArchive):
         metafile.write("mtime: " + str(tstamp) + "\n")
 
         if commit:
-            metafile.write("commit: " + commit.decode() + "\n")
+            metafile.write("commit: " + commit + "\n")
 
         metafile.close()
 
@@ -205,10 +204,7 @@ class Tar(BaseArchive):
         os.chdir(workdir)
         enc = locale.getpreferredencoding()
 
-        if six.PY2:
-            out_file = bytes(os.path.join(outdir, dstname + '.' + extension))
-        else:
-            out_file = os.path.join(outdir, dstname + '.' + extension)
+        out_file = os.path.join(outdir, dstname + '.' + extension)
 
         tar = tarfile.open(out_file, "w", encoding=enc)
 
@@ -217,11 +213,8 @@ class Tar(BaseArchive):
         except TypeError:
             # Python 2.6 compatibility
             tar.add(topdir, recursive=False)
-        ploc = locale.getpreferredencoding()
         for entry in map(lambda x: os.path.join(topdir, x),
                          sorted(os.listdir(topdir))):
-            if six.PY2:
-                entry = entry.encode(ploc)
             try:
                 tar.add(entry, filter=tar_filter)
             except TypeError:
