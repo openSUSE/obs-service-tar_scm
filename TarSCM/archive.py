@@ -113,7 +113,7 @@ class ObsCpio(BaseArchive):
             except OSError:
                 pass
             proc.stdin.write(name.encode())
-            proc.stdin.write("\n")
+            proc.stdin.write(b"\n")
         proc.stdin.close()
         ret_code = proc.wait()
         if ret_code != 0:
