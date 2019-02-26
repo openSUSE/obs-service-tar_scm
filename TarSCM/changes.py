@@ -200,7 +200,7 @@ class Changes():
         text += '\n'
         text += "- Update to version %s:\n" % version
         for line in changes:
-            text += "  * %s\n" % line.encode('UTF-8')
+            text += "  * %s\n" % line
         text += '\n'
 
         old_fp = io.open(changes_filename, 'r', encoding='UTF-8')
