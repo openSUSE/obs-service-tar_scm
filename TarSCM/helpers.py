@@ -20,12 +20,12 @@ class Helpers():
         SystemExit exception otherwise return a tuple of return code and
         command output.
         """
-        logging.debug("COMMAND: %s", cmd)
+        logging.debug("COMMAND: %s" % cmd)
 
         # Ensure we get predictable results when parsing the output of commands
         # like 'git branch'
         env = os.environ.copy()
-        env['LANG'] = 'C'
+        env['LANG'] = 'en_US.UTF-8'
 
         proc = subprocess.Popen(cmd,
                                 shell=False,
@@ -38,12 +38,15 @@ class Helpers():
             stdout_lines = []
             while proc.poll() is None:
                 for line in proc.stdout:
-                    print(line.rstrip())
-                    stdout_lines.append(line.rstrip())
-            output = b'\n'.join(stdout_lines)
+                    line_str = line.rstrip().decode('UTF-8')
+                    print(line_str)
+                    stdout_lines.append(line_str)
+            output = '\n'.join(stdout_lines)
             output = output
         else:
             output = proc.communicate()[0]
+            if isinstance(output, bytes):
+                output = output.decode('UTF-8')
 
         if proc.returncode and raisesysexit:
             logging.info("ERROR(%d): %s", proc.returncode, repr(output))
