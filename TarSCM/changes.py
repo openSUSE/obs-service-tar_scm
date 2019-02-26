@@ -186,14 +186,12 @@ class Changes():
 
         logging.debug("Writing changes file %s", changes_filename)
 
-        print(changes)
-        enc = 'ascii'
+        enc = locale.getpreferredencoding()
         for i in changes:
             if isinstance(i, bytes):
                 tenc = chardet.detect(i)['encoding']
                 if tenc != 'ascii':
                     enc = tenc
-
         tmp_fp = tempfile.NamedTemporaryFile(delete=False)
         mode = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
         os.chmod(tmp_fp.name, mode)
@@ -211,12 +209,17 @@ class Changes():
                 text += "  * %s\n" % line
         text += '\n'
 
-        old_fp = io.open(
-            changes_filename, 'r', encoding=locale.getpreferredencoding())
-        text += old_fp.read()
+        old_fp = io.open(changes_filename, 'rb')
+        old_text = old_fp.read()
+        char = chardet.detect(old_text)
+        if char['encoding']:
+            old_text = old_text.decode(char['encoding'])
+        text += old_text
         old_fp.close()
 
-        tmp_fp.write(text.encode(enc))
+        text = text.encode(enc)
+
+        tmp_fp.write(text)
         tmp_fp.close()
 
         shutil.move(tmp_fp.name, changes_filename)
