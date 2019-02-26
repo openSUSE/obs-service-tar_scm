@@ -203,12 +203,14 @@ class Tar(BaseArchive):
 
         cwd = os.getcwd()
         os.chdir(workdir)
+        enc = locale.getpreferredencoding()
 
-        tar = tarfile.open(
-            os.path.join(outdir, dstname + '.' + extension),
-            "w",
-            encoding=locale.getpreferredencoding()
-        )
+        if six.PY2:
+            out_file = bytes(os.path.join(outdir, dstname + '.' + extension))
+        else:
+            out_file = os.path.join(outdir, dstname + '.' + extension)
+
+        tar = tarfile.open(out_file, "w", encoding=enc)
 
         try:
             tar.add(topdir, recursive=False, filter=reset)

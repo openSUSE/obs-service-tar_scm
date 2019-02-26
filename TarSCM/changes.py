@@ -203,7 +203,7 @@ class Changes():
         text += '\n'
         text += "- Update to version %s:\n" % version
         for line in changes:
-            if isinstance(line, bytes):
+            if isinstance(line, bytes) and enc:
                 text += "  * %s\n" % line.decode(enc)
             else:
                 text += "  * %s\n" % line
@@ -216,8 +216,11 @@ class Changes():
             old_text = old_text.decode(char['encoding'])
         text += old_text
         old_fp.close()
+        if not enc and char['encoding']:
+            enc = char['encoding']
 
-        text = text.encode(enc)
+        if enc:
+            text = text.encode(enc)
 
         tmp_fp.write(text)
         tmp_fp.close()

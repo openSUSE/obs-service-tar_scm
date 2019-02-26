@@ -10,6 +10,7 @@ import time
 import subprocess
 import glob
 import locale
+import six
 
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
@@ -293,6 +294,9 @@ class Scm():
         else:
             logging.debug("no locale set")
 
+        if six.PY2:
+            src = bytes(src)
+            dst = bytes(dst)
         shutil.copytree(src, dst, symlinks=True)
 
     def lock_cache(self):
