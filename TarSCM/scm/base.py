@@ -287,12 +287,11 @@ class Scm():
         logging.debug("copying tree: '%s' to '%s'", src, dst)
         if self.args.locale:
             ploc = locale.getpreferredencoding()
-            print("converting to %s", ploc)
             logging.debug("converting src/dst to locale %s", ploc)
             src = src.encode(ploc)
             dst = dst.encode(ploc)
         else:
-            print("no locale set")
+            logging.debug("no locale set")
 
         shutil.copytree(src, dst, symlinks=True)
 
