@@ -258,7 +258,7 @@ class Scm():
                          r'([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?'
                          r'( +[-+][0-9]{3,4})',
                          r'\1\2\3T\4\6\8',
-                         version.decode())
+                         version)
         version = re.sub(r'[-:]', '', version)
         return version
 
@@ -285,14 +285,7 @@ class Scm():
         if not r_path.startswith(c_dir):
             sys.exit("--subdir %s tries to escape repository." % subdir)
 
-        logging.debug("copying tree: '%s' to '%s'", src, dst)
-        if self.args.locale:
-            ploc = locale.getpreferredencoding()
-            logging.debug("converting src/dst to locale %s", ploc)
-            src = src.encode(ploc)
-            dst = dst.encode(ploc)
-        else:
-            logging.debug("no locale set")
+        logging.debug("copying tree: '%s' to '%s'" % (src, dst))
 
         if six.PY2:
             src = bytes(src)

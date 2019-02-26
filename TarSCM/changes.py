@@ -191,7 +191,7 @@ class Changes():
         os.chmod(tmp_fp.name, mode)
         tmp_filename = tmp_fp.name
         tmp_fp.close()
-        tmp_fp=io.open(tmp_filename, 'w', encoding="UTF-8")
+        tmp_fp = io.open(tmp_filename, 'w', encoding="UTF-8")
 
         dtime = datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y')
 
@@ -200,7 +200,7 @@ class Changes():
         text += '\n'
         text += "- Update to version %s:\n" % version
         for line in changes:
-          text += "  * %s\n" % line.encode('UTF-8')
+            text += "  * %s\n" % line.encode('UTF-8')
         text += '\n'
 
         old_fp = io.open(changes_filename, 'r', encoding='UTF-8')

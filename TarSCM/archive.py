@@ -113,7 +113,7 @@ class ObsCpio(BaseArchive):
             except OSError:
                 pass
             proc.stdin.write(name.encode())
-            proc.stdin.write(b"\n")
+            proc.stdin.write("\n")
         proc.stdin.close()
         ret_code = proc.wait()
         if ret_code != 0:
@@ -127,7 +127,7 @@ class ObsCpio(BaseArchive):
         metafile.write("mtime: " + str(tstamp) + "\n")
 
         if commit:
-            metafile.write("commit: " + commit.decode() + "\n")
+            metafile.write("commit: " + commit + "\n")
 
         metafile.close()
 

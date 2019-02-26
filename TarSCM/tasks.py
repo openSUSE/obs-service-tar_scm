@@ -195,6 +195,8 @@ class Tasks():
         if version and not sys.argv[0].endswith("/tar") \
            and not sys.argv[0].endswith("/snapcraft") \
            and not sys.argv[0].endswith("/appimage"):
+            if isinstance(dstname, bytes):
+                version = version.encode('UTF-8')
             dstname += '-' + version
 
         logging.debug("DST: %s", dstname)

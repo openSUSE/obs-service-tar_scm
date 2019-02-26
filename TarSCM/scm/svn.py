@@ -133,7 +133,7 @@ class Svn(Scm):
         version = ''
         match = re.search(
             r'Last Changed Rev: (.*)',
-            svn_info.decode(),
+            svn_info,
             re.MULTILINE)
         if match:
             version = match.group(1).strip()
@@ -146,7 +146,7 @@ class Svn(Scm):
 
         match = re.search(
             r'Last Changed Date: (.*)',
-            svn_info.decode(),
+            svn_info,
             re.MULTILINE)
 
         if not match:
@@ -191,7 +191,7 @@ class Svn(Scm):
 
     def get_repocache_hash(self, subdir):
         """Calculate hash fingerprint for repository cache."""
-        string = self.url.encode() + b'/' + subdir.encode()
+        string = self.url + '/' + subdir
         return hashlib.sha256(string).hexdigest()
 
     def _get_log(self, clone_dir, revision1, revision2):
@@ -203,7 +203,7 @@ class Svn(Scm):
             clone_dir
         )[1]
 
-        lines = re.findall(r"<msg>.*?</msg>", xml_lines.decode(), re.S)
+        lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
 
         for line in lines:
             line = line.replace("<msg>", "").replace("</msg>", "")
@@ -215,13 +215,13 @@ class Svn(Scm):
         cmd = self._get_scm_cmd()
         cmd.extend(['log', '-l%d' % num_commits, '-q', '--incremental'])
         raw = self.helpers.safe_run(cmd, cwd=clone_dir)
-        revisions = raw[1].split(b"\n")
+        revisions = raw[1].split("\n")
         # remove blank entry on end
         revisions.pop()
         # return last entry
         revision = revisions[-1]
         # retrieve the revision number and remove r
-        revision = re.search(r'^r[0-9]*', revision.decode(), re.M)
+        revision = re.search(r'^r[0-9]*', revision, re.M)
         revision = revision.group().replace("r", "")
         return revision
 
