@@ -1,0 +1,60 @@
+#
+Kanku::Util::IPTables:
+  start_port: 49001
+
+
+domain_name: obs-service-tar_scm
+default_job: kanku-job
+login_user: root
+login_pass: kankudai
+
+qemu:
+  user: 
+
+jobs:
+ kanku-job:
+  -
+    use_module: Kanku::Handler::SetJobContext
+    options:
+      host_interface: eth0
+  -
+    use_module: Kanku::Handler::OBSCheck
+    options:
+      api_url: https://api.opensuse.org/public
+      # Please have a look at
+      # https://build.opensuse.org/project/show/devel:kanku:immages
+      # to find more official Images
+      project: devel:kanku:images
+      repository: images_leap_15_1
+      package: openSUSE-Leap-15.1-JeOS
+      use_oscrc: 0
+  -
+    use_module: Kanku::Handler::ImageDownload
+    options:
+      use_cache: 1
+
+  -
+    use_module: Kanku::Handler::CreateDomain
+    options:
+      memory: 2G
+      vcpu: 2
+      use_9p: 1
+      #forward_port_list: tcp:22,tcp:443
+  -
+    use_module: Kanku::Handler::PrepareSSH
+  -
+    use_module: Kanku::Handler::ExecuteCommandViaSSH
+    options:
+      commands:
+        - zypper -n in git bzr mercurial subversion make tar
+        - zypper -n in python2-PyYAML python2-python-dateutil python2-mock python2-pylint python2-flake8 python2-chardet
+        - zypper -n in python3-PyYAML python3-python-dateutil python3-mock python3-pylint python3-flake8 python3-chardet
+  -
+    use_module: Kanku::Handler::ExecuteCommandViaSSH
+    options:
+      username: kanku
+      commands:
+        # test python3
+        - make -C /tmp/kanku clean check3
+        # test python2
+        - make -C /tmp/kanku clean check2
