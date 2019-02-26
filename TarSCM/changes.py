@@ -206,8 +206,6 @@ class Changes():
         old_fp = io.open(changes_filename, 'r', encoding='UTF-8')
         text += old_fp.read()
         old_fp.close()
-        if not enc and char['encoding']:
-            enc = char['encoding']
 
         tmp_fp.write(text)
         tmp_fp.close()
