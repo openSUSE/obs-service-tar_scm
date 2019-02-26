@@ -51,7 +51,7 @@ class Helpers():
         if proc.returncode and raisesysexit:
             logging.info("ERROR(%d): %s", proc.returncode, repr(output))
             raise SystemExit(
-                "Command failed(%d): '%s'" % (proc.returncode, output.decode())
+                "Command failed(%d): '%s'" % (proc.returncode, output)
             )
         else:
             logging.debug("RESULT(%d): %s", proc.returncode, repr(output))
