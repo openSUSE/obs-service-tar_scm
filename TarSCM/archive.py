@@ -7,7 +7,6 @@ import tarfile
 import shutil
 import glob
 import locale
-import six
 
 from TarSCM.helpers import Helpers
 
