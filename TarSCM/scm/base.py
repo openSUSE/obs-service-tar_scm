@@ -10,7 +10,6 @@ import time
 import subprocess
 import glob
 import locale
-import six
 
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
@@ -287,9 +286,6 @@ class Scm():
 
         logging.debug("copying tree: '%s' to '%s'" % (src, dst))
 
-        if six.PY2:
-            src = bytes(src)
-            dst = bytes(dst)
         shutil.copytree(src, dst, symlinks=True)
 
     def lock_cache(self):

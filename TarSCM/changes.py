@@ -5,7 +5,6 @@ import shutil
 import sys
 import tempfile
 import stat
-import chardet
 import io
 import locale
 
