@@ -55,7 +55,6 @@ BuildRequires:  python-lxml
 BuildRequires:  python-mock
 BuildRequires:  python-unittest2
 BuildRequires:  python-six
-BuildRequires:  python-chardet
 %endif
 BuildRequires:  python >= 2.6
 Requires:       git-core
@@ -79,8 +78,6 @@ It supports downloading from svn, git, hg and bzr repositories.
 Summary:        Common parts of SCM handling services
 Group:          Development/Tools/Building
 Requires:       python-dateutil
-Requires:       python-chardet
-Requires:       python-six
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
 Requires:       PyYAML
 %else
