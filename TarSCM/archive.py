@@ -111,7 +111,12 @@ class ObsCpio(BaseArchive):
                 os.utime(name, (tstamp, tstamp))
             except OSError:
                 pass
-            proc.stdin.write(name.encode())
+            # bytes() break in python2 with a TypeError as it expects only 1
+            # arg
+            try:
+                proc.stdin.write(bytes(name, 'UTF-8'))
+            except TypeError:
+                proc.stdin.write(name)
             proc.stdin.write(b"\n")
         proc.stdin.close()
         ret_code = proc.wait()
