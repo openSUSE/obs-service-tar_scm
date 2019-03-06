@@ -15,6 +15,16 @@
 # Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
+%if 0%{?suse_version}
+%if 0%{?suse_version} >= 1550
+%define locale_package glibc-locale-base
+%else
+%define locale_package glibc-locale
+%endif
+%endif
+%if %{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
+%define locale_package glibc-langpack-en
+%endif
 
 %bcond_without obs_scm_testsuite
 
@@ -35,8 +45,8 @@ BuildRequires:  bzr
 BuildRequires:  git-core
 BuildRequires:  mercurial
 BuildRequires:  subversion
+BuildRequires:  %{locale_package}
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
-BuildRequires:  glibc-common
 %define py_compile(O)  \
 find %1 -name '*.pyc' -exec rm -f {} \\; \
 python -c "import sys, os, compileall; br='%{buildroot}'; compileall.compile_dir(sys.argv[1], ddir=br and (sys.argv[1][len(os.path.abspath(br)):]+'/') or None)" %1 \
@@ -47,7 +57,6 @@ python -O -c "import sys, os, compileall; br='%{buildroot}'; compileall.compile_
 
 BuildRequires:  PyYAML
 %else
-BuildRequires:  glibc-locale
 BuildRequires:  python-PyYAML
 %endif
 BuildRequires:  python-dateutil
@@ -63,7 +72,6 @@ Requires:       git-core
 Recommends:     bzr
 Recommends:     mercurial
 Recommends:     subversion
-Recommends:     glibc-locale
 %endif
 Requires:       obs-service-obs_scm-common = %version-%release
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -78,6 +86,7 @@ It supports downloading from svn, git, hg and bzr repositories.
 Summary:        Common parts of SCM handling services
 Group:          Development/Tools/Building
 Requires:       python-dateutil
+Requires:       %{locale_package}
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
 Requires:       PyYAML
 %else
