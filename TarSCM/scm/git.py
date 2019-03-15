@@ -6,6 +6,10 @@ import shutil
 
 from TarSCM.scm.base import Scm
 
+def color_red(s):
+    if not os.isatty(1):
+        return s
+    return "\033[0;31m" + s + "\033[0m"
 
 class Git(Scm):
     scm = 'git'
@@ -199,9 +203,8 @@ class Git(Scm):
 
     def _detect_version_parent_tag(self, parent_tag, versionformat):  # noqa pylint: disable=no-self-use
         if not parent_tag:
-            sys.exit("\033[31mNo parent tag present for the checked out "
-                     "revision, thus @PARENT_TAG@ cannot be expanded."
-                     "\033[0m")
+            sys.exit(color_red("No parent tag present for the checked out "
+                     "revision, thus @PARENT_TAG@ cannot be expanded."))
 
         versionformat = re.sub('@PARENT_TAG@', parent_tag,
                                versionformat)
@@ -212,14 +215,20 @@ class Git(Scm):
             sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
                      "as no parent tag was discovered.\033[0m")
 
+        rcode, output = self.helpers.run_cmd(
+            ["git", "merge-base", "--is-ancestor", parent_tag, "HEAD"],
+            self.clone_dir
+        )
+        if rcode != 0:
+            sys.exit(color_red("parent_tag is not an ancestor of HEAD. " +
+                     "Cannot compute a (meaningful) distance."))
+
         cmd = self._get_scm_cmd()
         cmd.extend(['rev-list', '--count', parent_tag + '..HEAD'])
         rcode, out = self.helpers.run_cmd(cmd, self.clone_dir)
 
         if rcode:
-            msg = "\033[31m@TAG_OFFSET@ can not be expanded: %s\033[0m"
-            msg.format(out)
-            sys.exit(msg)
+            sys.exit(color_red("@TAG_OFFSET@ can not be expanded: " + output))
 
         tag_offset = out.strip()
         versionformat = re.sub('@TAG_OFFSET@', tag_offset,
