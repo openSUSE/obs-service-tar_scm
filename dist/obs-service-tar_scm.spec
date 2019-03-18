@@ -11,18 +11,36 @@
 # case the license is the MIT License). An "Open Source License" is a
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
-
+#
 # Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
+#
+
+%if 0%{?suse_version} >= 1500 || 0%{?fedora_version} >= 29
+%bcond_without python3
+%else
+%bcond_with    python3
+%endif
+
+%if %{with python3}
+%define use_python python3
+%define use_test test3
+%else
+%define use_python python
+%define use_test test
+%endif
 
 %if 0%{?suse_version}
+%define pyyaml_package %{use_python}-PyYAML
 %if 0%{?suse_version} >= 1550
 %define locale_package glibc-locale-base
 %else
 %define locale_package glibc-locale
 %endif
 %endif
-%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
+
+%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version} || 0%{?scientificlinux_version}
+%define pyyaml_package PyYAML
 %if 0%{?fedora_version} >= 27 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
 %define locale_package glibc-langpack-en
 %else
@@ -30,45 +48,52 @@
 %endif
 %endif
 
+%if 0%{?mageia} || 0%{?mandriva_version}
+%define pyyaml_package python-yaml
+%define locale_package locales
+%endif
+
 %bcond_without obs_scm_testsuite
 
 Name:           obs-service-tar_scm
-%define version_unconverted 0.9.5.1545082095.8dbc95f
-Version:        0.9.5.1545082095.8dbc95f
+%define version_unconverted 0.10.6.1555341219.29017c5
+Version:        0.10.6.1555341219.29017c5
 Release:        0
 Summary:        An OBS source service: create tar ball from svn/git/hg
 License:        GPL-2.0-or-later
 Group:          Development/Tools/Building
 Url:            https://github.com/openSUSE/obs-service-tar_scm
 Source:         %{name}-%{version}.tar.gz
+
 # Fix build on Ubuntu by disabling mercurial tests, not applied in rpm
 # based distributions
 #Patch0:         0001-Debianization-disable-running-mercurial-tests.patch
+
 %if %{with obs_scm_testsuite}
 BuildRequires:  %{locale_package}
+BuildRequires:  %{use_python}-mock
+BuildRequires:  %{use_python}-six
+BuildRequires:  %{use_python}-unittest2
 BuildRequires:  bzr
 BuildRequires:  git-core
 BuildRequires:  mercurial
 BuildRequires:  subversion
-%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
+%endif
+
+%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version} || 0%{?mageia} || 0%{?mandriva_version}
 %define py_compile(O)  \
 find %1 -name '*.pyc' -exec rm -f {} \\; \
-python -c "import sys, os, compileall; br='%{buildroot}'; compileall.compile_dir(sys.argv[1], ddir=br and (sys.argv[1][len(os.path.abspath(br)):]+'/') or None)" %1 \
+%{use_python} -c "import sys, os, compileall; br='%{buildroot}'; compileall.compile_dir(sys.argv[1], ddir=br and (sys.argv[1][len(os.path.abspath(br)):]+'/') or None)" %1 \
 %{-O: \
 find %1 -name '*.pyo' -exec rm -f {} \\; \
-python -O -c "import sys, os, compileall; br='%{buildroot}'; compileall.compile_dir(sys.argv[1], ddir=br and (sys.argv[1][len(os.path.abspath(br)):]+'/') or None)" %1 \
+%{use_python} -O -c "import sys, os, compileall; br='%{buildroot}'; compileall.compile_dir(sys.argv[1], ddir=br and (sys.argv[1][len(os.path.abspath(br)):]+'/') or None)" %1 \
 }
+%endif
 
-BuildRequires:  PyYAML
-%else
-BuildRequires:  python-PyYAML
-%endif
-BuildRequires:  python-dateutil
-BuildRequires:  python-lxml
-BuildRequires:  python-mock
-BuildRequires:  python-six
-BuildRequires:  python-unittest2
-%endif
+BuildRequires:  %{pyyaml_package}
+BuildRequires:  %{use_python}-dateutil
+BuildRequires:  %{use_python}-lxml
+
 BuildRequires:  python >= 2.6
 Requires:       git-core
 
@@ -90,14 +115,11 @@ It supports downloading from svn, git, hg and bzr repositories.
 Summary:        Common parts of SCM handling services
 Group:          Development/Tools/Building
 Requires:       %{locale_package}
-Requires:       python-dateutil
-%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
-Requires:       PyYAML
-%else
-Requires:       python-PyYAML
+Requires:       %{pyyaml_package}
+Requires:       %{use_python}-dateutil
+
 %if 0%{?suse_version} < 1315
-Requires:       python-argparse
-%endif
+Requires:       %{use_python}-argparse
 %endif
 
 %if 0%{?fedora_version} >= 25
@@ -112,8 +134,8 @@ Group:          Development/Tools/Building
 Requires:       obs-service-obs_scm-common = %version-%release
 Provides:       obs-service-tar_scm:/usr/lib/obs/service/tar.service
 %if (0%{?fedora_version} && 0%{?fedora_version} < 26) || 0%{?centos} == 6 || 0%{?centos} == 7
-BuildRequires:  python-argparse
-Requires:       python-argparse
+BuildRequires:  %{use_python}-argparse
+Requires:       %{use_python}-argparse
 %endif
 
 %description -n obs-service-tar
@@ -191,7 +213,7 @@ make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}"
 # No need to run PEP8 tests here; that would require a potentially
 # brittle BuildRequires: python-pep8, and any style issues are already
 # caught by Travis CI.
-make test
+make %{use_test}
 %endif
 %endif
 
