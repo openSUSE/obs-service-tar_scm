@@ -11,6 +11,10 @@ class Git(Scm):
     scm = 'git'
 
     def _get_scm_cmd(self):
+        # define a home directory to be able to configure
+        # server-side git credentials and other git settings.
+        os.environ["HOME"] = "/usr/lib/obs"
+
         """Compose a GIT-specific command line using http proxies"""
         # git should honor the http[s]_proxy variables, but we need to
         # guarantee this, the variables do not work every time
