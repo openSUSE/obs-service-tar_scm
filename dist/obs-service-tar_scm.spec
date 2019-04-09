@@ -23,7 +23,7 @@
 %endif
 %endif
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
-%if 0%{?fedora_version} >= 27 || 0%{?rhel_version} >= 8 || 0%{?centos_version} >= 8
+%if 0%{?fedora_version} >= 27 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
 %define locale_package glibc-langpack-en
 %else
 %define locale_package glibc-common
