@@ -45,11 +45,11 @@ Source:         %{name}-%{version}.tar.gz
 # based distributions
 #Patch0:         0001-Debianization-disable-running-mercurial-tests.patch
 %if %{with obs_scm_testsuite}
+BuildRequires:  %{locale_package}
 BuildRequires:  bzr
 BuildRequires:  git-core
 BuildRequires:  mercurial
 BuildRequires:  subversion
-BuildRequires:  %{locale_package}
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
 %define py_compile(O)  \
 find %1 -name '*.pyc' -exec rm -f {} \\; \
@@ -66,8 +66,8 @@ BuildRequires:  python-PyYAML
 BuildRequires:  python-dateutil
 BuildRequires:  python-lxml
 BuildRequires:  python-mock
-BuildRequires:  python-unittest2
 BuildRequires:  python-six
+BuildRequires:  python-unittest2
 %endif
 BuildRequires:  python >= 2.6
 Requires:       git-core
@@ -89,8 +89,8 @@ It supports downloading from svn, git, hg and bzr repositories.
 %package -n     obs-service-obs_scm-common
 Summary:        Common parts of SCM handling services
 Group:          Development/Tools/Building
-Requires:       python-dateutil
 Requires:       %{locale_package}
+Requires:       python-dateutil
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
 Requires:       PyYAML
 %else
