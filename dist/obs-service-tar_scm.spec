@@ -11,10 +11,10 @@
 # case the license is the MIT License). An "Open Source License" is a
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
-#
+
 # Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
-#
+
 
 %if 0%{?suse_version} >= 1500 || 0%{?fedora_version} >= 29
 %bcond_without python3
@@ -56,8 +56,8 @@
 %bcond_without obs_scm_testsuite
 
 Name:           obs-service-tar_scm
-%define version_unconverted 0.10.6.1555341219.29017c5
-Version:        0.10.6.1555341219.29017c5
+%define version_unconverted 0.10.7.1556277536.7e9915a
+Version:        0.10.7.1556277536.7e9915a
 Release:        0
 Summary:        An OBS source service: create tar ball from svn/git/hg
 License:        GPL-2.0-or-later
@@ -204,7 +204,7 @@ resources and packages them.
 %endif
 
 %install
-make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}"
+make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}" PYTHON="%{_bindir}/%{use_python}"
 
 %if %{with obs_scm_testsuite}
 %if 0%{?suse_version} >= 1220
