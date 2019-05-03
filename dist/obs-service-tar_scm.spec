@@ -60,7 +60,7 @@
 %define pyyaml_package PyYAML
 %endif
 
-%if 0%{?fedora_version} >= 27 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
+%if 0%{?fedora_version} >= 24 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
 %define locale_package glibc-langpack-en
 %else
 %define locale_package glibc-common
