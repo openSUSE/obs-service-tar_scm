@@ -165,7 +165,7 @@ tar_scm: tar_scm.py
 
 .PHONY: install
 
-install: dirs tar_scm service
+install: dirs tar_scm service compile
 	install -m 0755 tar_scm $(DESTDIR)$(mylibdir)/tar_scm
 	install -m 0644 tar_scm.rc $(DESTDIR)$(mycfgdir)/tar_scm
 	# Recreate links, otherwise reinstalling would fail
@@ -177,7 +177,7 @@ install: dirs tar_scm service
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/appimage
 	[ ! -L $(DESTDIR)$(mylibdir)/snapcraft ] || rm $(DESTDIR)$(mylibdir)/snapcraft
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/snapcraft
-	find ./TarSCM/ -name '*.py*' -exec install -m 644 {} $(DESTDIR)$(mylibdir)/{} \;
+	find ./TarSCM/ -name '*.py*' -exec install -D -m 644 {} $(DESTDIR)$(mylibdir)/{} \;
 
 .PHONY: dirs
 dirs:
