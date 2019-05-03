@@ -16,23 +16,37 @@
 #
 
 
+%if 0%{?suse_version} && 0%{?suse_version} >= 1220
+%bcond_without obs_scm_testsuite
+%else
+%bcond_with    obs_scm_testsuite
+%endif
+
 %if 0%{?suse_version} >= 1500 || 0%{?fedora_version} >= 29
 %bcond_without python3
 %else
 %bcond_with    python3
 %endif
 
+# This list probably needs to be extended
+# logic seems to be if python < 2.7 ; then needs_external_argparse ; fi
+%if (0%{?centos_version} == 6) || (0%{?suse_version} && 0%{?suse_version} < 1315) || (0%{?fedora_version} && 0%{?fedora_version} < 26)
+%bcond_without needs_external_argparse
+%else
+%bcond_with    needs_external_argparse
+%endif
+
 %if %{with python3}
 %define use_python python3
-%define use_test test3
+%define use_test   test3
 %else
 %define use_python python
-%define use_test test
+%define use_test   test
 %endif
 
 %if 0%{?suse_version}
 %define pyyaml_package %{use_python}-PyYAML
-%if 0%{?suse_version} >= 1550
+%if 0%{?suse_version} >= 1550 || 0%{?sle_version} >= 150100
 %define locale_package glibc-locale-base
 %else
 %define locale_package glibc-locale
@@ -40,7 +54,12 @@
 %endif
 
 %if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version} || 0%{?scientificlinux_version}
+%if 0%{?fedora_version} >= 29 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
+%define pyyaml_package %{use_python}-PyYAML
+%else
 %define pyyaml_package PyYAML
+%endif
+
 %if 0%{?fedora_version} >= 27 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
 %define locale_package glibc-langpack-en
 %else
@@ -53,7 +72,22 @@
 %define locale_package locales
 %endif
 
-%bcond_without obs_scm_testsuite
+# avoid code duplication
+%define scm_common_dep                                          \
+Requires:       obs-service-obs_scm-common = %version-%release  \
+%{nil}
+
+%define scm_dependencies                                        \
+Requires:       git-core                                        \
+%if 0%{?suse_version} >= 1315                                   \
+Recommends:     bzr                                             \
+Recommends:     mercurial                                       \
+Recommends:     subversion                                      \
+Recommends:     obs-service-download_files                      \
+%endif                                                          \
+%{nil}
+
+######## END OF MACROS AND FUN ###################################
 
 Name:           obs-service-tar_scm
 %define version_unconverted 0.10.7.1556277536.7e9915a
@@ -80,29 +114,25 @@ BuildRequires:  mercurial
 BuildRequires:  subversion
 %endif
 
-%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version} || 0%{?mageia} || 0%{?mandriva_version}
-%define py_compile(O)  \
-find %1 -name '*.pyc' -exec rm -f {} \\; \
-%{use_python} -c "import sys, os, compileall; br='%{buildroot}'; compileall.compile_dir(sys.argv[1], ddir=br and (sys.argv[1][len(os.path.abspath(br)):]+'/') or None)" %1 \
-%{-O: \
-find %1 -name '*.pyo' -exec rm -f {} \\; \
-%{use_python} -O -c "import sys, os, compileall; br='%{buildroot}'; compileall.compile_dir(sys.argv[1], ddir=br and (sys.argv[1][len(os.path.abspath(br)):]+'/') or None)" %1 \
-}
-%endif
-
+BuildRequires:  %{locale_package}
 BuildRequires:  %{pyyaml_package}
+%if %{with needs_external_argparse}
+BuildRequires:  %{use_python}-argparse
+%endif
 BuildRequires:  %{use_python}-dateutil
+# Why do we need this? we dont use it as runtime requires later
 BuildRequires:  %{use_python}-lxml
 
+%if %{with python3}
+BuildRequires:  %{use_python}
+%else
 BuildRequires:  python >= 2.6
-Requires:       git-core
-
-%if 0%{?suse_version} >= 1315
-Recommends:     bzr
-Recommends:     mercurial
-Recommends:     subversion
 %endif
-Requires:       obs-service-obs_scm-common = %version-%release
+%scm_common_dep
+%scm_dependencies
+#
+#
+#
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
 
@@ -117,26 +147,22 @@ Group:          Development/Tools/Building
 Requires:       %{locale_package}
 Requires:       %{pyyaml_package}
 Requires:       %{use_python}-dateutil
-
-%if 0%{?suse_version} < 1315
+%if %{with needs_external_argparse}
 Requires:       %{use_python}-argparse
 %endif
 
-%if 0%{?fedora_version} >= 25
-Requires:       python2
-%endif
-
 %description -n obs-service-obs_scm-common
+This is a source service for openSUSE Build Service.
+
+It supports downloading from svn, git, hg and bzr repositories.
+
+This package holds the shared files for different services.
 
 %package -n     obs-service-tar
 Summary:        Creates a tar archive from local directory
 Group:          Development/Tools/Building
-Requires:       obs-service-obs_scm-common = %version-%release
 Provides:       obs-service-tar_scm:/usr/lib/obs/service/tar.service
-%if (0%{?fedora_version} && 0%{?fedora_version} < 26) || 0%{?centos} == 6 || 0%{?centos} == 7
-BuildRequires:  %{use_python}-argparse
-Requires:       %{use_python}-argparse
-%endif
+%scm_common_dep
 
 %description -n obs-service-tar
 Creates a tar archive from local directory
@@ -145,13 +171,8 @@ Creates a tar archive from local directory
 Summary:        Creates a OBS cpio from a remote SCM resource
 Group:          Development/Tools/Building
 Provides:       obs-service-tar_scm:/usr/lib/obs/service/obs_scm.service
-Requires:       git-core
-%if 0%{?suse_version} >= 1315
-Recommends:     bzr
-Recommends:     mercurial
-Recommends:     subversion
-%endif
-Requires:       obs-service-obs_scm-common = %version-%release
+%scm_common_dep
+%scm_dependencies
 
 %description -n obs-service-obs_scm
 Creates a OBS cpio from a remote SCM resource.
@@ -162,14 +183,8 @@ into a tar ball during build time.
 %package -n     obs-service-appimage
 Summary:        Handles source downloads defined in appimage.yml files
 Group:          Development/Tools/Building
-Requires:       git-core
-%if 0%{?suse_version} >= 1315
-Recommends:     bzr
-Recommends:     mercurial
-Recommends:     subversion
-Recommends:     obs-service-download_files
-%endif
-Requires:       obs-service-obs_scm-common = %version-%release
+%scm_common_dep
+%scm_dependencies
 
 %description -n obs-service-appimage
 Experimental appimage support: This parses appimage.yml files for SCM
@@ -179,14 +194,8 @@ resources and packages them.
 Summary:        Handles source downloads defined in snapcraft.yaml files
 Group:          Development/Tools/Building
 Provides:       obs-service-tar_scm:/usr/lib/obs/service/snapcraft.service
-Requires:       git-core
-%if 0%{?suse_version} >= 1315
-Recommends:     bzr
-Recommends:     mercurial
-Recommends:     subversion
-Recommends:     obs-service-download_files
-%endif
-Requires:       obs-service-obs_scm-common = %version-%release
+%scm_common_dep
+%scm_dependencies
 
 %description -n obs-service-snapcraft
 Experimental snapcraft support: This parses snapcraft.yaml files for SCM
@@ -197,24 +206,17 @@ resources and packages them.
 %setup -q -n obs-service-tar_scm-%version
 
 %build
-%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version}
-%py_compile .
-%else
-%py_compile %{buildroot}
-%endif
 
 %install
 make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}" PYTHON="%{_bindir}/%{use_python}"
 
 %if %{with obs_scm_testsuite}
-%if 0%{?suse_version} >= 1220
-
+# moved conditional to the top as it helps to have it all in one place and only rely on the bcond_with here.
 %check
 # No need to run PEP8 tests here; that would require a potentially
 # brittle BuildRequires: python-pep8, and any style issues are already
 # caught by Travis CI.
 make %{use_test}
-%endif
 %endif
 
 %files
