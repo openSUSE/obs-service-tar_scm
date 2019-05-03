@@ -53,18 +53,18 @@ $(or \
 )
 endef
 
-# On ArchLinux, /usr/bin/python is Python 3, and other distros
-# will switch to the same at various points.  So until we support
-# Python 3, we need to do our best to ensure we have Python 2.
-PYTHON3 = python3 python3.6 python-3.6 python
-PYTHON2 = python2 python2.7 python-2.7 python2.6 python-2.6 python
-ALL_PYTHONS = $(PYTHON3) $(PYTHON2)
+PYTHON3 = python3.7 python-3.7 python3.6 python-3.6 python3.5 python-3.5 python3.4 python-3.4 python3.3 python-3.3 python3.2 python-3.2 python3
+PYTHON2 = python2.7 python-2.7 python2.6 python-2.6 python2
+
+# Ensure that correct python version is used in travis
 PYTHON_MAJOR := $(shell python -c "import sys; print sys.version[:1]" 2>/dev/null)
 ifeq ($(PYTHON_MAJOR), 2)
-PYTHON := $(shell which python2)
+ALL_PYTHONS = $(PYTHON2) python
 else
-PYTHON = $(call first_in_path,$(ALL_PYTHONS))
+ALL_PYTHONS = $(PYTHON3) $(PYTHON2) python
 endif
+
+PYTHON = $(call first_in_path,$(ALL_PYTHONS))
 
 mylibdir = $(PREFIX)/lib/obs/service
 mycfgdir = $(SYSCFG)/obs/services
@@ -206,4 +206,4 @@ clean:
 	rm -f ./cover.log
 
 compile:
-	find -name '*.py' -exec python -m py_compile {} \;
+	find -name '*.py' -exec $(PYTHON) -m py_compile {} \;
