@@ -22,7 +22,7 @@
 %bcond_with    obs_scm_testsuite
 %endif
 
-%if 0%{?suse_version} >= 1500 || 0%{?fedora_version} >= 29
+%if 0%{?suse_version} >= 1500 || 0%{?fedora_version} >= 29 || 0%{?sle_version} >= 120000
 %bcond_without python3
 %else
 %bcond_with    python3
@@ -90,8 +90,8 @@ Recommends:     obs-service-download_files                      \
 ######## END OF MACROS AND FUN ###################################
 
 Name:           obs-service-tar_scm
-%define version_unconverted 0.10.7.1556277536.7e9915a
-Version:        0.10.7.1556277536.7e9915a
+%define version_unconverted 0.10.9.1557261720.32a1cdb
+Version:        0.10.9.1557261720.32a1cdb
 Release:        0
 Summary:        An OBS source service: create tar ball from svn/git/hg
 License:        GPL-2.0-or-later
