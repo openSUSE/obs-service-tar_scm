@@ -22,7 +22,7 @@
 %bcond_with    obs_scm_testsuite
 %endif
 
-%if 0%{?suse_version} >= 1500 || 0%{?fedora_version} >= 29 || 0%{?sle_version} >= 120000
+%if 0%{?suse_version} >= 1315 || 0%{?fedora_version} >= 29
 %bcond_without python3
 %else
 %bcond_with    python3
@@ -125,6 +125,8 @@ BuildRequires:  %{use_python}-lxml
 
 %if %{with python3}
 BuildRequires:  %{use_python}
+# Fix missing Requires in python3-pbr in Leap42.3
+BuildRequires:  %{use_python}-setuptools
 %else
 BuildRequires:  python >= 2.6
 %endif

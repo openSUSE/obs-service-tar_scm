@@ -147,7 +147,10 @@ class TestAssertions(unittest.TestCase):
                 "----\n%s\n----\n" \
                 % (should_not_find, logpath, "".join(loglines))
             if should_not_find:
-                self.assertNotRegexpMatches(line, should_not_find, msg)
+                if six.PY2:
+                    self.assertNotRegexpMatches(line, should_not_find, msg)
+                else:
+                    self.assertNotRegex(line, should_not_find, msg)
             if regexp.search(line):
                 found = True
         msg = \

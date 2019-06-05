@@ -188,10 +188,12 @@ class TestEnvironment:
         print("Running %s" % cmdstr)
         print()
         print("start TarSCM.run")
+        succeeded = True
+        ret = 0
         try:
             tracer = trace.Trace(
                 ignoredirs=[sys.prefix, sys.exec_prefix],
-                trace=1,
+                trace=0,
                 count=0)
             tracer.runfunc(TarSCM.run)
             #r = tracer.results()
