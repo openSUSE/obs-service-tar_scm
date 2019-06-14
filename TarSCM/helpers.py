@@ -26,6 +26,8 @@ class Helpers():
         # like 'git branch'
         env = os.environ.copy()
         env['LANG'] = 'en_US.UTF-8'
+        env['LANGUAGE'] = 'en'
+        env['LC_ALL'] = 'en_US.UTF-8'
 
         proc = subprocess.Popen(cmd,
                                 shell=False,
