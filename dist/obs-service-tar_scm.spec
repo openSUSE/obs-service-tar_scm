@@ -22,10 +22,14 @@
 %bcond_with    obs_scm_testsuite
 %endif
 
+%if 0%{?sle_version} && 0%{?sle_version} < 120400
+%bcond_with    python3
+%else
 %if 0%{?suse_version} >= 1315 || 0%{?fedora_version} >= 29
 %bcond_without python3
 %else
 %bcond_with    python3
+%endif
 %endif
 
 # This list probably needs to be extended
