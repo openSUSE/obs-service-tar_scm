@@ -2,6 +2,7 @@
 from __future__ import print_function
 import glob
 import os
+import tempfile
 
 
 class ScmInvocationLogs:
@@ -21,18 +22,17 @@ class ScmInvocationLogs:
     """
 
     @classmethod
-    def setup_bin_wrapper(cls, scm, tmp_dir):
-        cls.wrapper_dir = tmp_dir + '/wrappers'
+    def setup_bin_wrapper(cls, scm, tests_dir):
+        wrapper_dir = tempfile.mkdtemp(dir="/tmp")
 
-        if not os.path.exists(cls.wrapper_dir):
-            os.makedirs(cls.wrapper_dir)
+        wrapper_src = os.path.join(tests_dir, 'scm-wrapper')
+        wrapper_dst = wrapper_dir + '/' + scm
 
-        wrapper = cls.wrapper_dir + '/' + scm
-        if not os.path.exists(wrapper):
-            os.symlink('../../scm-wrapper', wrapper)
+        if not os.path.exists(wrapper_dst):
+            os.symlink(wrapper_src, wrapper_dst)
 
         path = os.getenv('PATH')
-        prepend = cls.wrapper_dir + ':'
+        prepend = wrapper_dir + ':'
 
         if not path.startswith(prepend):
             new_path = prepend + path

@@ -42,7 +42,7 @@ class TestEnvironment:
         if cls.is_setup:
             return
         print("--v-v-- begin setupClass for %s --v-v--" % cls.__name__)
-        ScmInvocationLogs.setup_bin_wrapper(cls.scm, cls.tmp_dir)
+        ScmInvocationLogs.setup_bin_wrapper(cls.scm, cls.tests_dir)
         os.putenv('TAR_SCM_CLEAN_ENV', 'yes')
         os.environ['TAR_SCM_CLEAN_ENV'] = 'yes'
         cls.is_setup = True
