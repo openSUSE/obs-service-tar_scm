@@ -217,8 +217,8 @@ class Git(Scm):
         rcode, out = self.helpers.run_cmd(cmd, self.clone_dir)
 
         if rcode:
-            msg = "\033[31m@TAG_OFFSET@ can not be expanded: %s\033[0m"
-            msg.format(out)
+            msg = "\033[31m@TAG_OFFSET@ can not be expanded: {}\033[0m"
+            msg = msg.format(out)
             sys.exit(msg)
 
         tag_offset = out.strip()
