@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import subprocess
+import six
 
 
 def mkfreshdir(path):
@@ -22,6 +23,12 @@ def mkfreshdir(path):
 
 
 def run_cmd(cmd):
+    os.putenv('LANG', 'C.utf-8')
+    os.putenv('LC_ALL', 'C.utf-8')
+    os.environ['LANG'] = 'C.utf-8'
+    os.environ['LC_ALL'] = 'C.utf-8'
+    if six.PY3:
+        cmd = cmd.encode('UTF-8')
     proc = subprocess.Popen(cmd, shell=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
@@ -60,7 +67,4 @@ def run_hg(repo, args):
 
 
 def run_bzr(repo, args):
-    os.putenv('LANG', 'C')
-    os.environ['LANG'] = 'C'
-
     return run_scm('bzr', repo, args)
