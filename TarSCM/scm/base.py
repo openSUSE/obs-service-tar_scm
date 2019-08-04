@@ -136,8 +136,12 @@ class Scm():
 
     def get_repocache_hash(self, subdir):
         """Calculate hash fingerprint for repository cache."""
-        u_url = self.url.encode()
-        return hashlib.sha256(u_url).hexdigest()
+        # tar has no u_url
+        if self.url:
+            u_url = self.url.encode()
+            return hashlib.sha256(u_url).hexdigest()
+        else:
+            return None
 
     def get_current_commit(self):
         return None
@@ -162,7 +166,8 @@ class Scm():
         if repocachedir:
             logging.debug("REPOCACHE: %s", repocachedir)
             self.repohash = self.get_repocache_hash(self.args.subdir)
-            self.repocachedir = os.path.join(repocachedir, self.repohash)
+            if self.repohash:
+                self.repocachedir = os.path.join(repocachedir, self.repohash)
 
     def _calc_proxies(self):
         # check for standard http/https proxy variables
