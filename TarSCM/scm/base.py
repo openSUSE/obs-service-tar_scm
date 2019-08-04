@@ -230,7 +230,7 @@ class Scm():
         else:
             tempdir = os.getcwd()
 
-        self.repodir = os.path.join(tempdir, self.basename)
+        self.repodir = os.path.join(tempdir, self.basename + '_service')
 
         if self.repocachedir:
             # Update atime and mtime of repocachedir to make it easier
