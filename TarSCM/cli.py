@@ -4,6 +4,8 @@ import argparse
 import os
 import sys
 import locale
+import subprocess
+import logging
 
 
 def contains_dotdot(files):
@@ -15,6 +17,24 @@ def contains_dotdot(files):
                     return 1
             files[index] = fname
     return 0
+
+
+def check_locale(loc):
+    aloc_tmp = subprocess.check_output(['locale', '-a'])
+    aloc = dict()
+
+    for tloc in aloc_tmp.decode().split('\n'):
+        aloc[tloc] = 1
+
+    for tloc in loc:
+        logging.debug("Checking .... %s", tloc)
+        try:
+            if aloc[tloc]:
+                return tloc
+        except KeyError:
+            pass
+
+    return 'C'
 
 
 class Cli():
@@ -128,9 +148,11 @@ class Cli():
                             action='store_true',
                             help='do not cleanup directories before exiting '
                                  '(Only for debugging)')
-
-        parser.add_argument('--locale', default="en_US.UTF-8",
-                            help='set locale while service run')
+        parser.add_argument('--locale',
+                            help='DEPRECATED - Please use "encoding" instead.'
+                                 ' Set locale while service run')
+        parser.add_argument('--encoding',
+                            help='set encoding while service run')
 
         self.verify_args(parser.parse_args(options))
 
@@ -167,15 +189,27 @@ class Cli():
 
         # Allow forcing verbose mode from the environment; this
         # allows debugging when running "osc service disabledrun" etc.
-        args.verbose = bool(os.getenv('DEBUG_TAR_SCM'))
+        if bool(os.getenv('DEBUG_TAR_SCM')) or args.verbose:
+            logging.getLogger().setLevel(logging.DEBUG)
 
         for attr in args.__dict__.keys():
             self.__dict__[attr] = args.__dict__[attr]
 
         if args.locale:
-            locale.setlocale(locale.LC_ALL, args.locale)
-            os.environ["LC_ALL"] = args.locale
-            os.environ["LANG"] = args.locale
-            os.environ["LANGUAGE"] = args.locale
+            use_locale = args.locale
+        elif args.encoding:
+            use_locale = check_locale([
+                "en_US.%s" % args.encoding,
+                "C.%s" % args.encoding])
+        else:
+            use_locale = check_locale(["en_US.utf8", 'C.utf8'])
+
+        logging.debug("Using locale: %s", use_locale)
+
+        locale.setlocale(locale.LC_ALL, use_locale)
+
+        os.environ["LC_ALL"] = use_locale
+        os.environ["LANG"] = use_locale
+        os.environ["LANGUAGE"] = use_locale
 
         return args

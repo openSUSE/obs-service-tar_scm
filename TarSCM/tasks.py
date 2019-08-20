@@ -149,8 +149,6 @@ class Tasks():
 
         logging.basicConfig(format="%(message)s", stream=sys.stderr,
                             level=logging.INFO)
-        if args.verbose:
-            logging.getLogger().setLevel(logging.DEBUG)
 
         # force cleaning of our workspace on exit
         atexit.register(self.cleanup)

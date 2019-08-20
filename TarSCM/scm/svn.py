@@ -95,8 +95,7 @@ class Svn(Scm):
         except SystemExit as exc:
             if re.search(ENCODING_RE, exc.code):
                 raise SystemExit(ENCODING_MSG)
-            else:
-                raise exc
+            raise exc
 
     def update_cache(self):
         """Update sources via svn."""

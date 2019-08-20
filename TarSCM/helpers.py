@@ -22,17 +22,11 @@ class Helpers():
         """
         logging.debug("COMMAND: %s" % cmd)
 
-        # Ensure we get predictable results when parsing the output of commands
-        # like 'git branch'
-        env = os.environ.copy()
-        env['LANG'] = 'en_US.UTF-8'
-
         proc = subprocess.Popen(cmd,
                                 shell=False,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
-                                cwd=cwd,
-                                env=env)
+                                cwd=cwd)
         output = ''
         if interactive:
             stdout_lines = []
