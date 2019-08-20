@@ -18,10 +18,8 @@ class Tar(Scm):
         if self.args.obsinfo is None:
             raise SystemExit("ERROR: no .obsinfo file found in directory: "
                              "'%s'" % os.getcwd())
-        self.basename = self.clone_dir = self.read_from_obsinfo(
-            self.args.obsinfo,
-            "name"
-        )
+        self.basename  = self.read_from_obsinfo(self.args.obsinfo, "name")
+        self.clone_dir = self.read_from_obsinfo(self.args.obsinfo, "scmdir")
         if "/" in self.clone_dir:
             sys.exit("name in obsinfo contains '/'.")
 
@@ -30,18 +28,18 @@ class Tar(Scm):
         if "/" in version or '..' in version:
             sys.exit("verion in obsinfo contains '/' or '..'.")
 
-        self.clone_dir += "-" + version
+        self.basename += "-" + version
 
         if not os.path.exists(self.clone_dir):
             self._final_rename_needed = True
             # not need in case of local osc build
             try:
-                os.rename(self.basename, self.clone_dir)
+                os.rename(self.clone_dir, self.basename)
             except OSError:
                 raise SystemExit(
                     "Error while moving from '%s' to '%s')\n"
                     "Current working directory: '%s'" %
-                    (self.basename, self.clone_dir, os.getcwd())
+                    (self.clone_dir, self.basename, os.getcwd())
                 )
 
     def update_cache(self):
