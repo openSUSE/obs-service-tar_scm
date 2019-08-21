@@ -186,7 +186,7 @@ class Tasks():
         if args.filename:
             dstname = basename = args.filename
         else:
-            dstname = basename = os.path.basename(scm_object.basename)
+            dstname = basename = os.path.basename(scm_object.clone_dir)
 
         version = self.get_version()
         changesversion = version
