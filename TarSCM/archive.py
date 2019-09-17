@@ -115,7 +115,7 @@ class ObsCpio(BaseArchive):
             # arg
             try:
                 proc.stdin.write(name.encode('UTF-8', 'surrogateescape'))
-            except TypeError:
+            except (TypeError, UnicodeDecodeError):
                 proc.stdin.write(name)
 
             proc.stdin.write(b"\n")
