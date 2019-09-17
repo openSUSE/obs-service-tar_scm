@@ -73,7 +73,7 @@ class Tasks():
             build_scms = ()
             try:
                 build_scms = self.data_map['build'].keys()
-            except TypeError:
+            except (TypeError, KeyError):
                 pass
             # run for each scm an own task
             for scm in scms:
