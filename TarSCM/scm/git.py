@@ -308,6 +308,12 @@ class Git(Scm):
         self.helpers.safe_run(
             command, cwd=wdir, interactive=sys.stdout.isatty())
 
+        if self.revision and not self._ref_exists(self.revision):
+            refspec = self.revision + ":" + self.revision
+            cmd = self._get_scm_cmd() + ['fetch', 'origin', refspec]
+            self.helpers.safe_run(
+                cmd, cwd=self.clone_dir, interactive=sys.stdout.isatty())
+
     # no cleanup is necessary for git
     def cleanup(self):
         pass
