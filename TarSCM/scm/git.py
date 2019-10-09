@@ -39,7 +39,7 @@ class Git(Scm):
             self.revision = 'master'
 
         found_revision = None
-        revs = [x + self.revision for x in ['origin/', '']]
+        revs = [x + self.revision for x in ['', 'origin/']]
         for rev in revs:
             if self._ref_exists(rev):
                 found_revision = True
