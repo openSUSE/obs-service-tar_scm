@@ -138,6 +138,11 @@ class Git(Scm):
                 cwd=self.clone_dir,
                 interactive=sys.stdout.isatty()
             )
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['merge'],
+                cwd=self.clone_dir,
+                interactive=sys.stdout.isatty()
+            )
 
             self.fetch_specific_revision()
         except SystemExit as exc:
