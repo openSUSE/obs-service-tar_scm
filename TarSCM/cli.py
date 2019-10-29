@@ -20,7 +20,12 @@ def contains_dotdot(files):
 
 
 def check_locale(loc):
-    aloc_tmp = subprocess.check_output(['locale', '-a'])
+    try:
+        aloc_tmp = subprocess.check_output(['locale', '-a'])
+    except AttributeError:
+        aloc_tmp, _ = subprocess.Popen(['locale', '-a'],
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT).communicate()
     aloc = dict()
 
     for tloc in aloc_tmp.decode().split('\n'):
