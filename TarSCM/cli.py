@@ -115,6 +115,12 @@ class Cli():
                                  'from SCM commit log since a given parent '
                                  'revision (see changesrevision). Use '
                                  '\'master\' to fetch the latest master.')
+        parser.add_argument('--lfs',
+                            choices=['enable', 'disable'],
+                            default='disable',
+                            help='Whether or not to include git lfs blobs '
+                                 'from SCM commit log since a given parent '
+                                 'revision (see changesrevision).')
         parser.add_argument('--sslverify', choices=['enable', 'disable'],
                             default='enable',
                             help='Whether or not to check server certificate '
