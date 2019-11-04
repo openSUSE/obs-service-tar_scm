@@ -10,7 +10,7 @@ X-Python-Version: >= 2.6
 Package: obs-service-tar-scm
 Architecture: all
 Provides: obs-service-obs-scm, obs-service-tar
-Depends: ${misc:Depends}, ${python:Depends}, bzr, git, subversion, cpio, python-dateutil, python-yaml, locales-all
+Depends: ${misc:Depends}, ${python:Depends}, bzr, git, subversion, cpio, python-dateutil, python-yaml, locales-all, git-lfs
 Recommends: mercurial
 Description: An OBS source service: fetches SCM tarballs
  This is a source service for openSUSE Build Service.
