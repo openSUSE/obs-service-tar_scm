@@ -23,13 +23,13 @@ def check_locale(loc):
     aloc_tmp = subprocess.check_output(['locale', '-a'])
     aloc = dict()
 
-    for tloc in aloc_tmp.decode().split('\n'):
+    for tloc in aloc_tmp.split(b'\n'):
         aloc[tloc] = 1
 
     for tloc in loc:
         logging.debug("Checking .... %s", tloc)
         try:
-            if aloc[tloc]:
+            if aloc[tloc.encode()]:
                 return tloc
         except KeyError:
             pass
