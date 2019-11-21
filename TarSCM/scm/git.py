@@ -81,7 +81,7 @@ class Git(Scm):
         if not self.is_sslverify_enabled():
             command += ['--config', 'http.sslverify=false']
         if self.repocachedir:
-            command.insert(2, '--mirror')
+            command.insert(command.index('clone') + 1, '--mirror')
         wdir = os.path.abspath(os.path.join(self.repodir, os.pardir))
         try:
             self.helpers.safe_run(
