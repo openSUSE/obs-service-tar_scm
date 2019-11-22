@@ -7,12 +7,14 @@ import re
 import tarfile
 import textwrap
 import shutil
+import mock
 
 from tests.githgtests   import GitHgTests
 from tests.gitsvntests  import GitSvnTests
 from tests.gitfixtures  import GitFixtures
 from tests.fake_classes import FakeCli, FakeTasks
 
+from TarSCM.helpers     import Helpers
 from TarSCM.scm.git     import Git
 
 from utils              import run_git
@@ -334,3 +336,25 @@ class GitTests(GitHgTests, GitSvnTests):
         self.tar_scm_std(*tar_scm_args)
 
         self._check_servicedata(revision=rev, expected_dirents=3)
+
+    @mock.patch.dict(os.environ, {'http_proxy': 'http://myproxy',
+                                  'CACHEDIRECTORY': '/foo'})
+    def test_git_mirror_arg_insert(self):
+        f_args  = FakeCli()
+        f_tasks = FakeTasks()
+        git = Git(f_args, f_tasks)
+        git.fetch_specific_revision = mock.MagicMock()
+        git.repodir = '/tmp'
+        git.pardir = '/foo'
+        clone_url = 'https://clone_url'
+        clone_dir = '/tmp/clone_dir'
+        git.url = clone_url
+        git.clone_dir = clone_dir
+        with mock.patch.object(Helpers, 'safe_run') as mock_save_run:
+            git.fetch_upstream_scm()
+            ((command,), kwargs) = mock_save_run.call_args
+            expected_command = [
+              'git', '-c', 'http.proxy=http://myproxy', 'clone', '--mirror',
+              clone_url, clone_dir]
+            self.assertEqual(expected_command, command)
+
