@@ -86,6 +86,13 @@ class TasksTestCases(unittest.TestCase):
             self.assertEqual(tasks.task_list[0].__dict__[k], expected[k])
         self.assertEqual(len(tasks.task_list), 1)
 
+    def test_appimage_empty_build(self):
+        self.cli.snapcraft = False
+        self.cli.appimage = True
+        self._cd_fixtures_dir()
+        tasks = TarSCM.Tasks(self.cli)
+        tasks.generate_list()
+
     def test_appimage_empty_build_git(self):
         self.cli.snapcraft = False
         self.cli.appimage = True
