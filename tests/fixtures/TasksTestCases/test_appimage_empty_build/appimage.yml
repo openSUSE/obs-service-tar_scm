@@ -1,0 +1,11 @@
+app: APPIMAGE_NAME
+binpatch: true
+
+ingredients:
+  packages:
+    - RPM_PACKAGE_NAME
+
+script:
+  - cd $BUILD_APPDIR/
+  - cp $BUILD_APPDIR/usr/share/applications/NAME.desktop $BUILD_APPDIR
+  - cp $BUILD_APPDIR/usr/share/pixmaps/NAME.png $BUILD_APPDIR
