@@ -79,8 +79,8 @@
   </parameter>
   <parameter name="match-tag">
     <description>
-      With this parameter you can specifiy a glob pattern to filter relevant
-      tags in your project e.g. if you use @PARENT_TAG@
+      With this parameter you can specifiy a glob pattern (e.g. v*) to filter
+      relevant tags in your project e.g. if you use @PARENT_TAG@.
     </description>
   </parameter>
   <parameter name="parent-tag">
