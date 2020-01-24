@@ -56,22 +56,28 @@ class UnitTestCases(unittest.TestCase):
         scm     = Git(self.cli, self.tasks)
         # pylint: disable=unused-variable,protected-access
         new_cmd = scm._log_cmd(['-n1'], '')  # noqa
-        safe_run_mock.assert_called_once_with(['git', 'log', '-n1'], cwd=None)
+        safe_run_mock.assert_called_once_with(
+            ['git', '-c', 'log.showSignature=False', 'log', '-n1'],
+            cwd=None)
 
     @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_without_args(self, safe_run_mock):
         scm     = Git(self.cli, self.tasks)
         # pylint: disable=unused-variable,protected-access
         new_cmd = scm._log_cmd([], '')  # noqa
-        safe_run_mock.assert_called_once_with(['git', 'log'], cwd=None)
+        safe_run_mock.assert_called_once_with(
+            ['git', '-c', 'log.showSignature=False', 'log'],
+            cwd=None)
 
     @patch('TarSCM.Helpers.safe_run')
     def test__git_log_cmd_with_subdir(self, safe_run_mock):
         scm     = Git(self.cli, self.tasks)
         # pylint: disable=unused-variable,protected-access
         new_cmd = scm._log_cmd(['-n1'], 'subdir')  # noqa
-        safe_run_mock.assert_called_once_with(['git', 'log', '-n1',
-                                               '--', 'subdir'], cwd=None)
+        safe_run_mock.assert_called_once_with(
+            ['git', '-c', 'log.showSignature=False',
+                'log', '-n1', '--', 'subdir'],
+            cwd=None)
 
     def test_safe_run_exception(self):
         helpers = Helpers()

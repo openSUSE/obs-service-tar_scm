@@ -179,11 +179,10 @@ class Git(Scm):
                 parent_tag,
                 versionformat)
 
-        version = self.helpers.safe_run(
-            self._get_scm_cmd() + ['log', '-n1', '--date=short',
-                                   "--pretty=format:%s" % versionformat],
-            self.clone_dir
-        )[1]
+        version = self._log_cmd(
+            ['-n1', '--date=short', "--pretty=format:%s" % versionformat],
+            None
+        )
         return self.version_iso_cleanup(version)
 
     def _detect_parent_tag(self, args):
@@ -251,7 +250,8 @@ class Git(Scm):
 
     def _log_cmd(self, cmd_args, subdir):
         """ Helper function to call 'git log' with args"""
-        cmd = self._get_scm_cmd() + ['log'] + cmd_args
+        cmd = self._get_scm_cmd() + \
+            ['-c', 'log.showSignature=False', 'log'] + cmd_args
         if subdir:
             cmd += ['--', subdir]
         return self.helpers.safe_run(cmd, cwd=self.clone_dir)[1]
