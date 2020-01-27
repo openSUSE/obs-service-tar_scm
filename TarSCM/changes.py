@@ -97,7 +97,7 @@ class Changes():
 
     def get_changesrevision(self, tar_scm_service):
         """Returns an object representing the <param name="changesrevision">
-        element, or None, if it doesn't exist.
+        element from the _servicedata file, or None, if it doesn't exist.
         """
         params = tar_scm_service.findall("param[@name='changesrevision']")
         if not params:
