@@ -103,7 +103,11 @@ class Scm():
         # submodules since they depend on the actual version of the selected
         # revision
         self.fetch_submodules()
-        self.fetch_lfs()
+
+        # obs_scm specific: do not allow running git-lfs to prevent storage
+        #  duplication with tar_scm
+        if self.args.use_obs_scm:
+            self.fetch_lfs()
 
         self.unlock_cache()
 

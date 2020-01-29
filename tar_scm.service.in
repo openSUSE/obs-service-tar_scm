@@ -140,11 +140,13 @@ which get maintained in the SCM. Can be used multiple times.</description>
     <allowedvalue>master</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </parameter>
+===OBS_ONLY
   <parameter name="lfs">
     <description>Specify whether to include git-lfs blobs.  Default is 'disable'.</description>
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </parameter>
+===
   <parameter name="sslverify">
     <description>Specify Whether or not to check server certificate against installed CAs.  Default is 'enable'.</description>
     <allowedvalue>enable</allowedvalue>
