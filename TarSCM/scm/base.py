@@ -260,14 +260,18 @@ class Scm():
             'sslverify' not in self.args.__dict__ or \
             self.args.__dict__['sslverify']
 
-    def version_iso_cleanup(self, version):
+    def version_iso_cleanup(self, version, debian=False):
         """Reformat timestamp value."""
         version = re.sub(r'([0-9]{4})-([0-9]{2})-([0-9]{2}) +'
                          r'([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?'
                          r'( +[-+][0-9]{3,4})',
                          r'\1\2\3T\4\6\8',
                          version)
-        version = re.sub(r'[-:]', '', version)
+        # avoid removing "-" for Debian packages, which use it to split the
+        # upstream vs downstream version
+        # for RPM it has to be stripped instead, as it's an illegal character
+        if not debian:
+            version = re.sub(r'[-:]', '', version)
         return version
 
     def prepare_working_copy(self):

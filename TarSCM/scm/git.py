@@ -45,6 +45,12 @@ class Git(Scm):
                 found_revision = True
                 if os.getenv('OSC_VERSION') and \
                    len(os.listdir(self.clone_dir)) > 1:
+                    # Ensure that the call of "git stash" is done with
+                    # LANG=C to get a reliable output
+                    lang_bak = None
+                    if 'LANG' in os.environ:
+                        lang_bak = os.environ['LANG']
+                        os.environ['LANG'] = "C"
                     stash_text = self.helpers.safe_run(
                         self._get_scm_cmd() + ['stash'],
                         cwd=self.clone_dir)[1]
@@ -57,6 +63,8 @@ class Git(Scm):
                         text += self.helpers.safe_run(
                             self._get_scm_cmd() + ['stash', 'pop'],
                             cwd=self.clone_dir)[1]
+                    if lang_bak:
+                        os.environ['LANG'] = lang_bak
                 else:
                     text = self.helpers.safe_run(
                         self._get_scm_cmd() + ['reset', '--hard', rev],
@@ -81,7 +89,7 @@ class Git(Scm):
         if not self.is_sslverify_enabled():
             command += ['--config', 'http.sslverify=false']
         if self.repocachedir:
-            command.insert(2, '--mirror')
+            command.insert(command.index('clone') + 1, '--mirror')
         wdir = os.path.abspath(os.path.join(self.repodir, os.pardir))
         try:
             self.helpers.safe_run(
@@ -176,6 +184,7 @@ class Git(Scm):
         """
         parent_tag = args['parent_tag']
         versionformat = args['versionformat']
+        debian = args.get('use_obs_gbp', False)
         if versionformat is None:
             versionformat = '%ct.%h'
 
@@ -197,7 +206,7 @@ class Git(Scm):
                                    "--pretty=format:%s" % versionformat],
             self.clone_dir
         )[1]
-        return self.version_iso_cleanup(version)
+        return self.version_iso_cleanup(version, debian)
 
     def _detect_parent_tag(self, args):
         parent_tag = ''

@@ -20,7 +20,12 @@ def contains_dotdot(files):
 
 
 def check_locale(loc):
-    aloc_tmp = subprocess.check_output(['locale', '-a'])
+    try:
+        aloc_tmp = subprocess.check_output(['locale', '-a'])
+    except AttributeError:
+        aloc_tmp, _ = subprocess.Popen(['locale', '-a'],
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT).communicate()
     aloc = dict()
 
     for tloc in aloc_tmp.split(b'\n'):
@@ -145,8 +150,14 @@ class Cli():
         parser.add_argument('--history-depth',
                             help='Obsolete osc service parameter that does '
                                  'nothing')
-        # This option is only used in test cases, in real life you would call
-        # obs_scm instead
+        parser.add_argument('--gbp-build-args', type=str,
+                            default='-nc -uc -us -S',
+                            help='Parameters passed to git-buildpackage')
+        parser.add_argument('--gbp-dch-release-update',
+                            choices=['enable', 'disable'], default='disable',
+                            help='Append OBS release number')
+        # These option is only used in test cases, in real life you would call
+        # obs_scm or obs_gbp instead
         parser.add_argument('--use-obs-scm', default = False,
                             help='use obs scm (obscpio) ')
 
@@ -159,6 +170,8 @@ class Cli():
                                  ' Set locale while service run')
         parser.add_argument('--encoding',
                             help='set encoding while service run')
+        parser.add_argument('--use-obs-gbp', default = False,
+                            help='use obs gbp (requires git-buildpackage) ')
 
         self.verify_args(parser.parse_args(options))
 
@@ -192,6 +205,9 @@ class Cli():
         args.package_meta    = bool(args.package_meta == 'yes')
         args.sslverify       = bool(args.sslverify != 'disable')
         args.use_obs_scm     = bool(args.use_obs_scm)
+        args.use_obs_gbp     = bool(args.use_obs_gbp)
+        args.gbp_dch_release_update = bool(args.gbp_dch_release_update
+                                           != 'disable')
 
         # Allow forcing verbose mode from the environment; this
         # allows debugging when running "osc service disabledrun" etc.
