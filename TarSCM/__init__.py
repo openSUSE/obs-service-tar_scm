@@ -8,6 +8,7 @@ from TarSCM.helpers    import Helpers
 from TarSCM.cli        import Cli
 from TarSCM.archive    import Tar
 from TarSCM.archive    import ObsCpio
+from TarSCM.archive    import Gbp
 from TarSCM.exceptions import OptionsError
 
 
@@ -26,6 +27,9 @@ def run():
 
     if os.path.basename(sys.argv[0]) == "snapcraft":
         _cli.snapcraft = True
+
+    if os.path.basename(sys.argv[0]) == "obs_gbp":
+        _cli.use_obs_gbp = True
 
     task_list = Tasks(_cli)
 
