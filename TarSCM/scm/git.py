@@ -125,6 +125,19 @@ class Git(Scm):
                 cwd=self.clone_dir
             )
 
+    def fetch_lfs(self):
+        """Initialize git lfs objects."""
+        argsd = self.args.__dict__
+        if ('lfs' in argsd and argsd['lfs'] == 'enable'):
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['lfs', 'fetch'],
+                cwd=self.clone_dir
+            )
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['lfs', 'checkout'],
+                cwd=self.clone_dir
+            )
+
     def update_cache(self):
         """Update sources via git."""
         # Force origin to the wanted URL in case it switched

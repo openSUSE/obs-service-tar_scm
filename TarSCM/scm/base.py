@@ -104,9 +104,18 @@ class Scm():
         # revision
         self.fetch_submodules()
 
+        # obs_scm specific: do not allow running git-lfs to prevent storage
+        #  duplication with tar_scm
+        if self.args.use_obs_scm:
+            self.fetch_lfs()
+
         self.unlock_cache()
 
     def fetch_submodules(self):
+        """NOOP in other scm's than git"""
+        pass
+
+    def fetch_lfs(self):
         """NOOP in other scm's than git"""
         pass
 
