@@ -37,6 +37,19 @@
     <description>Specify URL to checkout.</description>
     <required/>
   </parameter>
+  <parameter name="credential-key">
+    <description>
+      Specify the credential key as used in config file to authenticate against SCM.
+      Its only available for the following combinaison of SCM / protocols:
+        - git: ftp(s),http(s)
+        - svn
+        - bzr: bzr,ftp,http(s)
+        - hg: http(s)
+      Here is an example of how to setup the config file( default to /etc/obs/services/tar_scm):
+      [credentials]
+      myrepo1 = {'user':'user1', 'pwd':'password1'}
+    </description>
+  </parameter>
   <parameter name="subdir">
     <description>Package just a subdirectory.</description>
   </parameter>
