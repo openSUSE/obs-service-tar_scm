@@ -10,6 +10,15 @@ import time
 import subprocess
 import glob
 import locale
+from ast import literal_eval
+# python3 renaming of ConfigParser
+try:
+    from configparser import NoSectionError
+    from configparser import NoOptionError
+except ImportError:
+    from ConfigParser import NoSectionError
+    from ConfigParser import NoOptionError
+
 
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
@@ -32,6 +41,8 @@ class Scm():
         self.lock_file      = None
         self.basename       = None
         self.repodir        = None
+        self.user           = None
+        self.password       = None
 
         # mandatory arguments
         self.args           = args
@@ -40,6 +51,26 @@ class Scm():
 
         # optional arguments
         self.revision       = args.revision
+        if args.credential_key:
+            try:
+                creds = literal_eval(
+                    Config().get('credentials', args.credential_key)
+                )
+            except NoSectionError:
+                raise Exception('No section [credentials] in config file')
+            except NoOptionError:
+                raise Exception(
+                    "No key \'%s\' in [credentials] section"
+                    % args.credential_key
+                )
+            except SyntaxError:
+                raise Exception(
+                    'Malformed credential dict, should look like "%s ='
+                    '{\'user\': \'XXX\', \'pwd\': \'YYY\'}"'
+                    % args.credential_key
+                )
+            self.user     = creds.get('user')
+            self.password = creds.get('pwd')
 
         # preparation of required attributes
         self.helpers        = Helpers()
