@@ -53,9 +53,13 @@ class Scm():
         self.revision       = args.revision
         if args.credential_key:
             try:
-                creds = literal_eval(
-                    Config().get('credentials', args.credential_key)
-                )
+                cred_line = Config().get('credentials', args.credential_key)
+                if not cred_line:
+                    raise Exception(
+                        "No key \'%s\' in [credentials] section"
+                        % args.credential_key
+                    )
+                creds = literal_eval(cred_line)
             except NoSectionError:
                 raise Exception('No section [credentials] in config file')
             except NoOptionError:
@@ -66,11 +70,17 @@ class Scm():
             except SyntaxError:
                 raise Exception(
                     'Malformed credential dict, should look like "%s ='
-                    '{\'user\': \'XXX\', \'pwd\': \'YYY\'}"'
+                    ' {\'user\': \'XXX\', \'pwd\': \'YYY\'}"'
                     % args.credential_key
                 )
             self.user     = creds.get('user')
             self.password = creds.get('pwd')
+            if not self.user or not self.password:
+                raise Exception(
+                    'Malformed credential dict, should look like "%s ='
+                    ' {\'user\': \'XXX\', \'pwd\': \'YYY\'}"'
+                    % args.credential_key
+                )
 
         # preparation of required attributes
         self.helpers        = Helpers()
