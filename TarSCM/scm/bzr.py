@@ -15,6 +15,17 @@ class Bzr(Scm):
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for bzr."""
+        if self.user and self.password:
+            pattern_proto = re.compile(r'^(ftp|bzr|https?)://.*')
+            pattern = re.compile(r'^(ftp|bzr|https?)://.*:.*@.*')
+            if (pattern_proto.fullmatch(self.url)
+                    and not pattern.fullmatch(self.url)):
+                self.url = re.sub(r'^((ftp|bzr|https?)://)(.*)',
+                                  r'\g<1>{user}:{pwd}@\g<3>'.format(
+                                      user=self.user,
+                                      pwd=self.password),
+                                  self.url)
+
         command = self._get_scm_cmd() + ['checkout', self.url, self.clone_dir]
         if self.revision:
             command.insert(3, '-r')
