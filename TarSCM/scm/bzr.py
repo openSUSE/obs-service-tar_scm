@@ -18,8 +18,7 @@ class Bzr(Scm):
         if self.user and self.password:
             pattern_proto = re.compile(r'^(ftp|bzr|https?)://.*')
             pattern = re.compile(r'^(ftp|bzr|https?)://.*:.*@.*')
-            if (pattern_proto.fullmatch(self.url)
-                    and not pattern.fullmatch(self.url)):
+            if pattern_proto.match(self.url) and not pattern.match(self.url):
                 self.url = re.sub(r'^((ftp|bzr|https?)://)(.*)',
                                   r'\g<1>{user}:{pwd}@\g<3>'.format(
                                       user=self.user,

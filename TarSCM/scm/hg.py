@@ -61,8 +61,7 @@ class Hg(Scm):
         if self.user and self.password:
             pattern_proto = re.compile(r'^https?://.*')
             pattern = re.compile(r'^https?://.*:.*@.*')
-            if (pattern_proto.fullmatch(self.url)
-                    and not pattern.fullmatch(self.url)):
+            if pattern_proto.match(self.url) and not pattern.match(self.url):
                 self.url = re.sub(r'^(https?://)(.*)',
                                   r'\g<1>{user}:{pwd}@\g<2>'.format(
                                       user=self.user,
