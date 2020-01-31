@@ -5,6 +5,7 @@ class FakeCli(dict):  # pylint: disable=no-init,too-few-public-methods
         self.changesgenerate = False
         self.subdir          = ''
         self.match_tag       = match_tag
+        self.credential_key  = ''
 
 
 class FakeTasks():  # pylint: disable=no-init,too-few-public-methods
