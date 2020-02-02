@@ -10,17 +10,7 @@ import time
 import subprocess
 import glob
 import locale
-
-from ast import literal_eval
-
-# python3 renaming of ConfigParser
-try:
-    from configparser import NoSectionError
-    from configparser import NoOptionError
-except ImportError:
-    from ConfigParser import NoSectionError
-    from ConfigParser import NoOptionError
-
+import keyrings.alt.file
 
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
@@ -53,36 +43,17 @@ class Scm():
 
         # optional arguments
         self.revision       = args.revision
-        if args.credential_key:
+        if args.user and args.keyring_passphrase:
+            _kr = keyrings.alt.file.EncryptedKeyring()
+            _kr.keyring_key = args.keyring_passphrase
             try:
-                cred_line = Config().get('credentials', args.credential_key)
-                if not cred_line:
-                    raise Exception(
-                        "No key \'%s\' in [credentials] section"
-                        % args.credential_key
-                    )
-                creds = literal_eval(cred_line)
-            except NoSectionError:
-                raise Exception('No section [credentials] in config file')
-            except NoOptionError:
-                raise Exception(
-                    "No key \'%s\' in [credentials] section"
-                    % args.credential_key
-                )
-            except SyntaxError:
-                raise Exception(
-                    'Malformed credential dict, should look like "%s ='
-                    ' {\'user\': \'XXX\', \'pwd\': \'YYY\'}"'
-                    % args.credential_key
-                )
-            self.user     = creds.get('user')
-            self.password = creds.get('pwd')
-            if not self.user or not self.password:
-                raise Exception(
-                    'Malformed credential dict, should look like "%s ='
-                    ' {\'user\': \'XXX\', \'pwd\': \'YYY\'}"'
-                    % args.credential_key
-                )
+                self.password = _kr.get_password(self.url, args.user)
+                if not self.password:
+                    raise Exception('No user {u} in keyring for service {s}'
+                                    .format(u=args.user, s=self.url))
+            except AssertionError:
+                raise Exception('Wrong keyring passphrase')
+            self.user     = args.user
 
         # preparation of required attributes
         self.helpers        = Helpers()
