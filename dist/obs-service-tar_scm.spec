@@ -120,6 +120,8 @@ BuildRequires:  %{pyyaml_package}
 BuildRequires:  %{use_python}-argparse
 %endif
 BuildRequires:  %{use_python}-dateutil
+BuildRequires:  %{use_python}-keyring
+BuildRequires:  %{use_python}-keyrings.alt
 # Why do we need this? we dont use it as runtime requires later
 BuildRequires:  %{use_python}-lxml
 
@@ -149,6 +151,8 @@ Group:          Development/Tools/Building
 Requires:       %{locale_package}
 Requires:       %{pyyaml_package}
 Requires:       %{use_python}-dateutil
+Requires:  %{use_python}-keyring
+Requires:  %{use_python}-keyrings.alt
 %if %{with needs_external_argparse}
 Requires:       %{use_python}-argparse
 %endif
