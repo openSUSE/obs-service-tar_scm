@@ -63,7 +63,7 @@ class Cli():
                             help='Specify URL of upstream tarball to download')
         parser.add_argument('--user',
                             help='Specify user for SCM authentication')
-        parser.add_argument('--keyring-passpharse',
+        parser.add_argument('--keyring-passphrase',
                             help='Specify passphrase to decrypt credentials '
                                  'from keyring')
         parser.add_argument('--obsinfo',
