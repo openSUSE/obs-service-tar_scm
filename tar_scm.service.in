@@ -37,17 +37,21 @@
     <description>Specify URL to checkout.</description>
     <required/>
   </parameter>
-  <parameter name="credential-key">
+  <parameter name="user">
     <description>
-      Specify the credential key as used in config file to authenticate against SCM.
+      Specify the username to be used for authentication to the repository.
+    </description>
+  </parameter>
+  <parameter name="keyring-passphrase">
+    <description>
+    Specify the passphrase to decrypt credentials from the python keyring.
+    To store credentials please use the following command line:
+    "sudo su -H -u obsrun keyring -b keyrings.alt.file.EncryptedKeyring set URL username password"
       Its only available for the following combinaison of SCM / protocols:
         - git: ftp(s),http(s)
         - svn
         - bzr: bzr,ftp,http(s)
         - hg: http(s)
-      Here is an example of how to setup the config file( default to /etc/obs/services/tar_scm):
-      [credentials]
-      myrepo1 = {'user':'user1', 'pwd':'password1'}
     </description>
   </parameter>
   <parameter name="subdir">
