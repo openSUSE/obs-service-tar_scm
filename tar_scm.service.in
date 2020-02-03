@@ -46,7 +46,8 @@
     <description>
     Specify the passphrase to decrypt credentials from the python keyring.
     To store credentials please use the following command line:
-    "sudo su -H -u obsrun keyring -b keyrings.alt.file.EncryptedKeyring set URL username password"
+    "sudo mkdir /usr/lib/obs/.local && sudo chown obsservicerun /usr/lib/obs/.local"
+    "sudo su -H -u obsservicerun keyring -b keyrings.alt.file.EncryptedKeyring set URL username password"
       Its only available for the following combinaison of SCM / protocols:
         - git: ftp(s),http(s)
         - svn
