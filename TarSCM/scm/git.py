@@ -159,13 +159,16 @@ class Git(Scm):
                 cwd=self.clone_dir,
                 interactive=sys.stdout.isatty()
             )
+
+            cmd = self._get_scm_cmd() + ['merge']
+            if self.revision:
+                cmd += [self.revision]
             self.helpers.safe_run(
-                self._get_scm_cmd() + ['merge'],
+                cmd,
                 cwd=self.clone_dir,
                 interactive=sys.stdout.isatty()
             )
 
-            self.fetch_specific_revision()
         except SystemExit as exc:
             logging.error("Corrupt clone_dir '%s' detected.", self.clone_dir)
             obs_service_daemon = os.getenv('OBS_SERVICE_DAEMON')
