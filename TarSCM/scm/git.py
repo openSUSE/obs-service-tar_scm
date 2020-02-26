@@ -55,7 +55,7 @@ class Git(Scm):
                         self._get_scm_cmd() + ['stash'],
                         cwd=self.clone_dir)[1]
                     text = self.helpers.safe_run(
-                        self._get_scm_cmd() + ['reset', '--hard', rev],
+                        self._get_scm_cmd() + ['merge', 'origin/' + rev],
                         cwd=self.clone_dir
                     )[1]
                     if stash_text != "No local changes to save\n":
@@ -99,6 +99,12 @@ class Git(Scm):
             raise exc
 
         self.fetch_specific_revision()
+
+        if self.revision and not self.repocachedir:
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['checkout', self.revision],
+                cwd=self.clone_dir
+            )
 
     def fetch_specific_revision(self):
         if self.revision and not self._ref_exists(self.revision):
@@ -156,15 +162,6 @@ class Git(Scm):
             )
             self.helpers.safe_run(
                 self._get_scm_cmd() + ['fetch'],
-                cwd=self.clone_dir,
-                interactive=sys.stdout.isatty()
-            )
-
-            cmd = self._get_scm_cmd() + ['merge']
-            if self.revision:
-                cmd += [self.revision]
-            self.helpers.safe_run(
-                cmd,
                 cwd=self.clone_dir,
                 interactive=sys.stdout.isatty()
             )
