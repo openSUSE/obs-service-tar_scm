@@ -103,7 +103,7 @@ class Scm():
             pattern_proto = re.compile(auth_patterns[self.scm]['proto'])
             pattern = re.compile(auth_patterns[self.scm]['already'])
             if pattern_proto.match(self.url) and not pattern.match(self.url):
-                logging.debug('[auth_url] settings credentials from python keyring')
+                logging.debug('[auth_url] settings credentials from keyring')
                 self.url = re.sub(auth_patterns[self.scm]['sub'],
                                   auth_patterns[self.scm]['format'].format(
                                       user=self.user,
