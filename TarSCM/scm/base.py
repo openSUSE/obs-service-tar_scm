@@ -10,7 +10,6 @@ import time
 import subprocess
 import glob
 import locale
-import keyrings.alt.file
 
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
@@ -21,6 +20,12 @@ try:
 except ImportError:
     from urlparse import urlparse
 
+keyring_import_error=0
+
+try:
+    import keyrings.alt.file
+except ImportError:
+    keyring_import_error=1
 
 class Scm():
     def __init__(self, args, task):
@@ -44,6 +49,10 @@ class Scm():
         # optional arguments
         self.revision       = args.revision
         if args.user and args.keyring_passphrase:
+            if keyring_import_error == 1:
+                raise SystemExit('Error while importing keyrings.alt.file but '
+                    '"--user" and "--keyring_passphrase" are set. '
+                    'Please install keyrings.alt.file!')
             _kr = keyrings.alt.file.EncryptedKeyring()
             _kr.keyring_key = args.keyring_passphrase
             try:

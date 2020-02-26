@@ -151,8 +151,6 @@ Group:          Development/Tools/Building
 Requires:       %{locale_package}
 Requires:       %{pyyaml_package}
 Requires:       %{use_python}-dateutil
-Requires:  %{use_python}-keyring
-Requires:  %{use_python}-keyrings.alt
 %if %{with needs_external_argparse}
 Requires:       %{use_python}-argparse
 %endif

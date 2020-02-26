@@ -6,5 +6,3 @@ PyYAML
 six
 pylint
 flake8
-keyring
-keyrings.alt
