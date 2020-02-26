@@ -58,15 +58,7 @@ class Hg(Scm):
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for hg."""
-        if self.user and self.password:
-            pattern_proto = re.compile(r'^https?://.*')
-            pattern = re.compile(r'^https?://.*:.*@.*')
-            if pattern_proto.match(self.url) and not pattern.match(self.url):
-                self.url = re.sub(r'^(https?://)(.*)',
-                                  r'\g<1>{user}:{pwd}@\g<2>'.format(
-                                      user=self.user,
-                                      pwd=self.password),
-                                  self.url)
+        self.auth_url()
         command = self._get_scm_cmd() + ['clone', self.url, self.clone_dir]
         if not self.is_sslverify_enabled():
             command += ['--insecure']

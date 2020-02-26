@@ -84,15 +84,7 @@ class Git(Scm):
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for git."""
-        if self.user and self.password:
-            pattern_proto = re.compile(r'^(ftps?|https?)://.*')
-            pattern = re.compile(r'^(ftps?|https?)://.*:.*@.*')
-            if pattern_proto.match(self.url) and not pattern.match(self.url):
-                self.url = re.sub(r'^((ftps?|https?)://)(.*)',
-                                  r'\g<1>{user}:{pwd}@\g<3>'.format(
-                                      user=self.user,
-                                      pwd=self.password),
-                                  self.url)
+        self.auth_url()
         # clone if no .git dir exists
         command = self._get_scm_cmd() + ['clone', self.url, self.clone_dir]
         if not self.is_sslverify_enabled():
@@ -150,15 +142,7 @@ class Git(Scm):
     def update_cache(self):
         """Update sources via git."""
         # Force origin to the wanted URL in case it switched
-        if self.user and self.password:
-            pattern_proto = re.compile(r'^(ftps?|https?)://.*')
-            pattern = re.compile(r'^(ftps?|https?)://.*:.*@.*')
-            if pattern_proto.match(self.url) and not pattern.match(self.url):
-                self.url = re.sub(r'^((ftps?|https?)://)(.*)',
-                                  r'\g<1>{user}:{pwd}@\g<3>'.format(
-                                      user=self.user,
-                                      pwd=self.password),
-                                  self.url)
+        self.auth_url()
         try:
             self.helpers.safe_run(
                 self._get_scm_cmd() + ['config', 'remote.origin.url',

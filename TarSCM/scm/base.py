@@ -79,6 +79,36 @@ class Scm():
         self.noproxy        = None
         self._calc_proxies()
 
+    def auth_url(self):
+        if self.scm not in ('bzr', 'git', 'hg'):
+            return
+        auth_patterns = {}
+        auth_patterns['bzr'] = {}
+        auth_patterns['bzr']['proto']   = r'^(ftp|bzr|https?)://.*'
+        auth_patterns['bzr']['already'] = r'^(ftp|bzr|https?)://.*:.*@.*'
+        auth_patterns['bzr']['sub']     = r'^((ftp|bzr|https?)://)(.*)'
+        auth_patterns['bzr']['format']  = r'\g<1>{user}:{pwd}@\g<3>'
+        auth_patterns['git'] = {}
+        auth_patterns['git']['proto']   = r'^(ftps?|https?)://.*'
+        auth_patterns['git']['already'] = r'^(ftps?|https?)://.*:.*@.*'
+        auth_patterns['git']['sub']     = r'^((ftps?|https?)://)(.*)'
+        auth_patterns['git']['format']  = r'\g<1>{user}:{pwd}@\g<3>'
+        auth_patterns['hg'] = {}
+        auth_patterns['hg']['proto']   = r'^https?://.*'
+        auth_patterns['hg']['already'] = r'^https?://.*:.*@.*'
+        auth_patterns['hg']['sub']     = r'^(https?://)(.*)'
+        auth_patterns['hg']['format']  = r'\g<1>{user}:{pwd}@\g<2>'
+
+        if self.user and self.password:
+            pattern_proto = re.compile(auth_patterns[self.scm]['proto'])
+            pattern = re.compile(auth_patterns[self.scm]['already'])
+            if pattern_proto.match(self.url) and not pattern.match(self.url):
+                self.url = re.sub(auth_patterns[self.scm]['sub'],
+                                  auth_patterns[self.scm]['format'].format(
+                                      user=self.user,
+                                      pwd=self.password),
+                                  self.url)
+
     def check_scm(self):
         '''check version of scm to proof, it is installed and executable'''
         subprocess.Popen(
