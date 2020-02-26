@@ -20,12 +20,12 @@ try:
 except ImportError:
     from urlparse import urlparse
 
-keyring_import_error=0
+keyring_import_error = 0
 
 try:
     import keyrings.alt.file
 except ImportError:
-    keyring_import_error=1
+    keyring_import_error = 1
 
 class Scm():
     def __init__(self, args, task):
@@ -51,8 +51,8 @@ class Scm():
         if args.user and args.keyring_passphrase:
             if keyring_import_error == 1:
                 raise SystemExit('Error while importing keyrings.alt.file but '
-                    '"--user" and "--keyring_passphrase" are set. '
-                    'Please install keyrings.alt.file!')
+                                 '"--user" and "--keyring_passphrase" are set.'
+                                 ' Please install keyrings.alt.file!')
             os.environ['XDG_DATA_HOME'] = '/etc/obs/services/tar_scm.d'
             _kr = keyrings.alt.file.EncryptedKeyring()
             _kr.keyring_key = args.keyring_passphrase
