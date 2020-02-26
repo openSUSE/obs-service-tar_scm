@@ -245,6 +245,7 @@ make %{use_test}
 %{_prefix}/lib/obs/service/tar_scm
 %dir %{_sysconfdir}/obs
 %dir %{_sysconfdir}/obs/services
+%attr(-,obsrun,obsrun) %dir %{_sysconfdir}/obs/services/tar_scm.d
 %config(noreplace) %{_sysconfdir}/obs/services/*
 
 %files -n obs-service-tar

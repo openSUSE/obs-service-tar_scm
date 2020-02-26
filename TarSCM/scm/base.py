@@ -53,6 +53,7 @@ class Scm():
                 raise SystemExit('Error while importing keyrings.alt.file but '
                     '"--user" and "--keyring_passphrase" are set. '
                     'Please install keyrings.alt.file!')
+            os.environ['XDG_DATA_HOME'] = '/etc/obs/services/tar_scm.d'
             _kr = keyrings.alt.file.EncryptedKeyring()
             _kr.keyring_key = args.keyring_passphrase
             try:
