@@ -56,6 +56,10 @@ class Git(Scm):
                 cwd=self.clone_dir,
                 interactive=True)
 
+            # validate the existens of the revision
+            if self.revision and not self._ref_exists(self.revision):
+                sys.exit('%s: No such revision' % self.revision)
+
             if stash_text != "No local changes to save\n":
                 logging.debug("[switch_revision] GIT STASHING")
                 self.helpers.run_cmd(
