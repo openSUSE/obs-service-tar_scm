@@ -38,42 +38,40 @@ class Git(Scm):
         if self.revision is None:
             self.revision = 'master'
 
-        found_revision = None
-        revs = [x + self.revision for x in ['', 'origin/']]
-        for rev in revs:
-            if self._ref_exists(rev):
-                found_revision = True
-                if os.getenv('OSC_VERSION') and \
-                   len(os.listdir(self.clone_dir)) > 1:
-                    # Ensure that the call of "git stash" is done with
-                    # LANG=C to get a reliable output
-                    lang_bak = None
-                    if 'LANG' in os.environ:
-                        lang_bak = os.environ['LANG']
-                        os.environ['LANG'] = "C"
-                    stash_text = self.helpers.safe_run(
-                        self._get_scm_cmd() + ['stash'],
-                        cwd=self.clone_dir)[1]
-                    text = self.helpers.safe_run(
-                        self._get_scm_cmd() + ['merge', 'origin/' + rev],
-                        cwd=self.clone_dir
-                    )[1]
-                    if stash_text != "No local changes to save\n":
-                        logging.debug("[switch_revision] GIT STASHING")
-                        text += self.helpers.safe_run(
-                            self._get_scm_cmd() + ['stash', 'pop'],
-                            cwd=self.clone_dir)[1]
-                    if lang_bak:
-                        os.environ['LANG'] = lang_bak
-                else:
-                    text = self.helpers.safe_run(
-                        self._get_scm_cmd() + ['reset', '--hard', rev],
-                        cwd=self.clone_dir
-                    )[1]
-                break
+        if os.getenv('OSC_VERSION') and \
+           len(os.listdir(self.clone_dir)) > 1:
+            # Ensure that the call of "git stash" is done with
+            # LANG=C to get a reliable output
+            lang_bak = None
+            if 'LANG' in os.environ:
+                lang_bak = os.environ['LANG']
+                os.environ['LANG'] = "C"
+            stash_text = self.helpers.safe_run(
+                self._get_scm_cmd() + ['stash'],
+                cwd=self.clone_dir)[1]
 
-        if found_revision is None:
-            sys.exit('%s: No such revision' % self.revision)
+            # merge may fail when not a remote branch, that is fine
+            self.helpers.run_cmd(
+                self._get_scm_cmd() + ['merge', 'origin/' + self.revision],
+                cwd=self.clone_dir,
+                interactive=True)
+
+            if stash_text != "No local changes to save\n":
+                logging.debug("[switch_revision] GIT STASHING")
+                self.helpers.run_cmd(
+                    self._get_scm_cmd() + ['stash', 'pop'],
+                    cwd=self.clone_dir,
+                    interactive=True)
+
+            if lang_bak:
+                os.environ['LANG'] = lang_bak
+        else:
+            # is doing the checkout in a hard way
+            # may not exist before when using cache
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['reset', '--hard', self.revision],
+                cwd=self.clone_dir
+            )[1]
 
         # only update submodules if they have been enabled
         if os.path.exists(os.path.join(self.clone_dir, '.git', 'modules')):
