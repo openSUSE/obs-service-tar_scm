@@ -206,8 +206,8 @@ class Cli():
         args.sslverify       = bool(args.sslverify != 'disable')
         args.use_obs_scm     = bool(args.use_obs_scm)
         args.use_obs_gbp     = bool(args.use_obs_gbp)
-        args.gbp_dch_release_update = bool(args.gbp_dch_release_update
-                                           != 'disable')
+        t_gbp_dch_release_u  = bool(args.gbp_dch_release_update != 'disable')
+        args.gbp_dch_release_update = t_gbp_dch_release_u
 
         # Allow forcing verbose mode from the environment; this
         # allows debugging when running "osc service disabledrun" etc.

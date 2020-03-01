@@ -71,7 +71,7 @@ class Git(Scm):
             self.helpers.safe_run(
                 self._get_scm_cmd() + ['reset', '--hard', self.revision],
                 cwd=self.clone_dir
-            )[1]
+            )
 
         # only update submodules if they have been enabled
         if os.path.exists(os.path.join(self.clone_dir, '.git', 'modules')):
@@ -283,7 +283,6 @@ class Git(Scm):
         if last_rev is None:
             last_rev = self._log_cmd(
                 ['-n1', '--pretty=format:%H', '--skip=10'], subdir)
-            last_rev = last_rev
 
         current_rev = self._log_cmd(['-n1', '--pretty=format:%H'], subdir)
 

@@ -304,8 +304,8 @@ class Gbp(BaseArchive):
         # name, which means dpkg-source -x pkg.dsc will fail as the names
         # and version will not match
         cl_path = os.path.join(scm_object.clone_dir, 'debian', 'changelog')
-        if (os.path.isfile(cl_path)
-                and version not in ['', '_none_', '_auto_', None]):
+        skip_versions = ['', '_none_', '_auto_', None]
+        if (os.path.isfile(cl_path) and version not in skip_versions):
             # Some characters are legal in Debian's versions but not in a git
             # tag, so they get substituted
             version = re.sub(r'_', r'~', version)
@@ -314,8 +314,9 @@ class Gbp(BaseArchive):
                 lines = cl.readlines()
             old_version = re.search(r'.+ \((.+)\) .+', lines[0]).group(1)
             # non-native packages MUST have a debian revision (-xyz)
-            if (re.search(r'-', old_version) is not None
-                    and re.search(r'-', version)) is None:
+            drev_ov = re.search(r'-', old_version)
+            drev_v = re.search(r'-', version)
+            if (drev_ov is not None and drev_v) is None:
                 logging.warning("Package is non-native but requested version"
                                 " %s is native! Ignoring.", version)
             else:
@@ -350,8 +351,8 @@ class Gbp(BaseArchive):
                 input_file = os.path.join(workdir, fname)
                 output_file = os.path.join(args.outdir, fname)
 
-                if (args.gbp_dch_release_update
-                        and fnmatch.fnmatch(fname, '*.dsc')):
+                filename_matches_dsc = fnmatch.fnmatch(fname, '*.dsc')
+                if (args.gbp_dch_release_update and filename_matches_dsc):
                     # This tag is used by the build-recipe-dsc to set the OBS
                     # revision: https://github.com/openSUSE/obs-build/pull/192
                     logging.debug("Setting OBS-DCH-RELEASE in %s", input_file)
