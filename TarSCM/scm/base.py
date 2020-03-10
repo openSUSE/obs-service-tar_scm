@@ -27,6 +27,7 @@ try:
 except ImportError:
     keyring_import_error = 1
 
+
 class Scm():
     def __init__(self, args, task):
         # default settings
