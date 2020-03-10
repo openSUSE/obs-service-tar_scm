@@ -15,6 +15,8 @@ class Bzr(Scm):
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for bzr."""
+
+        self.auth_url()
         command = self._get_scm_cmd() + ['checkout', self.url, self.clone_dir]
         if self.revision:
             command.insert(3, '-r')

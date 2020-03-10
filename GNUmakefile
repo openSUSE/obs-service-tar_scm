@@ -187,6 +187,7 @@ dirs:
 	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM
 	mkdir -p $(DESTDIR)$(mylibdir)/TarSCM/scm
 	mkdir -p $(DESTDIR)$(mycfgdir)
+	mkdir -p $(DESTDIR)$(mycfgdir)/tar_scm.d
 
 .PHONY: service
 service: dirs

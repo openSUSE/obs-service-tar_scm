@@ -86,6 +86,7 @@ class Git(Scm):
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for git."""
+        self.auth_url()
         # clone if no .git dir exists
         command = self._get_scm_cmd() + ['clone', self.url, self.clone_dir]
         if not self.is_sslverify_enabled():
@@ -120,13 +121,13 @@ class Git(Scm):
     def fetch_submodules(self):
         """Recursively initialize git submodules."""
         argsd = self.args.__dict__
-        if ('submodules' in argsd and argsd['submodules'] == 'enable'):
+        if 'submodules' in argsd and argsd['submodules'] == 'enable':
             self.helpers.safe_run(
                 self._get_scm_cmd() + ['submodule', 'update', '--init',
                                        '--recursive'],
                 cwd=self.clone_dir
             )
-        elif ('submodules' in argsd and argsd['submodules'] == 'master'):
+        elif 'submodules' in argsd and argsd['submodules'] == 'master':
             self.helpers.safe_run(
                 self._get_scm_cmd() + ['submodule', 'update', '--init',
                                        '--recursive', '--remote'],
@@ -136,7 +137,7 @@ class Git(Scm):
     def fetch_lfs(self):
         """Initialize git lfs objects."""
         argsd = self.args.__dict__
-        if ('lfs' in argsd and argsd['lfs'] == 'enable'):
+        if 'lfs' in argsd and argsd['lfs'] == 'enable':
             self.helpers.safe_run(
                 self._get_scm_cmd() + ['lfs', 'fetch'],
                 cwd=self.clone_dir
@@ -149,6 +150,7 @@ class Git(Scm):
     def update_cache(self):
         """Update sources via git."""
         # Force origin to the wanted URL in case it switched
+        self.auth_url()
         try:
             self.helpers.safe_run(
                 self._get_scm_cmd() + ['config', 'remote.origin.url',
@@ -172,7 +174,7 @@ class Git(Scm):
             logging.error("Corrupt clone_dir '%s' detected.", self.clone_dir)
             obs_service_daemon = os.getenv('OBS_SERVICE_DAEMON')
             osc_version = os.getenv('OSC_VERSION')
-            if (obs_service_daemon and not osc_version):
+            if obs_service_daemon and not osc_version:
                 logging.info("Removing corrupt cache!")
                 shutil.rmtree(self.clone_dir)
                 self.fetch_upstream_scm()

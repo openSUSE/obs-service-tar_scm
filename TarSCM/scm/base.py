@@ -20,6 +20,12 @@ try:
 except ImportError:
     from urlparse import urlparse
 
+keyring_import_error = 0
+
+try:
+    import keyrings.alt.file
+except ImportError:
+    keyring_import_error = 1
 
 class Scm():
     def __init__(self, args, task):
@@ -32,6 +38,8 @@ class Scm():
         self.lock_file      = None
         self.basename       = None
         self.repodir        = None
+        self.user           = None
+        self.password       = None
 
         # mandatory arguments
         self.args           = args
@@ -40,6 +48,22 @@ class Scm():
 
         # optional arguments
         self.revision       = args.revision
+        if args.user and args.keyring_passphrase:
+            if keyring_import_error == 1:
+                raise SystemExit('Error while importing keyrings.alt.file but '
+                                 '"--user" and "--keyring_passphrase" are set.'
+                                 ' Please install keyrings.alt.file!')
+            os.environ['XDG_DATA_HOME'] = '/etc/obs/services/tar_scm.d'
+            _kr = keyrings.alt.file.EncryptedKeyring()
+            _kr.keyring_key = args.keyring_passphrase
+            try:
+                self.password = _kr.get_password(self.url, args.user)
+                if not self.password:
+                    raise Exception('No user {u} in keyring for service {s}'
+                                    .format(u=args.user, s=self.url))
+            except AssertionError:
+                raise Exception('Wrong keyring passphrase')
+            self.user     = args.user
 
         # preparation of required attributes
         self.helpers        = Helpers()
@@ -54,6 +78,37 @@ class Scm():
         self.httpsproxy     = None
         self.noproxy        = None
         self._calc_proxies()
+
+    def auth_url(self):
+        if self.scm not in ('bzr', 'git', 'hg'):
+            return
+        auth_patterns = {}
+        auth_patterns['bzr'] = {}
+        auth_patterns['bzr']['proto']   = r'^(ftp|bzr|https?)://.*'
+        auth_patterns['bzr']['already'] = r'^(ftp|bzr|https?)://.*:.*@.*'
+        auth_patterns['bzr']['sub']     = r'^((ftp|bzr|https?)://)(.*)'
+        auth_patterns['bzr']['format']  = r'\g<1>{user}:{pwd}@\g<3>'
+        auth_patterns['git'] = {}
+        auth_patterns['git']['proto']   = r'^(ftps?|https?)://.*'
+        auth_patterns['git']['already'] = r'^(ftps?|https?)://.*:.*@.*'
+        auth_patterns['git']['sub']     = r'^((ftps?|https?)://)(.*)'
+        auth_patterns['git']['format']  = r'\g<1>{user}:{pwd}@\g<3>'
+        auth_patterns['hg'] = {}
+        auth_patterns['hg']['proto']   = r'^https?://.*'
+        auth_patterns['hg']['already'] = r'^https?://.*:.*@.*'
+        auth_patterns['hg']['sub']     = r'^(https?://)(.*)'
+        auth_patterns['hg']['format']  = r'\g<1>{user}:{pwd}@\g<2>'
+
+        if self.user and self.password:
+            pattern_proto = re.compile(auth_patterns[self.scm]['proto'])
+            pattern = re.compile(auth_patterns[self.scm]['already'])
+            if pattern_proto.match(self.url) and not pattern.match(self.url):
+                logging.debug('[auth_url] settings credentials from keyring')
+                self.url = re.sub(auth_patterns[self.scm]['sub'],
+                                  auth_patterns[self.scm]['format'].format(
+                                      user=self.user,
+                                      pwd=self.password),
+                                  self.url)
 
     def check_scm(self):
         '''check version of scm to proof, it is installed and executable'''

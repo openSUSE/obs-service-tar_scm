@@ -1,10 +1,12 @@
 class FakeCli(dict):  # pylint: disable=no-init,too-few-public-methods
     def __init__(self, match_tag=False):
-        self.url             = ''
-        self.revision        = ''
-        self.changesgenerate = False
-        self.subdir          = ''
-        self.match_tag       = match_tag
+        self.url                = ''
+        self.revision           = ''
+        self.changesgenerate    = False
+        self.subdir             = ''
+        self.match_tag          = match_tag
+        self.user               = ''
+        self.keyring_passphrase = ''
 
 
 class FakeTasks():  # pylint: disable=no-init,too-few-public-methods

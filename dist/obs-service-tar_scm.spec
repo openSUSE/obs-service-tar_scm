@@ -120,6 +120,8 @@ BuildRequires:  %{pyyaml_package}
 BuildRequires:  %{use_python}-argparse
 %endif
 BuildRequires:  %{use_python}-dateutil
+BuildRequires:  %{use_python}-keyring
+BuildRequires:  %{use_python}-keyrings.alt
 # Why do we need this? we dont use it as runtime requires later
 BuildRequires:  %{use_python}-lxml
 
@@ -243,6 +245,7 @@ make %{use_test}
 %{_prefix}/lib/obs/service/tar_scm
 %dir %{_sysconfdir}/obs
 %dir %{_sysconfdir}/obs/services
+%attr(-,obsservicerun,obsrun) %dir %{_sysconfdir}/obs/services/tar_scm.d
 %config(noreplace) %{_sysconfdir}/obs/services/*
 
 %files -n obs-service-tar

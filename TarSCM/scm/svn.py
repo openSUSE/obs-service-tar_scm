@@ -76,6 +76,10 @@ class Svn(Scm):
             cfg.close()
             scmcmd += ['--config-dir', self.svntmpdir]
 
+            if self.user and self.password:
+                scmcmd += ['--username', self.user]
+                scmcmd += ['--password', self.password]
+
         return scmcmd
 
     def fetch_upstream_scm(self):
@@ -109,7 +113,7 @@ class Svn(Scm):
         except SystemExit as exc:
             logging.warning("Could not update cache: >>>%s<<<!", exc.code)
             osd = os.getenv('OBS_SERVICE_DAEMON')
-            if (re.match(r".*run 'cleanup'.*", exc.code) and osd):
+            if re.match(r".*run 'cleanup'.*", exc.code) and osd:
                 logging.warning("Removing old cache dir '%s'!", self.clone_dir)
                 shutil.rmtree(self.clone_dir)
                 self.fetch_upstream_scm()

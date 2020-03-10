@@ -58,6 +58,7 @@ class Hg(Scm):
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for hg."""
+        self.auth_url()
         command = self._get_scm_cmd() + ['clone', self.url, self.clone_dir]
         if not self.is_sslverify_enabled():
             command += ['--insecure']

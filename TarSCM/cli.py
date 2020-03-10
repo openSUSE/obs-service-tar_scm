@@ -61,6 +61,11 @@ class Cli():
                             choices=['git', 'hg', 'bzr', 'svn', 'tar'])
         parser.add_argument('--url',
                             help='Specify URL of upstream tarball to download')
+        parser.add_argument('--user',
+                            help='Specify user for SCM authentication')
+        parser.add_argument('--keyring-passphrase',
+                            help='Specify passphrase to decrypt credentials '
+                                 'from keyring')
         parser.add_argument('--obsinfo',
                             help='Specify .obsinfo file to create a tar ball')
         parser.add_argument('--version', default='_auto_',

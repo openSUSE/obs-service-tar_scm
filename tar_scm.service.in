@@ -37,6 +37,23 @@
     <description>Specify URL to checkout.</description>
     <required/>
   </parameter>
+  <parameter name="user">
+    <description>
+      Specify the username to be used for authentication to the repository.
+    </description>
+  </parameter>
+  <parameter name="keyring-passphrase">
+    <description>
+    Specify the passphrase to decrypt credentials from the python keyring.
+    To store credentials please use the following command line:
+    "sudo -H -u obsservicerun XDG_DATA_HOME=/etc/obs/services/tar_scm.d keyring -b keyrings.alt.file.EncryptedKeyring set URL username"
+      Its only available for the following combinaison of SCM / protocols:
+        - git: ftp(s),http(s)
+        - svn
+        - bzr: bzr,ftp,http(s)
+        - hg: http(s)
+    </description>
+  </parameter>
   <parameter name="subdir">
     <description>Package just a subdirectory.</description>
   </parameter>
