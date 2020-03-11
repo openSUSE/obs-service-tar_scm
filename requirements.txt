@@ -1,6 +1,6 @@
 lxml
 mock
-pep8
+pycodestyle
 python-dateutil
 PyYAML
 six
