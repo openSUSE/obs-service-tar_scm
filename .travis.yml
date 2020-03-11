@@ -8,7 +8,7 @@ before_install:
   - sudo apt-get install -qq bzr git subversion tar
   - sudo locale-gen en_US.UTF-8
 install:
-  - pip install -r requirements.txt
+  - pip install -U -r requirements.txt
   - mkdir bin
   - ln -s /usr/bin/true bin/obs-service-download_files # we don't test other services here
   - export PATH="$PWD/bin:$PATH"
