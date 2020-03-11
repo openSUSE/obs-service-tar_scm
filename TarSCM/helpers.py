@@ -4,12 +4,7 @@ import datetime
 import os
 import logging
 import subprocess
-
-# python3 renaming of StringIO
-try:
-    import StringIO
-except:
-    from io import StringIO
+from io import StringIO
 
 
 class Helpers():
