@@ -16,48 +16,12 @@
 #
 
 
-%if 0%{?suse_version} && 0%{?suse_version} >= 1220
-%bcond_without obs_scm_testsuite
-%else
-%bcond_with    obs_scm_testsuite
-%endif
-
-%if 0%{?suse_version} >= 1315 || 0%{?fedora_version} >= 29
-%bcond_without python3
-%else
-%bcond_with    python3
-%endif
-
-# This list probably needs to be extended
-# logic seems to be if python < 2.7 ; then needs_external_argparse ; fi
-%if (0%{?centos_version} == 6) || (0%{?suse_version} && 0%{?suse_version} < 1315) || (0%{?fedora_version} && 0%{?fedora_version} < 26)
-%bcond_without needs_external_argparse
-%else
-%bcond_with    needs_external_argparse
-%endif
-
-%if %{with python3}
-%define use_python python3
-%define use_test   test3
-%else
-%define use_python python
-%define use_test   test
-%endif
-
 %if 0%{?suse_version}
-%define pyyaml_package %{use_python}-PyYAML
 %if 0%{?suse_version} >= 1550 || 0%{?sle_version} >= 150100
 %define locale_package glibc-locale-base
 %else
 %define locale_package glibc-locale
 %endif
-%endif
-
-%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version} || 0%{?scientificlinux_version}
-%if 0%{?fedora_version} >= 29 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
-%define pyyaml_package %{use_python}-PyYAML
-%else
-%define pyyaml_package PyYAML
 %endif
 
 %if 0%{?fedora_version} >= 24 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
@@ -68,7 +32,6 @@
 %endif
 
 %if 0%{?mageia} || 0%{?mandriva_version}
-%define pyyaml_package python-yaml
 %define locale_package locales
 %endif
 
@@ -102,33 +65,22 @@ Source:         %{name}-%{version}.tar.gz
 # based distributions
 #Patch0:         0001-Debianization-disable-running-mercurial-tests.patch
 
-%if %{with obs_scm_testsuite}
 BuildRequires:  %{locale_package}
-BuildRequires:  %{use_python}-six
-BuildRequires:  %{use_python}-unittest2
+BuildRequires:  python3-six
+BuildRequires:  python3-unittest2
 BuildRequires:  git-core
 BuildRequires:  mercurial
 BuildRequires:  subversion
-%endif
 
 BuildRequires:  %{locale_package}
-BuildRequires:  %{pyyaml_package}
-%if %{with needs_external_argparse}
-BuildRequires:  %{use_python}-argparse
-%endif
-BuildRequires:  %{use_python}-dateutil
-BuildRequires:  %{use_python}-keyring
-BuildRequires:  %{use_python}-keyrings.alt
+BuildRequires:  python3-PyYAML
+BuildRequires:  python3-dateutil
+BuildRequires:  python3-keyring
+BuildRequires:  python3-keyrings.alt
 # Why do we need this? we dont use it as runtime requires later
-BuildRequires:  %{use_python}-lxml
+BuildRequires:  python3-lxml
 
-%if %{with python3}
-BuildRequires:  %{use_python}
-# Fix missing Requires in python3-pbr in Leap42.3
-BuildRequires:  %{use_python}-setuptools
-%else
-BuildRequires:  python >= 2.6
-%endif
+BuildRequires:  python3
 %scm_common_dep
 %scm_dependencies
 #
@@ -146,11 +98,8 @@ It supports downloading from svn, git, hg repositories.
 Summary:        Common parts of SCM handling services
 Group:          Development/Tools/Building
 Requires:       %{locale_package}
-Requires:       %{pyyaml_package}
-Requires:       %{use_python}-dateutil
-%if %{with needs_external_argparse}
-Requires:       %{use_python}-argparse
-%endif
+Requires:       python3-PyYAML
+Requires:       python3-dateutil
 
 %description -n obs-service-obs_scm-common
 This is a source service for openSUSE Build Service.
@@ -219,23 +168,18 @@ source artefacts (.dsc, .origin.tar.gz and .debian.tar.gz if non-native).
 %build
 
 %install
-make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}" PYTHON="%{_bindir}/%{use_python}"
+make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}" PYTHON="%{_bindir}/python3"
 
-%if %{with obs_scm_testsuite}
-# moved conditional to the top as it helps to have it all in one place and only rely on the bcond_with here.
 %check
 # No need to run PEP8 tests here; that would require a potentially
 # brittle BuildRequires: python-pycodestyle, and any style issues are already
 # caught by Travis CI.
-make %{use_test}
-%endif
+make test
 
 %files
-%defattr(-,root,root)
 %{_prefix}/lib/obs/service/tar_scm.service
 
 %files -n obs-service-obs_scm-common
-%defattr(-,root,root)
 %dir %{_prefix}/lib/obs
 %dir %{_prefix}/lib/obs/service
 %{_prefix}/lib/obs/service/TarSCM
@@ -246,25 +190,20 @@ make %{use_test}
 %config(noreplace) %{_sysconfdir}/obs/services/*
 
 %files -n obs-service-tar
-%defattr(-,root,root)
 %{_prefix}/lib/obs/service/tar
 %{_prefix}/lib/obs/service/tar.service
 
 %files -n obs-service-obs_scm
-%defattr(-,root,root)
 %{_prefix}/lib/obs/service/obs_scm
 %{_prefix}/lib/obs/service/obs_scm.service
 
 %files -n obs-service-appimage
-%defattr(-,root,root)
 %{_prefix}/lib/obs/service/appimage*
 
 %files -n obs-service-snapcraft
-%defattr(-,root,root)
 %{_prefix}/lib/obs/service/snapcraft*
 
 %files -n obs-service-gbp
-%defattr(-,root,root)
 %{_prefix}/lib/obs/service/obs_gbp*
 
 %changelog
