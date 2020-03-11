@@ -1,14 +1,14 @@
 ===OBS_ONLY
 <service name="obs_scm">
 <summary>Create a special OBS archive from a SCM</summary>
-   <description>This service uses a SCM client to checkout or update from a given repository. Supported are svn, git, hg and bzr. The result will archived in a format which can be stored
+   <description>This service uses a SCM client to checkout or update from a given repository. Supported are svn, git, and hg. The result will archived in a format which can be stored
    incremental by the OBS source server, currently a cpio format. This archive will be extracted again inside of the build root.</description>
 ===
 
 ===TAR_ONLY
 <service name="tar_scm">
   <summary>Create a tarball from SCM repository</summary>
-  <description>This service uses a SCM client to checkout or update from a given repository.  Supported are svn, git, hg and bzr.</description>
+  <description>This service uses a SCM client to checkout or update from a given repository.  Supported are svn, git, and hg.</description>
 ===
 
 ===GBP_ONLY
@@ -30,7 +30,6 @@
     <allowedvalue>svn</allowedvalue>
     <allowedvalue>git</allowedvalue>
     <allowedvalue>hg</allowedvalue>
-    <allowedvalue>bzr</allowedvalue>
     <required/>
   </parameter>
   <parameter name="url">
@@ -50,7 +49,6 @@
       Its only available for the following combinaison of SCM / protocols:
         - git: ftp(s),http(s)
         - svn
-        - bzr: bzr,ftp,http(s)
         - hg: http(s)
     </description>
   </parameter>
@@ -92,7 +90,7 @@
       For hg, the value is passed to hg log --template=....  See the
       hg documentation for more information.  The default is '{rev}'
 
-      For bzr and svn, '%r' is expanded to the revision, and is the default.
+      For svn, '%r' is expanded to the revision, and is the default.
     </description>
   </parameter>
   <parameter name="versionrewrite-pattern">

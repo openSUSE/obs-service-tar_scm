@@ -10,7 +10,6 @@ SYSCFG   = /etc
 
 CLEAN_PYFILES = \
   ./tar_scm.py \
-  ./TarSCM/scm/bzr.py \
   ./TarSCM/scm/svn.py \
   ./TarSCM/exceptions.py \
 

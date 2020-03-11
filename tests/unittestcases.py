@@ -17,7 +17,6 @@ from TarSCM.changes import Changes
 from TarSCM.scm.git import Git
 from TarSCM.scm.svn import Svn
 from TarSCM.scm.hg  import Hg
-from TarSCM.scm.bzr import Bzr
 
 
 # pylint: disable=duplicate-code
@@ -268,17 +267,6 @@ class UnitTestCases(unittest.TestCase):
                 ]
             },
             {
-                'obj'  : Bzr(self.cli, self.tasks),
-                'urls' : [
-                    'http://example.com',
-                    'https://example.com',
-                    'ftp://example.com',
-                    'aftp://example.com',
-                    'bzr://example.com',
-                    'lp://example.com',
-                ]
-            },
-            {
                 'obj'  : Hg(self.cli, self.tasks),
                 'urls' : [
                     'http://example.com',
@@ -307,7 +295,6 @@ class UnitTestCases(unittest.TestCase):
             'Xftp://example.com',
             'Xftps://example.com',
             'Xaftp://example.com',
-            'Xbzr://example.com',
             'Xlp://example.com',
             'Xgit://example.com',
             'Xssh://example.com',
@@ -319,7 +306,6 @@ class UnitTestCases(unittest.TestCase):
 
         scms = [
             Git(self.cli, self.tasks),
-            Bzr(self.cli, self.tasks),
             Hg(self.cli, self.tasks),
             Svn(self.cli, self.tasks),
         ]

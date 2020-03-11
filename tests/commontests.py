@@ -14,7 +14,7 @@ class CommonTests(TestEnvironment, TestAssertions):
     """Unit tests common to all version control systems.
 
     Unit tests here are not specific to any particular version control
-    system, and will be run for all of git / hg / svn / bzr.
+    system, and will be run for all of git / hg / svn.
     """
 
     def basename(self, name='repo', version=None):

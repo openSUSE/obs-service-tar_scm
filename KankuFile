@@ -46,7 +46,7 @@ jobs:
     use_module: Kanku::Handler::ExecuteCommandViaSSH
     options:
       commands:
-        - zypper -n in git bzr mercurial subversion make tar
+        - zypper -n in git mercurial subversion make tar
         - zypper -n in python2-PyYAML python2-python-dateutil python2-mock python2-pylint python2-flake8
         - zypper -n in python3-PyYAML python3-python-dateutil python3-mock python3-pylint python3-flake8
   -

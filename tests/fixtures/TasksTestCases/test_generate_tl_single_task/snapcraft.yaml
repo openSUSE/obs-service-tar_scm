@@ -23,6 +23,6 @@ parts:
             - libpipeline
     libpipeline:
         plugin: autotools
-        source: lp:~mterry/libpipeline/printf
-        source-type: bzr
+        source: git@github.com:M0ses/kanku
+        source-type: git
 

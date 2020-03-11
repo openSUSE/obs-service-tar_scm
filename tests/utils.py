@@ -64,7 +64,3 @@ def run_svn(repo, args):
 
 def run_hg(repo, args):
     return run_scm('hg',  repo, args)
-
-
-def run_bzr(repo, args):
-    return run_scm('bzr', repo, args)

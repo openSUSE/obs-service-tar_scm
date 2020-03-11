@@ -54,8 +54,8 @@ class TasksTestCases(unittest.TestCase):
 
     def test_generate_tl_single_task(self):
         expected = {
-            'scm': 'bzr', 'clone_prefix': '_obs_', 'snapcraft': True,
-            'revision': None, 'url': 'lp:~mterry/libpipeline/printf',
+            'scm': 'git', 'clone_prefix': '_obs_', 'snapcraft': True,
+            'revision': None, 'url': 'git@github.com:M0ses/kanku',
             'filename': 'libpipeline', 'use_obs_scm': True,
             'outdir': self.cli.outdir, 'changesgenerate': False}
         self._cd_fixtures_dir()
@@ -102,17 +102,6 @@ class TasksTestCases(unittest.TestCase):
 
     def test_generate_tl_multi_tasks(self):
         expected = {
-            'libpipeline': {
-                'changesgenerate': False,
-                'clone_prefix': '_obs_',
-                'filename': 'libpipeline',
-                'outdir': self.cli.outdir,
-                'revision': None,
-                'scm': 'bzr',
-                'snapcraft': True,
-                'url': 'lp:~mterry/libpipeline/printf',
-                'use_obs_scm': True
-            },
             'kanku': {
                 'changesgenerate': False,
                 'clone_prefix': '_obs_',
@@ -154,7 +143,8 @@ parts:
     source: kanku
   libpipeline:
     plugin: autotools
-    source: libpipeline
+    source: lp:~mterry/libpipeline/printf
+    source-type: bzr
 summary: Libpipeline example
 version: 1.0
 '''  # noqa

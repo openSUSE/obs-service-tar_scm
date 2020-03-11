@@ -81,14 +81,9 @@ class Scm():
         self._calc_proxies()
 
     def auth_url(self):
-        if self.scm not in ('bzr', 'git', 'hg'):
+        if self.scm not in ('git', 'hg'):
             return
         auth_patterns = {}
-        auth_patterns['bzr'] = {}
-        auth_patterns['bzr']['proto']   = r'^(ftp|bzr|https?)://.*'
-        auth_patterns['bzr']['already'] = r'^(ftp|bzr|https?)://.*:.*@.*'
-        auth_patterns['bzr']['sub']     = r'^((ftp|bzr|https?)://)(.*)'
-        auth_patterns['bzr']['format']  = r'\g<1>{user}:{pwd}@\g<3>'
         auth_patterns['git'] = {}
         auth_patterns['git']['proto']   = r'^(ftps?|https?)://.*'
         auth_patterns['git']['already'] = r'^(ftps?|https?)://.*:.*@.*'
