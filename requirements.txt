@@ -1,5 +1,4 @@
 lxml
-mock
 pycodestyle
 python-dateutil
 PyYAML

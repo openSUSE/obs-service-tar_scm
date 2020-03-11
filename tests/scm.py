@@ -8,7 +8,7 @@ import shutil
 import unittest
 import six
 
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 from TarSCM.scm.base import Scm
 

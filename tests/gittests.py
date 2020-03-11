@@ -7,7 +7,7 @@ import re
 import tarfile
 import textwrap
 import shutil
-import mock
+from unittest import mock
 
 from tests.githgtests   import GitHgTests
 from tests.gitsvntests  import GitSvnTests

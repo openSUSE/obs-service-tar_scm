@@ -104,7 +104,6 @@ Source:         %{name}-%{version}.tar.gz
 
 %if %{with obs_scm_testsuite}
 BuildRequires:  %{locale_package}
-BuildRequires:  %{use_python}-mock
 BuildRequires:  %{use_python}-six
 BuildRequires:  %{use_python}-unittest2
 BuildRequires:  git-core
@@ -226,7 +225,7 @@ make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}" 
 # moved conditional to the top as it helps to have it all in one place and only rely on the bcond_with here.
 %check
 # No need to run PEP8 tests here; that would require a potentially
-# brittle BuildRequires: python-pep8, and any style issues are already
+# brittle BuildRequires: python-pycodestyle, and any style issues are already
 # caught by Travis CI.
 make %{use_test}
 %endif

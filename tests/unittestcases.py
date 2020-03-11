@@ -6,8 +6,8 @@ import re
 import inspect
 import copy
 import unittest
+from unittest.mock import patch
 import six
-from mock import patch
 
 import TarSCM
 

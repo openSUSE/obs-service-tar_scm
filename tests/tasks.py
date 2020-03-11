@@ -6,7 +6,7 @@ import inspect
 import shutil
 import unittest
 import six
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 from tar_scm import TarSCM
 from tests.fake_classes import FakeSCM
