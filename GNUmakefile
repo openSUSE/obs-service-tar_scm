@@ -52,16 +52,10 @@ $(or \
 )
 endef
 
-PYTHON3 = python3.7 python-3.7 python3.6 python-3.6 python3.5 python-3.5 python3.4 python-3.4 python3.3 python-3.3 python3.2 python-3.2 python3
-PYTHON2 = python2.7 python-2.7 python2.6 python-2.6 python2
+PYTHON3 = python3.9 python-3.9 python3.8 python-3.8 python3.7 python-3.7 python3.6 python-3.6 python3.5 python-3.5 python3.4 python-3.4 python3.3 python-3.3 python3.2 python-3.2 python3
 
 # Ensure that correct python version is used in travis
-PYTHON_MAJOR := $(shell python -c "import sys; print sys.version[:1]" 2>/dev/null)
-ifeq ($(PYTHON_MAJOR), 2)
-ALL_PYTHONS = $(PYTHON2) python
-else
-ALL_PYTHONS = $(PYTHON3) $(PYTHON2) python
-endif
+ALL_PYTHONS = $(PYTHON3)
 
 PYTHON = $(call first_in_path,$(ALL_PYTHONS))
 
@@ -71,25 +65,16 @@ mycfgdir = $(SYSCFG)/obs/services
 LIST_PY_FILES=git ls-tree --name-only -r HEAD | grep '\.py$$'
 PY_FILES=$(shell $(LIST_PY_FILES))
 
-ALL_PYLINT2 = pylint-2.7 pylint2.7 pylint
-ALL_PYLINT3 = pylint-3.4 pylint3.4 pylint-3.5 pylint3.5 pylint-3.6 pylint3.6 pylint-3.7 pylint3.7
-ALL_FLAKE83 = flake8-3.6 flake8-36 flake8-37 flake8-3.7 flake8
+ALL_PYLINT = pylint-3.4 pylint3.4 pylint-3.5 pylint3.5 pylint-3.6 pylint3.6 pylint-3.7 pylint3.7 pylit-3.8 pylint3.8 pylint-3.9 pylint3.9 pylint
+ALL_FLAKE8 = flake8-3.6 flake8-36 flake8-37 flake8-3.7 flake8-38 flake8-3.8 flake8-39 flake8-3.9 flake8
 
-PYLINT2 = $(call first_in_path_opt,$(ALL_PYLINT2))
-PYLINT3 = $(call first_in_path_opt,$(ALL_PYLINT3))
-
-FLAKE83 = $(call first_in_path_opt,$(ALL_FLAKE83))
+PYLINT = $(call first_in_path_opt,$(ALL_PYLINT))
+FLAKE8 = $(call first_in_path_opt,$(ALL_FLAKE8))
 
 default: check
 
 .PHONY: check check_all
-check: check2 check3
-
-.PHONY: check2
-check2: flake8 pylint test
-
-.PHONY: check3
-check3: flake83 pylint3 test3
+check: flake8 pylint test
 
 .PHONY: list-py-files
 list-py-files:
@@ -97,62 +82,27 @@ list-py-files:
 
 .PHONY: flake8
 flake8:
-	@if ! which flake8 >/dev/null 2>&1; then \
-		echo "flake8 not installed!  Cannot check PEP8 compliance with flake8. Skipping tests." >&2; \
-	else \
+	@if [ "x$(FLAKE8)" != "x" ]; then \
 		echo "Running flake8";\
-		flake8;\
+		$(FLAKE8);\
 		echo "Finished flake8";\
-	fi
-
-.PHONY: flake83
-flake83:
-	@if [ "x$(FLAKE83)" != "x" ]; then \
-		echo "Running flake83";\
-		$(FLAKE83);\
-		echo "Finished flake83";\
 	else \
 		echo "flake8 for python3 not found";\
 	fi
 
 
-.PHONY: test
 test:
-	: Running the test suite.  Please be patient - this takes a few minutes ...
-	TAR_SCM_TESTMODE=1 PYTHONPATH=. $(PYTHON) tests/test.py 2>&1 | tee ./test.log
-
-test3:
 	: Running the test suite.  Please be patient - this takes a few minutes ...
 	TAR_SCM_TESTMODE=1 PYTHONPATH=. python3 tests/test.py 2>&1 | tee ./test3.log
 
 .PHONY: pylint
-pylint: pylint2 pylinttest2
-
-.PHONY: pylint3
-pylint3:
-	@if [ "x$(PYLINT3)" != "x" ]; then \
-		$(PYLINT3) --rcfile=./.pylintrc $(PYLINT_READY_MODULES); \
-		PYTHONPATH=tests $(PYLINT3) --rcfile=./.pylinttestsrc $(PYLINT_READY_TEST_MODULES); \
+pylint:
+	@if [ "x$(PYLINT)" != "x" ]; then \
+		$(PYLINT) --rcfile=./.pylintrc $(PYLINT_READY_MODULES); \
+		PYTHONPATH=tests $(PYLINT) --rcfile=./.pylinttestsrc $(PYLINT_READY_TEST_MODULES); \
 	else \
-		echo "PYLINT3 not set - Skipping tests"; \
+		echo "PYLINT not set - Skipping tests"; \
 	fi
-
-.PHONY: pylint2
-pylint2:
-	@if [ "x$(PYLINT2)" != "x" ]; then \
-		$(PYLINT2) --rcfile=./.pylintrc $(PYLINT_READY_MODULES); \
-	else \
-		echo "PYLINT2 not set - Skipping tests"; \
-	fi
-
-.PHONY: pylinttest2
-pylinttest2:
-	@if [ "x$(PYLINT2)" != "x" ]; then \
-		PYTHONPATH=tests $(PYLINT2) --rcfile=./.pylinttestsrc $(PYLINT_READY_TEST_MODULES); \
-	else \
-		echo "PYLINT2 not set - Skipping tests"; \
-	fi
-
 
 cover:
 	PYTHONPATH=. coverage2 run tests/test.py 2>&1 | tee ./cover.log

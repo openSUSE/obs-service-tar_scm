@@ -5,9 +5,9 @@
 Run the unit test suite via:
 
     export PYTHONPATH=.    # or absolute path to repo
-    python2 tests/test.py
+    python3 tests/test.py
 
-(If your distribution does not have `python2` in your `$PATH` then
+(If your distribution does not have `python3` in your `$PATH` then
 adjust the executable name accordingly.)
 
 The output may become easier to understand if you uncomment the
@@ -21,10 +21,10 @@ If you want to narrow the tests being run, to speed up testing during
 development, you can provide command-line arguments:
 
     # only run the 'plain' and 'subdir' git tests
-    python2 tests/test.py test_plain test_subdir
+    python3 tests/test.py test_plain test_subdir
 
     # run all git tests matching the regexp /subdir/
-    python2 tests/test.py /subdir/
+    python3 tests/test.py /subdir/
 
 Currently this filtering only applies to the git tests, but you can
 easily tweak `test.py` to change that.

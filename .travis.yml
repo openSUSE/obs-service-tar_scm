@@ -1,7 +1,8 @@
 language: python
 python:
-  - "2.7"
   - "3.6"
+  - "3.7"
+  - "3.8"
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq bzr git subversion tar
@@ -12,4 +13,4 @@ install:
   - ln -s /usr/bin/true bin/obs-service-download_files # we don't test other services here
   - export PATH="$PWD/bin:$PATH"
   - export TAR_SCM_TC=UnitTestCases,TasksTestCases,SCMBaseTestCases,GitTests,SvnTests,TarTestCases
-script: PV=${TRAVIS_PYTHON_VERSION:0:1};echo $PV;make check$PV
+script: make check
