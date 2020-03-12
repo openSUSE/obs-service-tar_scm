@@ -84,6 +84,8 @@ Recommends:     bzr                                             \
 Recommends:     mercurial                                       \
 Recommends:     subversion                                      \
 Recommends:     obs-service-download_files                      \
+Recommends:     %{use_python}-keyring                           \
+Recommends:     %{use_python}-keyrings.alt                      \
 %endif                                                          \
 %{nil}
 
@@ -108,6 +110,8 @@ BuildRequires:  %{locale_package}
 BuildRequires:  %{use_python}-mock
 BuildRequires:  %{use_python}-six
 BuildRequires:  %{use_python}-unittest2
+BuildRequires:  %{use_python}-keyring
+BuildRequires:  %{use_python}-keyrings.alt
 BuildRequires:  bzr
 BuildRequires:  git-core
 BuildRequires:  mercurial
@@ -120,8 +124,6 @@ BuildRequires:  %{pyyaml_package}
 BuildRequires:  %{use_python}-argparse
 %endif
 BuildRequires:  %{use_python}-dateutil
-BuildRequires:  %{use_python}-keyring
-BuildRequires:  %{use_python}-keyrings.alt
 # Why do we need this? we dont use it as runtime requires later
 BuildRequires:  %{use_python}-lxml
 
