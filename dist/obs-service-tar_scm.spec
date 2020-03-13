@@ -205,6 +205,7 @@ Provides:       obs-service-tar_scm:/usr/lib/obs/service/snapcraft.service
 Experimental snapcraft support: This parses snapcraft.yaml files for SCM
 resources and packages them.
 
+%if 0%{?enable_gbp}
 %package -n     obs-service-gbp
 Summary:        Creates Debian source artefacts from a Git repository
 Group:          Development/Tools/Building
@@ -215,6 +216,7 @@ Provides:       obs-service-tar_scm:/usr/lib/obs/service/obs_gbp.service
 %description -n obs-service-gbp
 Debian git-buildpackage workflow support: uses gbp to create Debian
 source artefacts (.dsc, .origin.tar.gz and .debian.tar.gz if non-native).
+%endif
 
 %prep
 %setup -q -n obs-service-tar_scm-%version
@@ -266,8 +268,9 @@ make %{use_test}
 %defattr(-,root,root)
 %{_prefix}/lib/obs/service/snapcraft*
 
+%if 0%{?enable_gbp}
 %files -n obs-service-gbp
 %defattr(-,root,root)
 %{_prefix}/lib/obs/service/obs_gbp*
-
+%endif
 %changelog
