@@ -177,8 +177,10 @@ install: dirs tar_scm service compile
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/appimage
 	[ ! -L $(DESTDIR)$(mylibdir)/snapcraft ] || rm $(DESTDIR)$(mylibdir)/snapcraft
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/snapcraft
+ifeq (1, ${WITH_GBP})
 	[ ! -L $(DESTDIR)$(mylibdir)/obs_gbp ] || rm $(DESTDIR)$(mylibdir)/obs_gbp
 	ln -s tar_scm $(DESTDIR)$(mylibdir)/obs_gbp
+endif
 	find ./TarSCM/ -name '*.py*' -exec install -D -m 644 {} $(DESTDIR)$(mylibdir)/{} \;
 
 .PHONY: dirs
@@ -196,7 +198,9 @@ service: dirs
 	install -m 0644 appimage.service $(DESTDIR)$(mylibdir)/
 	sed -e '/^===OBS_ONLY/,/^===/d' -e '/^===GBP_ONLY/,/^===/d' -e '/^===/d' tar_scm.service.in > $(DESTDIR)$(mylibdir)/tar_scm.service
 	sed -e '/^===TAR_ONLY/,/^===/d' -e '/^===GBP_ONLY/,/^===/d' -e '/^===/d' tar_scm.service.in > $(DESTDIR)$(mylibdir)/obs_scm.service
+ifeq (1, ${WITH_GBP})
 	sed -e '/^===OBS_ONLY/,/^===/d' -e '/^===TAR_ONLY/,/^===/d' -e '/^===/d' tar_scm.service.in > $(DESTDIR)$(mylibdir)/obs_gbp.service
+endif
 
 show-python:
 	@echo "$(PYTHON)"

@@ -1,7 +1,7 @@
 #
 # spec file for package obs-service-tar_scm
 #
-# Copyright (c) 2019 SUSE LINUX GmbH, Nuernberg, Germany.
+# Copyright (c) 2020 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -90,13 +90,13 @@ Recommends:     obs-service-download_files                      \
 ######## END OF MACROS AND FUN ###################################
 
 Name:           obs-service-tar_scm
-%define version_unconverted 0.10.9.1557261720.32a1cdb
-Version:        0.10.9.1557261720.32a1cdb
+%define version_unconverted 0.10.14.1583853599.ccbb399
+Version:        0.10.14.1583853599.ccbb399
 Release:        0
 Summary:        An OBS source service: create tar ball from svn/git/hg
 License:        GPL-2.0-or-later
 Group:          Development/Tools/Building
-Url:            https://github.com/openSUSE/obs-service-tar_scm
+URL:            https://github.com/openSUSE/obs-service-tar_scm
 Source:         %{name}-%{version}.tar.gz
 
 # Fix build on Ubuntu by disabling mercurial tests, not applied in rpm
@@ -120,8 +120,6 @@ BuildRequires:  %{pyyaml_package}
 BuildRequires:  %{use_python}-argparse
 %endif
 BuildRequires:  %{use_python}-dateutil
-BuildRequires:  %{use_python}-keyring
-BuildRequires:  %{use_python}-keyrings.alt
 # Why do we need this? we dont use it as runtime requires later
 BuildRequires:  %{use_python}-lxml
 
@@ -205,6 +203,7 @@ Provides:       obs-service-tar_scm:/usr/lib/obs/service/snapcraft.service
 Experimental snapcraft support: This parses snapcraft.yaml files for SCM
 resources and packages them.
 
+%if 0%{?enable_gbp}
 %package -n     obs-service-gbp
 Summary:        Creates Debian source artefacts from a Git repository
 Group:          Development/Tools/Building
@@ -215,6 +214,7 @@ Provides:       obs-service-tar_scm:/usr/lib/obs/service/obs_gbp.service
 %description -n obs-service-gbp
 Debian git-buildpackage workflow support: uses gbp to create Debian
 source artefacts (.dsc, .origin.tar.gz and .debian.tar.gz if non-native).
+%endif
 
 %prep
 %setup -q -n obs-service-tar_scm-%version
@@ -266,8 +266,10 @@ make %{use_test}
 %defattr(-,root,root)
 %{_prefix}/lib/obs/service/snapcraft*
 
+%if 0%{?enable_gbp}
 %files -n obs-service-gbp
 %defattr(-,root,root)
 %{_prefix}/lib/obs/service/obs_gbp*
+%endif
 
 %changelog
