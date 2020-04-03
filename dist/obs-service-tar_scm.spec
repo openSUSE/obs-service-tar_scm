@@ -22,7 +22,7 @@
 %bcond_with    obs_scm_testsuite
 %endif
 
-%if 0%{?suse_version} >= 1315 || 0%{?fedora_version} >= 29
+%if 0%{?suse_version} >= 1315 || 0%{?fedora_version} >= 29 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800 || 0%{?rhel} >= 8
 %bcond_without python3
 %else
 %bcond_with    python3
