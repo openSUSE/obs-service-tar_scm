@@ -310,11 +310,14 @@ class Git(Scm):
     def _detect_parent_tag(self, args=None):
         parent_tag = ''
         cmd = self._get_scm_cmd() + ['describe', '--tags', '--abbrev=0']
-        try:
-            if args and args['match_tag']:
-                cmd.append("--match=%s" % args['match_tag'])
-        except KeyError:
-            pass
+        if args is not None:
+            match_tag = args.get('match_tag') if 'match_tag' in args else None
+            exclude_tags = args.get('exclude_tag') if 'exclude_tag' in args else []
+
+            if match_tag is not None:
+                cmd.append("--match=%s" % match_tag)
+            for excl_tag in exclude_tags:
+                cmd.append("--exclude=%s" % excl_tag)
         rcode, output = self.helpers.run_cmd(cmd, self.clone_dir)
 
         if rcode == 0:
