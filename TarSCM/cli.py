@@ -94,6 +94,9 @@ class Cli():
                             help='Override base commit for @TAG_OFFSET@')
         parser.add_argument('--match-tag',
                             help='tag must match glob(7)')
+        parser.add_argument('--exclude-tag', action='append',
+                            help='Exclude tags identified by glob '
+                                 '(can be repeated)')
         parser.add_argument('--revision',
                             help='Specify revision to package')
         parser.add_argument('--extract', action='append',

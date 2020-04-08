@@ -215,11 +215,10 @@ class Git(Scm):
     def _detect_parent_tag(self, args):
         parent_tag = ''
         cmd = self._get_scm_cmd() + ['describe', '--tags', '--abbrev=0']
-        try:
-            if args['match_tag']:
-                cmd.append("--match=%s" % args['match_tag'])
-        except KeyError:
-            pass
+        if args['match_tag'] is not None:
+            cmd.append("--match=%s" % args['match_tag'])
+        for excl_tag in args['exclude_tag']:
+            cmd.append("--exclude=%s" % excl_tag)
         rcode, output = self.helpers.run_cmd(cmd, self.clone_dir)
 
         if rcode == 0:

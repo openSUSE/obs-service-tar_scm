@@ -117,6 +117,11 @@
       relevant tags in your project e.g. if you use @PARENT_TAG@.
     </description>
   </parameter>
+  <parameter name="exclude-tag">
+    <description>
+       Exclude tags identified by glob (can be repeated)
+    </description>
+  </parameter>
   <parameter name="parent-tag">
     <description>
       This parameter allows overriding the tag that is being used for
