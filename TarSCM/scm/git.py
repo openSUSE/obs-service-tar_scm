@@ -33,10 +33,18 @@ class Git(Scm):
         - short branch name: "master", "devel" etc.
         - explicit ref: refs/heads/master, refs/tags/v1.2.3,
           refs/changes/49/11249/1
+        - wildcard to match latest tag: @PARENT_TAG@
         """
         logging.debug("[switch_revision] Starting ...")
         if self.revision is None:
             self.revision = 'master'
+
+        if self.revision == "@PARENT_TAG@":
+            self.revision = self._detect_parent_tag()
+            if not self.revision:
+                sys.exit("\033[31mNo parent tag present for the checked out "
+                         "revision, thus @PARENT_TAG@ cannot be expanded."
+                         "\033[0m")
 
         if os.getenv('OSC_VERSION') and \
            len(os.listdir(self.clone_dir)) > 1:
@@ -100,6 +108,13 @@ class Git(Scm):
         except SystemExit as exc:
             os.removedirs(os.path.join(wdir, self.clone_dir))
             raise exc
+
+        if self.revision == "@PARENT_TAG@":
+            self.revision = self._detect_parent_tag()
+            if not self.revision:
+                sys.exit("\033[31mNo parent tag present for the checked out "
+                         "revision, thus @PARENT_TAG@ cannot be expanded."
+                         "\033[0m")
 
         self.fetch_specific_revision()
 
@@ -212,11 +227,11 @@ class Git(Scm):
         )[1]
         return self.version_iso_cleanup(version, debian)
 
-    def _detect_parent_tag(self, args):
+    def _detect_parent_tag(self, args=None):
         parent_tag = ''
         cmd = self._get_scm_cmd() + ['describe', '--tags', '--abbrev=0']
         try:
-            if args['match_tag']:
+            if args and args['match_tag']:
                 cmd.append("--match=%s" % args['match_tag'])
         except KeyError:
             pass
@@ -337,6 +352,13 @@ class Git(Scm):
         wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
         self.helpers.safe_run(
             command, cwd=wdir, interactive=sys.stdout.isatty())
+
+        if self.revision == "@PARENT_TAG@":
+            self.revision = self._detect_parent_tag()
+            if not self.revision:
+                sys.exit("\033[31mNo parent tag present for the checked out "
+                         "revision, thus @PARENT_TAG@ cannot be expanded."
+                         "\033[0m")
 
         if self.revision and not self._ref_exists(self.revision):
             refspec = self.revision + ":" + self.revision
