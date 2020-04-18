@@ -78,7 +78,7 @@ class UnitTestCases(unittest.TestCase):
         six.assertRaisesRegex(
             self,
             SystemExit,
-            re.compile(r"Command failed\(1\): ''"),
+            re.compile(r"Command /bin/false failed\(1\): ''"),
             helpers.safe_run,
             "/bin/false",
             cwd=None,
