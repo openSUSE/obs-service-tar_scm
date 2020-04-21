@@ -358,3 +358,10 @@ class GitTests(GitHgTests, GitSvnTests):
               clone_url, clone_dir]
             self.assertEqual(expected_command, command)
 
+    def test_revision_latest_tag(self):
+        fix = self.fixtures
+        fix.create_commit(fix.wd)
+        fix.create_commit(fix.wd)
+        self.tar_scm_std("--revision", "@PARENT_TAG@")
+        self.assertTarOnly(self.basename(version="1234567890." +
+          fix.sha1s[fix.wd]["tag2"][:7]))

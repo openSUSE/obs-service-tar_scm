@@ -1,3 +1,585 @@
+obs-service-tar-scm (0.10.14) unstable; urgency=medium
+
+  [ Roman Neuhauser ]
+  * be explicit about python2, python may be python3
+
+  [ Dr. Stefan Schimanski ]
+  * Fix newline at the end of @PARENT_TAG@
+
+  [ Jan Blunck ]
+  * Fix Mercurial version format strings in unittest
+  * Refactoring of package metadata regex matching
+  * Refactor resetting of uid/gid so that it is reusable
+  * Fix handling of --include option
+  * Fix handling of --exclude option
+  * Refactor subdir handling of tarchecker's to prevent code duplication
+
+  [ Adam Spiers ]
+  * ignore PEP8's E731 check for lambdas
+  * PEP8 E402 fix: set PYTHONPATH outside code
+
+  [ xufasheng ]
+  * add @TAG_OFFSET@ support in versionformat for git
+
+  [ Adam Spiers ]
+  * fix inconsistencies in tar_scm.service
+
+  [ Adrian Schröter ]
+  * - fix .service file syntax (OBS 2.6.1 is checking now)
+
+  [ Fabian Dörk ]
+  * Split up the steps of git cloning and submodule initialization
+
+  [ Adam Spiers ]
+  * mention need to set PYTHONPATH when running tests
+  * keep STDERR separate
+  * don't allow --subdir to wander outside repo (bsc#927120, #71)
+  * fix Makefile test runner for Debian
+  * use the same Python interpreter for testing tar_scm
+
+  [ Jan Blunck ]
+  * Add missing extension parameter to service file
+
+  [ Hib Eris ]
+  * Fix build on Debian 7.0/8.0
+
+  [ Christian Felder ]
+  * Add sslverify parameter.
+  * git fetch remote refs.
+  * Add new method run_cmd with raisesysexit argument.
+  * Add new method git_ref_exists.
+
+  [ Jan Engelhardt ]
+  * Restore color output
+  * Correct error message about lack of git tags
+
+  [ Christian Felder ]
+  * GNUmakefile: Use default python in $PATH unless it is a python 3.
+
+  [ Adam Spiers ]
+  * fix TESTING.md link in CONTRIBUTING.md
+
+  [ Martin Pluskal ]
+  * Use correct level 2 bullet point (*)
+
+  [ Adrian Schröter ]
+  * very first obs_scm implementation
+  * allow extracting of (spec) files
+  * allow to include local changes when using "obs_scm" service via local
+    osc commands.
+  * make obsinfo parameter for tar service optional
+  * support filtering on creation of cpio archives
+
+  [ Jan Engelhardt ]
+  * Allow to manually specify a base for @TAG_OFFSET@
+
+  [ Adrian Schröter ]
+  * - add debian provides
+  * - make cleaning message a debug message
+
+  [ Thomas Bechtold ]
+  * Honour "subdir" param for changesgenerate
+
+  [ Adrian Schröter ]
+  * report error when specified revision got not found
+
+  [ Jan Blunck ]
+  * Extend fixture to create commits with a specific timestamp
+  * Use commit timestamp as mtime for files and directories in tarball
+  * Workaround bug in Mercurial localdate filter
+
+  [ Adam Spiers ]
+  * fix breakage from conflict of #63 and #85
+
+  [ Thorsten Behrens ]
+  * Provide test for git tag fetching
+
+  [ Rob Zebedee ]
+  * Add ability to generate changes file when using svn
+
+  [ Adrian Schröter ]
+  * add snapcraft.yaml support
+  * merge upstream
+  * minor cleanup
+  * fix typo, wrong file name of new snapcraft.yaml
+  * fix some more merge regressions
+  * pep8 fixes/workarounds
+  * make yaml dependency optional for travis
+
+  [ Nick Wang ]
+  * Add an option 'master' to submodules to fetch the latest mater branch.
+
+  [ Markos Chandras ]
+  * tar_scm.py: Always use an absolute path for the 'output' directory
+
+  [ Adrian Schröter ]
+  * do not set files back to 1970...
+  * transfer mtime via obsinfo
+  * create needed sub directories for cache handling
+  * prefer local cache directory
+  * - weak dependency to mercurial for debian
+  * add python-dateutil require for debian
+  * testing on debian is broken atm
+
+  [ Adam Spiers ]
+  * temporarily disable PEP8 test whilst we reconverge with OBS
+
+  [ Frank Schreiner ]
+  * initial version of TarSCM classes
+  * scm_object generation moved to singletask
+  * FETCH_UPSTREAM_COMMANDS into classes
+  * moved update_cache_* to classes
+  * moved detect_version into classes and refactored calls of
+    get_timestamp_*
+  * moved get_timestamp functions into scm classes
+  * git_ref_exists -> TarSCM.git._ref_exists
+  * fetch_upstream_git_submodules -> fetch_submodules to get rid of
+    exceptions for git
+  * just moved some functions for better overview
+  * refactor of detect_changes into classes
+  * url as attribute of TarSCM.scm
+  * run_cmd and safe_run moved into class helpers
+  * combine os.path.join statement
+  * refactoring fetch_upstream to be part of TarSCM.scm
+  * new classes for archives
+  * common method 'get_current_commit' to get rid of exception for git
+  * refactored detect_changes to get rid of changesgenerate exception
+  * get_repocachedir -> TarSCM.scm
+
+  [ Kristýna Streitová ]
+  * Add description to the README.md file
+
+  [ Frank Schreiner ]
+  * revision, repodir and repocachedir as attribute for TarSCM.<scm>
+  * new class TarSCM.cli to make testing easier
+  * testing script name more reliable
+  * fixed arguments for singletask in case of snapcraft
+  * refactored snapcraft code + first tests for snapcraft
+  * added testcase for snapcraft finalize
+  * split classes into several files
+
+  [ Adam Spiers ]
+  * track module dependencies in requirements.txt
+  * use unittest2 in Python 2.6
+
+  [ Frank Schreiner ]
+  * more testing for TarSCM.tasks
+  * clone_dir/repodir/arch_dir(tar_dir)/args now attributes of scm objects
+  * test case for save_run
+  * major refactor of git cache handling
+  * consolidation of archive.obscpio and archive.tar parameters
+  * next test cases
+  * unset CACHEDIRECTORY env variable in unit tests
+  * update atime/mtime of repocachedir if already exists
+  * prevent key errors when $HOME is not set
+  * fix PEP8 problems and reenable PEP8 testing
+  * keep checkout while running with osc
+  * fix local checkout when running in osc
+  * force remove of files while 'make clean'
+  * fix: also exclude directories when called .git
+  * fix problems with generatechanges when ~/.obs/tar_scm exists
+
+  [ Adrian Schröter ]
+  * initial appimage support
+
+  [ boombatower ]
+  * Provide version rewrite using a regex pattern and replacement.
+
+  [ Frank Schreiner ]
+  * new parameter --match-tag to filter tags
+  * keep .gitlab/.github directories
+  * skip broken tests temporarily
+  * fix for nonexistant build section in appimage.yml
+  * [lint] improve inline doc in TarSCM/tasks.py
+  * [lint] refactor attribute dataMap in TarSCM.tasks
+  * [lint] refactor invalid variable names in TarSCM.tasks
+  * [lint] remove variable helpers from TarSCM.tasks
+  * [lint] rename variable changes -> detected_changes in TarSCM.tasks
+  * [lint] fixed 'line-to-long' error in TarSCM.tasks
+  * more documentation for README.md
+
+  [ ailin-nemui ]
+  * Update control
+
+  [ Frank Schreiner ]
+  * [tests] new env var TAR_SCM_TC to select test cases
+  * [lint] change comment at start of tests/test.py
+  * [lint] refactor __main__
+  * [lint] get rid of cell-var-from-loop
+  * [lint] get rid of consider-iterating-dictionary
+  * [lint] get rid of invalid-name for variables m and t
+  * [dist] Adding spec file to git
+  * [lint] fix constant invalid-name
+  * [lint] cleanup for pylint-2.7 for tests/test.py
+  * [lint] cleanup for TarSCM/__init__.py
+  * [lint] cleanup for tar_scm.py
+  * [lint] cleanup tests/tasks.py
+  * [lint] cleanup tests/utils.py
+  * [lint] cleanup tests/scmlogs.py
+  * [lint] cleanup tests/commontests.py relative-import
+
+  [ Bernhard M. Wiedemann ]
+  * Sort tar file list
+
+  [ Frank Schreiner ]
+  * finalize method for TarSCM.scm.* classes
+  * [lint] pylint fixes for TarSCM.scm.tar
+  * [lint] pylint fixes for TarSCM/scm/base.py
+  * new version placeholder for empty version string
+  * [lint] commontests.py: rename th/ti
+  * [lint] commontests.py: remove unused variables
+  * [lint] commontest.py: fix invalid-name for methods
+  * [lint] revert ret changes
+  * [lint] rename classes in TarSCM/archive.py
+  * [lint] more cleanup for TarSCM/archive.py
+  * [lint] rename class changes -> Changes in TarSCM/changes.py
+  * [lint] more cleanup in TarSCM/changes.py
+  * changed mode TarSCM/changes.py 755 -> 644
+  * [lint] rename class cli -> Cli in TarSCM/cli.py
+  * [lint] more cleanup for TarSCM/cli.py
+  * [lint] rename class config -> Config in TarSCM/config.py
+  * [lint] more cleanup in TarSCM/config.py
+  * [lint] rename class helpers -> Helpers in TarSCM/helpers.py
+  * [lint] rename class tasks -> Tasks in TarSCM/tasks.py
+  * [lint] rename class scm -> Scm in TarSCM/scm/base.py
+  * [ci] fix for bzr locale problem
+  * [lint] renamed class bzr -> Bzr in TarSCM/scm/bzr.py
+  * [lint] cleanup TarSCM.scm.bzr
+  * [lint] cleanup for TarSCM/tasks.py
+  * [lint] rename class git -> Git in TarSCM/scm/git.py
+  * [lint] cleanup for TarSCM.scm.git
+  * [lint] rename hg -> Hg in TarSCM/scm/hg.py
+  * [lint] cleanup TarSCM.scm.hg
+  * [lint] rename class svn -> Svn in TarSCM/scm/svn.py
+  * [lint] cleanup for TarSCM/scm/svn.py
+  * [lint] rename class tar -> Tar TarSCM/scm/tar.py
+  * [lint] added .pylintrc and pylint req
+
+  [ Adam Spiers ]
+  * [lint] tweak default pylint configuration
+
+  [ Frank Schreiner ]
+  * [ci] make pep8, pylint and flake8 optional ...
+  * [dist] changed to %py_compile in spec file
+  * [bugfix] fixes issue #173
+  * [bugfix] Decoupled self.scm from class name in TarSCM/scm/*
+  * [lint] make tests/unittestcases.py flake8 ready
+  * [lint] more fixes for pylint readiness
+  * [lint] refactor unittestcases.py
+  * [test] increase cov for TarSCM.archive from 61% to 92%
+  * [doc] added comment to --use-obs-scm
+  * [test] refactor of fake classes
+  * [bugfix] fix UnboundLocalError: local variable 'parent_tag'
+  * [dist] fix spec file py_compile for fedora
+
+  [ Bernhard M. Wiedemann ]
+  * Sort cpio file list
+  * also override timestamps of files in cpio
+  * change ordering so that latest change is on top
+
+  [ Nicolas Morey-Chaisemartin ]
+  * git: Support url change
+
+  [ Adrian Schröter ]
+  * mention _none_ version string for people who need it for kiwi root
+    archives for example
+
+  [ Adam Spiers ]
+  * wrap long lines in README
+  * acknowledge deficiencies in dev docs
+  * fix docstring typo in TarSCM.scm.tar.fetch_upstream
+  * fix reference to snapcraft YAML file
+
+  [ Frank Schreiner ]
+  * fix for broken links
+  * new cli option --skip-cleanup
+  * changed PREFIX in Gnumakefile to /usr
+  * fix broken tests for broken-links
+  * fix broken test create_archive
+  * reactivate test_obscpio_extract_d
+
+  [ Dirk Mueller ]
+  * Only use current dir if it actually looks like git (Fixes #202)
+  * Cleanup flake8 checks
+
+  [ Luca Boccassi ]
+  * Refactor and simplify git prepare_working_copy
+  * Git clone with --no-checkout in prepare_working_copy
+
+  [ Adam Spiers ]
+  * add a lot more detail to README
+
+  [ doccaz ]
+  * [backend] Adding http proxy support
+  * missing import for logging functions.
+  * fixing flake8 warnings, missing imports
+  * fixing indentation warnings from flake8
+
+  [ Frank Schreiner ]
+  * make installation of scm's optional
+
+  [ doccaz ]
+  * Removing redundant pass statement
+
+  [ Kai Pastor ]
+  * Fix parameter descriptions
+
+  [ Adrian Schröter ]
+  * move python-unittest2 dep to test suite only part (submission by olh)
+
+  [ Olaf Hering ]
+  * python-unittest2 is only required for the optional make check
+
+  [ Frank Schreiner ]
+  * Remove clone_dir if clone fails
+
+  [ Adrian Schröter ]
+  * [dist] fix build for distros not yet supporting Recommends tag
+
+  [ Adam Spiers ]
+  * add stub user docs in lieu of something proper (#238)
+  * don't allow DEBUG_TAR_SCM to change behaviour (#240)
+  * sort imports
+  * only do git stash save/pop if we have a non-empty working tree (#228)
+
+  [ Frank Schreiner ]
+  * improve handling of corrupt git cache directories
+
+  [ Giovanni Santini ]
+  * Allow metadata packing for CPIO archives when desired As of now,
+    metadata are always excluded from *obscpio* packages. This is because
+    the *package-metadata* flag is ignored; this change (should) make
+    *obscpio* aware of it.
+  * Adding information regarding the *package-metadata* option for the
+    *tar* service The tar service is highly useful in combination with the
+    *obscpio* service. After the fix for the metadata for the latter one,
+    it is important to inform the users of the *tar* service that metadata
+    is kept only if the flag *package-metadata* is enabled. Add the flag
+    to the .service file for mentioning that.
+
+  [ Frank Schreiner ]
+  * changed os.removedirs -> shutil.rmtree
+  * check --extract file path for parent dir
+
+  [ Adrian Schröter ]
+  * run download_files in appimage and snapcraft case
+
+  [ Frank Schreiner ]
+  * disable follow_symlinks in extract feature
+  * check filename for slashes
+  * check symlinks in subdir parameter
+  * check url for remote url
+  * check name/version option in obsinfo for slashes
+
+  [ Daniel Gollub ]
+  * Support also SSH urls for Git
+
+  [ Frank Schreiner ]
+  * fix regression from 44b3bee
+
+  [ Adrian Schröter ]
+  * fix flake warning
+  * create reproducible obscpio archives
+
+  [ Frank Schreiner ]
+  * fix check for "--reproducible"
+  * split pylint2 in GNUmakefile
+  * cleanup for pylint and flake8
+  * enable flake8 in hound
+
+  [ Jellyfrog ]
+  * Add support for extract globbing
+
+  [ Frank Schreiner ]
+  * make code python3 ready
+  * remove hardcoded utf-8 encodings
+  * change pylint/flake8 back to 2.7 for now
+  * revert encoding for old changes file
+  * fix encoding issues if commit message contains utf8 char
+  * fix problems with  unicode characters in commit messages for
+    changeloggenerate
+  * reuse _service*_servicedata/changes files from previous service runs
+  * fix bug with unicode filenames in prep_tree_for_archive
+  * Another attempt to fix unicode filenames in prep_tree_for_archive
+  * Another attempt to fix unicode filenames in prep_tree_for_archive
+  * Final fix for unicode in filenames
+  * another fix for unicode problem in obs_scm
+  * cleanup for broken svn caches
+  * added glibc as Recommends in spec file
+  * separate service file installation in GNUmakefile
+  * added new param '--locale'
+  * check encoding problems for svn and print proper error msg
+  * [dist] fix service files installation in Makefile
+
+  [ Adrian Schröter ]
+  * sync spec file as used in openSUSE:Tools project
+  * allow submodule and ssl options in appimage
+  * move argparse dep to -common package
+
+  [ Jan Engelhardt ]
+  * Stop using @opensuse.org addresses to indicate a missing address
+
+  [ Frank Schreiner ]
+  * removed python 2.6 from travis
+  * raise exception if no changesauthor given
+  * added logging for better debugging changesgenerate
+
+  [ Adrian Schröter ]
+  * add python 3.6 and 3.7 to testing
+
+  [ Frank Schreiner ]
+  * move to python3
+  * fix spec for RH/Fedora - glibc-locale -> glibc-common
+  * fix unicode in containers
+  * more fixes py3 unicode
+  * better encoding handling
+  * added python-six to Requires in specfile
+  * fix problems with unicode source files
+  * added KankuFile
+
+  [ Marcus Rückert ]
+  * Prefer UTF-8 locale as output format for changes
+
+  [ Frank Schreiner ]
+  * enforce bytes for cpio file list
+
+  [ Marcus Rückert ]
+  * Require packages to get the en_US.UTF-8 locales
+  * Forgot the guard 0 in one conditional
+  * Fix the logic to pick the locale package on Fedora
+  * Minimize diff with the version in openSUSE:Tools
+  * centos_version and rhel_version are triple digits
+  * Git also uses the LANGUAGE variable
+
+  [ Frank Schreiner ]
+  * [dist] spec file: python3 only and multidist
+  * predefine python version in spec file for GNUMAkefile
+
+  [ Marcus Rückert ]
+  * More thorought spec file cleanup
+
+  [ Frank Schreiner ]
+  * change order in GNUMakefile to prefer python3
+
+  [ Marcus Rückert ]
+  * Compile python files before install
+  * glibc-common was used up to FC23 and RHEL7
+
+  [ Frank Schreiner ]
+  * fix encoding error for surrogates
+  * [dist] enable python3 in SLE >= 12
+  * [dist] python3 for SLE12 and openSUSE 42.3
+  * disabling hg tests in travis
+  * Don`t break testsuite if cwd contains colons
+
+  [ Jiri Slaby ]
+  * tar_scm.service: fix exclude documentation
+  * git: really print the error message
+
+  [ Frank Schreiner ]
+  * separate language and encoding
+
+  [ Egbert Eich ]
+  * Append '_service' to repository directory
+  * Fix unit tests for modified scm directory handling
+  * Make service 'tar' work with a cachedir as well
+
+  [ Frank Schreiner ]
+  * Revert "Merge pull request #323 from e4t/master"
+
+  [ Jonathan Brielmaier ]
+  * tar_scm.service.in: Add example to match-tag.
+
+  [ Frank Schreiner ]
+  * fetch rev explicitly if using CACHEDIRECTORY and rev could not be
+    found
+  * added UnicodeDecodeError to exeption list in archive.py
+  * prefer local branch over remote
+  * update_cache in git now does merge
+
+  [ lethliel ]
+  * fix decoding for locale -a containg non-ASCII
+
+  [ Julio Gonzalez Gil ]
+  * Re-enable compatibility with Python 2.6
+
+  [ Jeremy JACQUE ]
+  * Implement git LFS blobs retrieval
+  * Add debian package dep to git-lfs
+
+  [ Guang Yee ]
+  * Fix --mirror argument position for git clone
+
+  [ Duncan Mac-Vicar P ]
+  * Handle missing build entry in appimage.yml
+  * Add testcase for appimage with empty build section
+
+  [ Frank Schreiner ]
+  * improved comment for method get_changesrevision
+  * call git stash with LANG=C
+
+  [ Luca Boccassi ]
+  * Add new archive option for Debian: git-buildpackage
+  * Version cleanup: don't strip hyphen when building Debian packages
+  * Document _none_ special version in .service
+
+  [ Jeremy Jacque ]
+  * Allow use of git-lfs only when running obs_scm
+  * git-lfs should not be mandatory as tar_scm will never use it
+
+  [ Jeremy JACQUE ]
+  * Add the credential-key parameter to service file
+  * Add the credential-key parameter to the cli
+  * Read credentials from (default) config file
+  * Modify url with credentials for Bazaar SCM
+  * Modify url with credentials for Git SCM
+  * Modify url with credentials for Mercurial SCM
+  * Use cli params to set credentials for Subversion SCM
+  * Disable flake8 W503 that should no exist anymore
+  * Use re.match instead of fullmatch cause it does not exist in Python2
+    version
+  * Raise exception if missing/malformed credentials in config file
+  * Fix tests by adding the new credential_key param
+  * Try to fix flake8-black warning
+  * Change auth param to use keyring-passphrase/user
+  * Read credentials from keyring
+  * Add new auth params to tests
+  * Add python keyring and keyrings.alt requirements
+  * Fix typos
+  * Fix description: wrong unix user when running keyring
+
+  [ Adrian Schröter ]
+  * fix breakage when working on a specific tag/commit
+  * fix lost commits on local run
+
+  [ Frank Schreiner ]
+  * Remove hard dependencies to keyring modules
+
+  [ Jeremy JACQUE ]
+  * Add python keyring as recommended in debian control
+  * Use XDG_DATA_HOME env variable to store keyring in
+    /etc/obs/services/tar_scm.d/
+  * Deduplicate code by moving it to auth_url function
+  * Fix some pylint/flake issues
+  * Fix keyring command line example
+  * Fix owner of the directory of python keyring
+  * Add a small debugging to auth_url
+  * Fix line too long on debug logging
+
+  [ Adrian Schröter ]
+  * simplify osc git update case a lot
+
+  [ Frank Schreiner ]
+  * fixing flake8/pep8 error for python2.7
+
+  [ Adrian Schröter ]
+  * report invalid tag/revsion/branch specified
+
+  [ Frank Schreiner ]
+  * re-enabled W503 in flake8
+
+ -- Luca Boccassi <bluca@debian.org>  Sat, 18 Apr 2020 16:23:54 +0100
+
 obs-service-tar-scm (0.5.0) unstable; urgency=low
 
   * change default git versionformat to %ct.%h

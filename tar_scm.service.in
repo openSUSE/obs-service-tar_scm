@@ -143,6 +143,8 @@
          refs/changes/49/11249/1
          - set by: git fetch ${url} ${revision}:${revision}
                    git checkout ${revision}
+
+       * the first tag that is reachable via git describe on the default branch: @PARENT_TAG@
     </description>
   </parameter>
   <parameter name="filename">
