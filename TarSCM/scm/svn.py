@@ -103,9 +103,11 @@ class Svn(Scm):
 
     def update_cache(self):
         """Update sources via svn."""
-        command = self._get_scm_cmd() + ['update']
+        command = self._get_scm_cmd() + ['update', '--non-interactive']
         if self.revision:
             command.insert(3, "-r%s" % self.revision)
+        if not self.is_sslverify_enabled():
+            command.insert(3, '--trust-server-cert')
 
         try:
             self.helpers.safe_run(command, cwd=self.clone_dir,
@@ -130,7 +132,11 @@ class Svn(Scm):
         if versionformat is None:
             versionformat = '%r'
 
-        svn_info = self.helpers.safe_run(self._get_scm_cmd() + ['info'],
+        command = self._get_scm_cmd() + ['info', '--non-interactive']
+        if not self.is_sslverify_enabled():
+            command.insert(3, '--trust-server-cert')
+
+        svn_info = self.helpers.safe_run(command,
                                          self.clone_dir)[1]
 
         version = ''
@@ -143,8 +149,11 @@ class Svn(Scm):
         return re.sub('%r', version, versionformat)
 
     def get_timestamp(self):
-        svn_info = self.helpers.safe_run(self._get_scm_cmd() + ['info',
-                                                                '-rHEAD'],
+        command = self._get_scm_cmd() + ['info', '--non-interactive', '-rHEAD']
+        if not self.is_sslverify_enabled():
+            command.insert(3, '--trust-server-cert')
+
+        svn_info = self.helpers.safe_run(command,
                                          self.clone_dir)[1]
 
         match = re.search(
@@ -199,12 +208,13 @@ class Svn(Scm):
 
     def _get_log(self, clone_dir, revision1, revision2):
         new_lines = []
+        command = self._get_scm_cmd() + ['log', '--non-interactive',
+                                         '-r%s:%s' % (revision2, revision1),
+                                         '--xml']
+        if not self.is_sslverify_enabled():
+            command.insert(3, '--trust-server-cert')
 
-        xml_lines = self.helpers.safe_run(
-            self._get_scm_cmd() + ['log', '-r%s:%s' % (revision2, revision1),
-                                   '--xml'],
-            clone_dir
-        )[1]
+        xml_lines = self.helpers.safe_run(command, clone_dir)[1]
 
         lines = re.findall(r"<msg>.*?</msg>", xml_lines, re.S)
 
@@ -216,7 +226,11 @@ class Svn(Scm):
 
     def _get_rev(self, clone_dir, num_commits):
         cmd = self._get_scm_cmd()
-        cmd.extend(['log', '-l%d' % num_commits, '-q', '--incremental'])
+        cmd.extend(['log', '--non-interactive', '-l%d' % num_commits, '-q',
+                   '--incremental'])
+        if not self.is_sslverify_enabled():
+            cmd.insert(3, '--trust-server-cert')
+
         raw = self.helpers.safe_run(cmd, cwd=clone_dir)
         revisions = raw[1].split("\n")
         # remove blank entry on end
