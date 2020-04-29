@@ -92,8 +92,8 @@ Recommends:     %{use_python}-keyrings.alt                      \
 ######## END OF MACROS AND FUN ###################################
 
 Name:           obs-service-tar_scm
-%define version_unconverted 0.10.14.1583853599.ccbb399
-Version:        0.10.14.1583853599.ccbb399
+%define version_unconverted 0.10.14.1587475802.e92a47f
+Version:        0.10.14.1587475802.e92a47f
 Release:        0
 Summary:        An OBS source service: create tar ball from svn/git/hg
 License:        GPL-2.0-or-later
@@ -249,7 +249,7 @@ make %{use_test}
 %{_prefix}/lib/obs/service/tar_scm
 %dir %{_sysconfdir}/obs
 %dir %{_sysconfdir}/obs/services
-%attr(-,obsservicerun,obsrun) %dir %{_sysconfdir}/obs/services/tar_scm.d
+%verify (not user group) %dir %{_sysconfdir}/obs/services/tar_scm.d
 %config(noreplace) %{_sysconfdir}/obs/services/*
 
 %files -n obs-service-tar
