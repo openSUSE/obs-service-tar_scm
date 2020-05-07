@@ -16,10 +16,22 @@
 #
 
 
-%if 0%{?suse_version} && 0%{?suse_version} >= 1220
+%define flavor @BUILD_FLAVOR@%nil
+%if "%{flavor}" == ""
+%define nsuffix %nil
+%else
+%define nsuffix -test
+%endif
+
+%if 0%{?suse_version} && 0%{?suse_version} >= 1220 && "%{flavor}" == "test"
 %bcond_without obs_scm_testsuite
 %else
 %bcond_with    obs_scm_testsuite
+%endif
+
+# special guard for flavor test, yet --without test being specified
+%if "%{flavor}" == "test" && %{without obs_scm_testsuite}
+ExclusiveArch:  skip-build
 %endif
 
 %if 0%{?suse_version} >= 1315 || 0%{?fedora_version} >= 29
@@ -91,15 +103,16 @@ Recommends:     %{use_python}-keyrings.alt                      \
 
 ######## END OF MACROS AND FUN ###################################
 
-Name:           obs-service-tar_scm
-%define version_unconverted 0.10.14.1587475802.e92a47f
-Version:        0.10.14.1587475802.e92a47f
+%define pkg_name obs-service-tar_scm
+Name:           %{pkg_name}%{nsuffix}
+%define version_unconverted 0.10.15.1588146746.5cfeeb8
+Version:        0.10.15.1588146746.5cfeeb8
 Release:        0
 Summary:        An OBS source service: create tar ball from svn/git/hg
 License:        GPL-2.0-or-later
 Group:          Development/Tools/Building
 URL:            https://github.com/openSUSE/obs-service-tar_scm
-Source:         %{name}-%{version}.tar.gz
+Source:         %{pkg_name}-%{version}.tar.gz
 
 # Fix build on Ubuntu by disabling mercurial tests, not applied in rpm
 # based distributions
@@ -107,11 +120,12 @@ Source:         %{name}-%{version}.tar.gz
 
 %if %{with obs_scm_testsuite}
 BuildRequires:  %{locale_package}
+BuildRequires:  %{pkg_name} = %{version}
+BuildRequires:  %{use_python}-keyring
+BuildRequires:  %{use_python}-keyrings.alt
 BuildRequires:  %{use_python}-mock
 BuildRequires:  %{use_python}-six
 BuildRequires:  %{use_python}-unittest2
-BuildRequires:  %{use_python}-keyring
-BuildRequires:  %{use_python}-keyrings.alt
 BuildRequires:  bzr
 BuildRequires:  git-core
 BuildRequires:  mercurial
@@ -128,7 +142,7 @@ BuildRequires:  %{use_python}-dateutil
 BuildRequires:  %{use_python}-lxml
 
 %if %{with python3}
-BuildRequires:  %{use_python}
+BuildRequires:  %{use_python}-base
 # Fix missing Requires in python3-pbr in Leap42.3
 BuildRequires:  %{use_python}-setuptools
 %else
@@ -226,9 +240,10 @@ source artefacts (.dsc, .origin.tar.gz and .debian.tar.gz if non-native).
 %build
 
 %install
+%if %{without obs_scm_testsuite}
 make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}" PYTHON="%{_bindir}/%{use_python}"
 
-%if %{with obs_scm_testsuite}
+%else
 # moved conditional to the top as it helps to have it all in one place and only rely on the bcond_with here.
 %check
 # No need to run PEP8 tests here; that would require a potentially
@@ -237,6 +252,7 @@ make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}" 
 make %{use_test}
 %endif
 
+%if %{without obs_scm_testsuite}
 %files
 %defattr(-,root,root)
 %{_prefix}/lib/obs/service/tar_scm.service
@@ -274,6 +290,7 @@ make %{use_test}
 %files -n obs-service-gbp
 %defattr(-,root,root)
 %{_prefix}/lib/obs/service/obs_gbp*
+%endif
 %endif
 
 %changelog
