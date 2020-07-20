@@ -34,7 +34,7 @@
     <required/>
   </parameter>
   <parameter name="url">
-    <description>Specify URL to checkout.</description>
+    <description>Specify URL to checkout. Allowed URL types: (http/https/ftp/ftps/git/ssh)</description>
     <required/>
   </parameter>
   <parameter name="user">
