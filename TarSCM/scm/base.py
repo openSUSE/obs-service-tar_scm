@@ -33,7 +33,7 @@ class Scm():
         # default settings
         # arch_dir - Directory which is used for the archive
         # e.g. myproject-2.0
-        self.arch_dir            = None
+        self.arch_dir       = None
         self.repocachedir   = None
         self.clone_dir      = None
         self.lock_file      = None
@@ -41,6 +41,7 @@ class Scm():
         self.repodir        = None
         self.user           = None
         self.password       = None
+        self._parent_tag    = None
 
         # mandatory arguments
         self.args           = args

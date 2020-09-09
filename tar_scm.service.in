@@ -203,4 +203,7 @@ which get maintained in the SCM. Can be used multiple times.</description>
   <parameter name="encoding">
     <description>Set encoding while execution of service</description>
   </parameter>
+  <parameter name="latest-signed-commit">
+    <description>Use the latest signed commit on a branch</description>
+  </parameter>
 </service>

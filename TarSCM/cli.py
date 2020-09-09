@@ -177,6 +177,8 @@ class Cli():
                             help='set encoding while service run')
         parser.add_argument('--use-obs-gbp', default = False,
                             help='use obs gbp (requires git-buildpackage) ')
+        parser.add_argument('--latest-signed-commit', default = False,
+                            help='use the latest signed commit on a branch ')
 
         self.verify_args(parser.parse_args(options))
 
@@ -206,11 +208,12 @@ class Cli():
             sys.exit('--filename must not specify a path')
 
         # booleanize non-standard parameters
-        args.changesgenerate = bool(args.changesgenerate == 'enable')
-        args.package_meta    = bool(args.package_meta == 'yes')
-        args.sslverify       = bool(args.sslverify != 'disable')
-        args.use_obs_scm     = bool(args.use_obs_scm)
-        args.use_obs_gbp     = bool(args.use_obs_gbp)
+        args.changesgenerate      = bool(args.changesgenerate == 'enable')
+        args.package_meta         = bool(args.package_meta == 'yes')
+        args.sslverify            = bool(args.sslverify != 'disable')
+        args.use_obs_scm          = bool(args.use_obs_scm)
+        args.use_obs_gbp          = bool(args.use_obs_gbp)
+        args.latest_signed_commit = bool(args.latest_signed_commit)
         t_gbp_dch_release_u  = bool(args.gbp_dch_release_update != 'disable')
         args.gbp_dch_release_update = t_gbp_dch_release_u
 

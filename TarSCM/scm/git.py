@@ -7,6 +7,14 @@ import shutil
 from TarSCM.scm.base import Scm
 
 
+def search_tag(comment):
+    splitted = comment.split(" ")
+    while splitted:
+        part = splitted.pop(0)
+        if part == "tag:":
+            return splitted.pop(0)
+
+
 class Git(Scm):
     scm = 'git'
 
@@ -36,14 +44,19 @@ class Git(Scm):
         - wildcard to match latest tag: @PARENT_TAG@
         """
         logging.debug("[switch_revision] Starting ...")
-        if self.revision is None:
-            self.revision = 'master'
+        self.revision = self.revision or 'master'
 
         if self.revision == "@PARENT_TAG@":
             self.revision = self._detect_parent_tag()
             if not self.revision:
                 sys.exit("\033[31mNo parent tag present for the checked out "
                          "revision, thus @PARENT_TAG@ cannot be expanded."
+                         "\033[0m")
+
+        if self.args.latest_signed_commit:
+            self.revision = self.find_latest_signed_commit()
+            if not self.revision:
+                sys.exit("\033[31mNo signed commit found!"
                          "\033[0m")
 
         if os.getenv('OSC_VERSION') and \
@@ -209,23 +222,23 @@ class Git(Scm):
         """
         Automatic detection of version number for checked-out GIT repository.
         """
-        parent_tag = args['parent_tag']
+        self._parent_tag = args['parent_tag']
         versionformat = args['versionformat']
         debian = args.get('use_obs_gbp', False)
         if versionformat is None:
             versionformat = '%ct.%h'
 
-        if not parent_tag:
-            parent_tag = self._detect_parent_tag(args)
+        if not self._parent_tag:
+            self._parent_tag = self._detect_parent_tag(args)
 
         if re.match('.*@PARENT_TAG@.*', versionformat):
             versionformat = self._detect_version_parent_tag(
-                parent_tag,
+                self._parent_tag,
                 versionformat)
 
         if re.match('.*@TAG_OFFSET@.*', versionformat):
             versionformat = self._detect_version_tag_offset(
-                parent_tag,
+                self._parent_tag,
                 versionformat)
 
         version = self.helpers.safe_run(
@@ -394,3 +407,30 @@ class Git(Scm):
 
         # Deny by default, might be local path
         return False
+
+    def find_latest_signed_commit(self):
+        result = self.helpers.safe_run(
+            ['git', 'log', '--pretty=format:%H %G? %h %D', "--topo-order"],
+            cwd=self.clone_dir)
+        lines = result[1].split("\n")
+        while lines:
+            line = lines.pop(0)
+            commit = line.split(" ", 3)
+            logging.debug("Commit: %s - %s", commit[0], commit[1])
+            if commit[1] == "G":
+                logging.debug("Found signed commit: %s", commit[0])
+                lines[:0] = line
+
+                while not self._parent_tag and lines:
+                    line = lines.pop(0)
+                    commit = line.split(" ", 3)
+                    if len(commit) > 3:
+                        self._parent_tag = search_tag(commit[3])
+
+                if self._parent_tag:
+                    logging.debug("Found parent tag: %s", self._parent_tag)
+                else:
+                    logging.debug("No parent tag found")
+                return commit[0]
+        logging.debug("No signed commit found: %s", commit[0])
+        return None
