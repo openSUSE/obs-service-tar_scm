@@ -179,6 +179,11 @@ class Cli():
                             help='use obs gbp (requires git-buildpackage) ')
         parser.add_argument('--latest-signed-commit', default = False,
                             help='use the latest signed commit on a branch ')
+        parser.add_argument('--latest-signed-tag', default = False,
+                            help='use the latest signed tag on a branch ')
+        parser.add_argument('--maintainers-asc', default = False,
+                            help='File which contains maintainers pubkeys. '
+                                 '(only used with \'--latest-signed-*\')')
 
         self.verify_args(parser.parse_args(options))
 
@@ -214,7 +219,8 @@ class Cli():
         args.use_obs_scm          = bool(args.use_obs_scm)
         args.use_obs_gbp          = bool(args.use_obs_gbp)
         args.latest_signed_commit = bool(args.latest_signed_commit)
-        t_gbp_dch_release_u  = bool(args.gbp_dch_release_update != 'disable')
+        args.latest_signed_tag    = bool(args.latest_signed_tag)
+        t_gbp_dch_release_u = bool(args.gbp_dch_release_update != 'disable')
         args.gbp_dch_release_update = t_gbp_dch_release_u
 
         # Allow forcing verbose mode from the environment; this

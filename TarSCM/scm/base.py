@@ -33,15 +33,16 @@ class Scm():
         # default settings
         # arch_dir - Directory which is used for the archive
         # e.g. myproject-2.0
-        self.arch_dir       = None
-        self.repocachedir   = None
-        self.clone_dir      = None
-        self.lock_file      = None
-        self.basename       = None
-        self.repodir        = None
-        self.user           = None
-        self.password       = None
-        self._parent_tag    = None
+        self.arch_dir          = None
+        self.repocachedir      = None
+        self.clone_dir         = None
+        self.lock_file         = None
+        self.basename          = None
+        self.repodir           = None
+        self.user              = None
+        self.password          = None
+        self._parent_tag       = None
+        self._backup_gnupghome = None
 
         # mandatory arguments
         self.args           = args
@@ -80,6 +81,14 @@ class Scm():
         self.httpsproxy     = None
         self.noproxy        = None
         self._calc_proxies()
+
+        if self.args.maintainers_asc:
+            self._prepare_gpg_settings()
+
+    def __del__(self):
+        if self.args.maintainers_asc:
+            self._revert_gpg_settings()
+
 
     def auth_url(self):
         if self.scm not in ('bzr', 'git', 'hg'):
@@ -374,3 +383,19 @@ class Scm():
 
     def check_url(self):
         return True
+
+    def _prepare_gpg_settings(self):
+        logging.debug("preparing gpg settings")
+        self._backup_gnupghome = os.getenv('GNUPGHOME')
+        gpgdir = tempfile.mkdtemp()
+        mode = int('700', 8)
+        os.chmod(gpgdir, mode)
+        os.putenv('GNUPGHOME', gpgdir)
+        logging.debug("Importing file '%s' to gnupghome: '%s'.")
+        self.helpers.safe_run(
+            ['gpg', '--import', self.args.maintainers_asc],
+            cwd=self.clone_dir, interactive=sys.stdout.isatty())
+
+    def _revert_gpg_settings(self):
+        if self._backup_gnupghome:
+            os.putenv('GNUPGHOME', self._backup_gnupghome)

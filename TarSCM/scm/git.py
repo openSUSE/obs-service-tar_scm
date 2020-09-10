@@ -7,12 +7,16 @@ import shutil
 from TarSCM.scm.base import Scm
 
 
-def search_tag(comment):
+def search_tags(comment, limit=None):
     splitted = comment.split(" ")
+    result = []
     while splitted:
         part = splitted.pop(0)
         if part == "tag:":
-            return splitted.pop(0)
+            result.append(splitted.pop(0))
+        if limit and len(result) > limit:
+            break
+    return result
 
 
 class Git(Scm):
@@ -55,6 +59,12 @@ class Git(Scm):
 
         if self.args.latest_signed_commit:
             self.revision = self.find_latest_signed_commit()
+            if not self.revision:
+                sys.exit("\033[31mNo signed commit found!"
+                         "\033[0m")
+
+        if self.args.latest_signed_tag:
+            self.revision = self.find_latest_signed_tag()
             if not self.revision:
                 sys.exit("\033[31mNo signed commit found!"
                          "\033[0m")
@@ -412,25 +422,61 @@ class Git(Scm):
         result = self.helpers.safe_run(
             ['git', 'log', '--pretty=format:%H %G? %h %D', "--topo-order"],
             cwd=self.clone_dir)
+
+        revision = None
+
         lines = result[1].split("\n")
         while lines:
             line = lines.pop(0)
             commit = line.split(" ", 3)
             logging.debug("Commit: %s - %s", commit[0], commit[1])
-            if commit[1] == "G":
-                logging.debug("Found signed commit: %s", commit[0])
+            if re.match("^(G|U)$", commit[1]):
+                revision = commit[0]
+                logging.debug("Found signed commit: %s %s",
+                              commit[0], commit[1])
                 lines[:0] = line
 
                 while not self._parent_tag and lines:
                     line = lines.pop(0)
                     commit = line.split(" ", 3)
                     if len(commit) > 3:
-                        self._parent_tag = search_tag(commit[3])
+                        self._parent_tag = search_tags(commit[3], 1)[0]
 
                 if self._parent_tag:
                     logging.debug("Found parent tag: %s", self._parent_tag)
                 else:
                     logging.debug("No parent tag found")
-                return commit[0]
-        logging.debug("No signed commit found: %s", commit[0])
-        return None
+
+                break
+
+        if not revision:
+            logging.debug("No signed commit found")
+
+        return revision
+
+    def find_latest_signed_tag(self):
+        revision = None
+
+        result = self.helpers.safe_run(
+            ['git', 'log', '--pretty=format:%H %G? %h %D', "--topo-order"],
+            cwd=self.clone_dir)
+
+        lines = result[1].split("\n")
+        while lines:
+            line = lines.pop(0)
+            commit = line.split(" ", 3)
+            if len(commit) > 3:
+                for tag in search_tags(commit[3]):
+                    verify = self.helpers.run_cmd(
+                        ['git', 'verify-tag', tag],
+                        cwd=self.clone_dir)
+                    if verify[0] == 0:
+                        revision = self._parent_tag = tag
+                        break
+            if revision:
+                break
+
+        if not revision:
+            logging.debug("No signed tag found!")
+
+        return revision
