@@ -39,7 +39,7 @@ class Tar(Scm):
                 os.rename(self.basename, self.clone_dir)
             except OSError:
                 raise SystemExit(
-                    "Error while moving from '%s' to '%s')\n"
+                    "Error while moving from '%s' to '%s'\n"
                     "Current working directory: '%s'" %
                     (self.basename, self.clone_dir, os.getcwd())
                 )
