@@ -89,7 +89,6 @@ class Scm():
         if self.args.maintainers_asc:
             self._revert_gpg_settings()
 
-
     def auth_url(self):
         if self.scm not in ('bzr', 'git', 'hg'):
             return

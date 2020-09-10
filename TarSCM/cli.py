@@ -188,8 +188,8 @@ class Cli():
         self.verify_args(parser.parse_args(options))
 
     def verify_args(self, args):
-
         # basic argument validation
+        # pylint: disable=too-many-branches
         if not os.path.isdir(args.outdir):
             sys.exit("%s: No such directory" % args.outdir)
 
@@ -222,6 +222,18 @@ class Cli():
         args.latest_signed_tag    = bool(args.latest_signed_tag)
         t_gbp_dch_release_u = bool(args.gbp_dch_release_update != 'disable')
         args.gbp_dch_release_update = t_gbp_dch_release_u
+
+        if args.latest_signed_commit and args.latest_signed_tag:
+            sys.exit('--latest-signed-commit '
+                     'and --latest-signed-tag specified. '
+                     'Please choose only one!')
+
+        latest_signed = args.latest_signed_commit or args.latest_signed_tag
+
+        if args.maintainers_asc and not latest_signed:
+            sys.exit('Specifying "--maintainers-asc" without'
+                     ' --latest-signed-commit or --latest-signed-tag'
+                     ' makes no sense. Please adjust your settings!')
 
         # Allow forcing verbose mode from the environment; this
         # allows debugging when running "osc service disabledrun" etc.
