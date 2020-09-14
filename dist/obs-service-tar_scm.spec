@@ -267,6 +267,7 @@ make %{use_test}
 
 %files -n obs-service-obs_scm-common
 %defattr(-,root,root)
+%license COPYING
 %dir %{_prefix}/lib/obs
 %dir %{_prefix}/lib/obs/service
 %{_prefix}/lib/obs/service/TarSCM
