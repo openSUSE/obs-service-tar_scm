@@ -177,12 +177,19 @@ class Cli():
                             help='set encoding while service run')
         parser.add_argument('--use-obs-gbp', default = False,
                             help='use obs gbp (requires git-buildpackage) ')
+        parser.add_argument('--latest-signed-commit', default = False,
+                            help='use the latest signed commit on a branch ')
+        parser.add_argument('--latest-signed-tag', default = False,
+                            help='use the latest signed tag on a branch ')
+        parser.add_argument('--maintainers-asc', default = False,
+                            help='File which contains maintainers pubkeys. '
+                                 '(only used with \'--latest-signed-*\')')
 
         self.verify_args(parser.parse_args(options))
 
     def verify_args(self, args):
-
         # basic argument validation
+        # pylint: disable=too-many-branches
         if not os.path.isdir(args.outdir):
             sys.exit("%s: No such directory" % args.outdir)
 
@@ -206,13 +213,27 @@ class Cli():
             sys.exit('--filename must not specify a path')
 
         # booleanize non-standard parameters
-        args.changesgenerate = bool(args.changesgenerate == 'enable')
-        args.package_meta    = bool(args.package_meta == 'yes')
-        args.sslverify       = bool(args.sslverify != 'disable')
-        args.use_obs_scm     = bool(args.use_obs_scm)
-        args.use_obs_gbp     = bool(args.use_obs_gbp)
-        t_gbp_dch_release_u  = bool(args.gbp_dch_release_update != 'disable')
+        args.changesgenerate      = bool(args.changesgenerate == 'enable')
+        args.package_meta         = bool(args.package_meta == 'yes')
+        args.sslverify            = bool(args.sslverify != 'disable')
+        args.use_obs_scm          = bool(args.use_obs_scm)
+        args.use_obs_gbp          = bool(args.use_obs_gbp)
+        args.latest_signed_commit = bool(args.latest_signed_commit)
+        args.latest_signed_tag    = bool(args.latest_signed_tag)
+        t_gbp_dch_release_u = bool(args.gbp_dch_release_update != 'disable')
         args.gbp_dch_release_update = t_gbp_dch_release_u
+
+        if args.latest_signed_commit and args.latest_signed_tag:
+            sys.exit('--latest-signed-commit '
+                     'and --latest-signed-tag specified. '
+                     'Please choose only one!')
+
+        latest_signed = args.latest_signed_commit or args.latest_signed_tag
+
+        if args.maintainers_asc and not latest_signed:
+            sys.exit('Specifying "--maintainers-asc" without'
+                     ' --latest-signed-commit or --latest-signed-tag'
+                     ' makes no sense. Please adjust your settings!')
 
         # Allow forcing verbose mode from the environment; this
         # allows debugging when running "osc service disabledrun" etc.

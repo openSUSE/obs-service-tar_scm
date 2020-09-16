@@ -203,4 +203,13 @@ which get maintained in the SCM. Can be used multiple times.</description>
   <parameter name="encoding">
     <description>Set encoding while execution of service</description>
   </parameter>
+  <parameter name="latest-signed-commit">
+    <description>Use the latest signed commit on a branch</description>
+  </parameter>
+  <parameter name="latest-signed-tag">
+    <description>Use the latest signed tag on a branch</description>
+  </parameter>
+  <parameter name="maintainers-asc">
+    <description>File which contains maintainers pubkeys (only used with '--latest-signed-*')</description>
+  </parameter>
 </service>

@@ -7,6 +7,18 @@ import shutil
 from TarSCM.scm.base import Scm
 
 
+def search_tags(comment, limit=None):
+    splitted = comment.split(" ")
+    result = []
+    while splitted:
+        part = splitted.pop(0)
+        if part == "tag:":
+            result.append(splitted.pop(0))
+        if limit and len(result) > limit:
+            break
+    return result
+
+
 class Git(Scm):
     scm = 'git'
 
@@ -36,8 +48,7 @@ class Git(Scm):
         - wildcard to match latest tag: @PARENT_TAG@
         """
         logging.debug("[switch_revision] Starting ...")
-        if self.revision is None:
-            self.revision = 'master'
+        self.revision = self.revision or 'master'
 
         if self.revision == "@PARENT_TAG@":
             self.revision = self._detect_parent_tag()
@@ -46,45 +57,23 @@ class Git(Scm):
                          "revision, thus @PARENT_TAG@ cannot be expanded."
                          "\033[0m")
 
+        if self.args.latest_signed_commit:
+            self.revision = self.find_latest_signed_commit()
+            if not self.revision:
+                sys.exit("\033[31mNo signed commit found!"
+                         "\033[0m")
+
+        if self.args.latest_signed_tag:
+            self.revision = self.find_latest_signed_tag()
+            if not self.revision:
+                sys.exit("\033[31mNo signed commit found!"
+                         "\033[0m")
+
         if os.getenv('OSC_VERSION') and \
            len(os.listdir(self.clone_dir)) > 1:
             # Ensure that the call of "git stash" is done with
             # LANG=C to get a reliable output
-            lang_bak = None
-            if 'LANG' in os.environ:
-                lang_bak = os.environ['LANG']
-                os.environ['LANG'] = "C"
-            stash_text = self.helpers.safe_run(
-                self._get_scm_cmd() + ['stash'],
-                cwd=self.clone_dir)[1]
-
-            # merge may fail when not a remote branch, that is fine
-            rcode, output = self.helpers.run_cmd(
-                self._get_scm_cmd() + ['merge', 'origin/' + self.revision],
-                cwd=self.clone_dir,
-                interactive=True)
-
-            # we must test also merge a possible local tag/branch
-            # because the user may have changed the revision in _service file
-            if rcode != 0 and 'not something we can merge' in output:
-                self.helpers.run_cmd(
-                    self._get_scm_cmd() + ['merge', self.revision],
-                    cwd=self.clone_dir,
-                    interactive=True)
-
-            # validate the existens of the revision
-            if self.revision and not self._ref_exists(self.revision):
-                sys.exit('%s: No such revision' % self.revision)
-
-            if stash_text != "No local changes to save\n":
-                logging.debug("[switch_revision] GIT STASHING")
-                self.helpers.run_cmd(
-                    self._get_scm_cmd() + ['stash', 'pop'],
-                    cwd=self.clone_dir,
-                    interactive=True)
-
-            if lang_bak:
-                os.environ['LANG'] = lang_bak
+            self._stash_and_merge()
         else:
             # is doing the checkout in a hard way
             # may not exist before when using cache
@@ -99,6 +88,43 @@ class Git(Scm):
                 self._get_scm_cmd() + ['submodule', 'update', '--recursive'],
                 cwd=self.clone_dir
             )
+
+    def _stash_and_merge(self):
+        lang_bak = None
+        if 'LANG' in os.environ:
+            lang_bak = os.environ['LANG']
+            os.environ['LANG'] = "C"
+        stash_text = self.helpers.safe_run(
+            self._get_scm_cmd() + ['stash'],
+            cwd=self.clone_dir)[1]
+
+        # merge may fail when not a remote branch, that is fine
+        rcode, output = self.helpers.run_cmd(
+            self._get_scm_cmd() + ['merge', 'origin/' + self.revision],
+            cwd=self.clone_dir,
+            interactive=True)
+
+        # we must test also merge a possible local tag/branch
+        # because the user may have changed the revision in _service file
+        if rcode != 0 and 'not something we can merge' in output:
+            self.helpers.run_cmd(
+                self._get_scm_cmd() + ['merge', self.revision],
+                cwd=self.clone_dir,
+                interactive=True)
+
+        # validate the existens of the revision
+        if self.revision and not self._ref_exists(self.revision):
+            sys.exit('%s: No such revision' % self.revision)
+
+        if stash_text != "No local changes to save\n":
+            logging.debug("[switch_revision] GIT STASHING")
+            self.helpers.run_cmd(
+                self._get_scm_cmd() + ['stash', 'pop'],
+                cwd=self.clone_dir,
+                interactive=True)
+
+        if lang_bak:
+            os.environ['LANG'] = lang_bak
 
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for git."""
@@ -209,23 +235,23 @@ class Git(Scm):
         """
         Automatic detection of version number for checked-out GIT repository.
         """
-        parent_tag = args['parent_tag']
+        self._parent_tag = args['parent_tag'] or self._parent_tag
         versionformat = args['versionformat']
         debian = args.get('use_obs_gbp', False)
         if versionformat is None:
             versionformat = '%ct.%h'
 
-        if not parent_tag:
-            parent_tag = self._detect_parent_tag(args)
+        if not self._parent_tag:
+            self._parent_tag = self._detect_parent_tag(args)
 
         if re.match('.*@PARENT_TAG@.*', versionformat):
             versionformat = self._detect_version_parent_tag(
-                parent_tag,
+                self._parent_tag,
                 versionformat)
 
         if re.match('.*@TAG_OFFSET@.*', versionformat):
             versionformat = self._detect_version_tag_offset(
-                parent_tag,
+                self._parent_tag,
                 versionformat)
 
         version = self.helpers.safe_run(
@@ -394,3 +420,68 @@ class Git(Scm):
 
         # Deny by default, might be local path
         return False
+
+    def find_latest_signed_commit(self):
+        result = self.helpers.safe_run(
+            ['git', 'log', '--pretty=format:%H %G? %h %D', "--topo-order"],
+            cwd=self.clone_dir)
+
+        revision = None
+
+        lines = result[1].split("\n")
+        while lines:
+            line = lines.pop(0)
+            commit = line.split(" ", 3)
+            logging.debug("Commit: %s - %s", commit[0], commit[1])
+            if re.match("^(G|U)$", commit[1]):
+                revision = commit[0]
+                logging.debug("Found signed commit: %r", commit)
+                lines[:0] = line
+
+                while not self._parent_tag and lines:
+                    tline = lines.pop(0)
+                    commit = tline.split(" ", 3)
+                    if len(commit) > 3:
+                        ptg = search_tags(commit[3], 1)
+                        if ptg:
+                            self._parent_tag = ptg[0]
+
+                if self._parent_tag:
+                    logging.debug("Found parent tag: %s", self._parent_tag)
+                else:
+                    logging.debug("No parent tag found")
+
+                break
+
+        if not revision:
+            logging.debug("No signed commit found")
+
+        return revision
+
+    def find_latest_signed_tag(self):
+        revision = None
+
+        result = self.helpers.safe_run(
+            ['git', 'log', '--pretty=format:%H %G? %h %D', "--topo-order"],
+            cwd=self.clone_dir)
+
+        lines = result[1].split("\n")
+        while lines:
+            line = lines.pop(0)
+            commit = line.split(" ", 3)
+            if len(commit) > 3:
+                for tag in search_tags(commit[3]):
+                    tag = re.sub(",$", '', tag)
+                    verify = self.helpers.run_cmd(
+                        ['git', 'verify-tag', tag],
+                        cwd=self.clone_dir)
+                    if verify[0] == 0:
+                        revision = self._parent_tag = tag
+                        break
+            if revision:
+                break
+
+        if not revision:
+            logging.debug("No signed tag found!")
+
+        return revision

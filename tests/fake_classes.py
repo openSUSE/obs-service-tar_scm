@@ -7,6 +7,7 @@ class FakeCli(dict):  # pylint: disable=no-init,too-few-public-methods
         self.match_tag          = match_tag
         self.user               = ''
         self.keyring_passphrase = ''
+        self.maintainers_asc = None
 
 
 class FakeTasks():  # pylint: disable=no-init,too-few-public-methods
@@ -16,6 +17,7 @@ class FakeTasks():  # pylint: disable=no-init,too-few-public-methods
 class FakeSCM():
     def __init__(self, version):
         self.version = version
+        self.maintainers_asc = None
 
     # pylint: disable=unused-argument,no-self-use,no-init,
     # pylint: disable=too-few-public-methods
