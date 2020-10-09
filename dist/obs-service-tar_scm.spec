@@ -148,7 +148,13 @@ BuildRequires:  %{use_python}-dateutil
 BuildRequires:  %{use_python}-lxml
 
 %if %{with python3}
+
+%if 0%{?centos_version} >= 800
+# ignore python3 dependency (nothing provides python3 error)
+%else
 BuildRequires:  %{use_python}%{_pkg_base}
+%endif
+
 # Fix missing Requires in python3-pbr in Leap42.3
 BuildRequires:  %{use_python}-setuptools
 %else
