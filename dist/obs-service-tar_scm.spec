@@ -150,7 +150,7 @@ BuildRequires:  %{use_python}-lxml
 %if %{with python3}
 
 %if 0%{?centos_version} >= 800
-# ignore python3 dependency (nothing provides python3 error)
+# ignore python3 dependency (nothing provides python3-base error) github issue #374
 %else
 BuildRequires:  %{use_python}%{_pkg_base}
 %endif
