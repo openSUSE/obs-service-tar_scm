@@ -16,7 +16,7 @@
 #
 
 
-%if 0%{?fedora}
+%if 0%{?fedora_version}%{?centos_version}%{?rhel_version}
 %define _pkg_base %nil
 %else
 %define _pkg_base -base
@@ -40,7 +40,7 @@
 ExclusiveArch:  skip-build
 %endif
 
-%if 0%{?suse_version} >= 1315 || 0%{?fedora_version} >= 29
+%if 0%{?suse_version} >= 1315 || 0%{?fedora_version} >= 29 || 0%{?centos_version} >= 800 || 0%{?rhel_version} >= 800
 %bcond_without python3
 %else
 %bcond_with    python3
@@ -111,8 +111,8 @@ Recommends:     %{use_python}-keyrings.alt                      \
 
 %define pkg_name obs-service-tar_scm
 Name:           %{pkg_name}%{nsuffix}
-%define version_unconverted 0.10.15.1588842879.5c43eef
-Version:        0.10.15.1588842879.5c43eef
+%define version_unconverted 0.10.18.1600256320.569e5be
+Version:        0.10.18.1600256320.569e5be
 Release:        0
 Summary:        An OBS source service: create tar ball from svn/git/hg
 License:        GPL-2.0-or-later
