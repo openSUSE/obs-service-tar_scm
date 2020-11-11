@@ -57,7 +57,8 @@ PYTHON3 = python3.7 python-3.7 python3.6 python-3.6 python3.5 python-3.5 python3
 PYTHON2 = python2.7 python-2.7 python2.6 python-2.6 python2
 
 # Ensure that correct python version is used in travis
-PYTHON_MAJOR := $(shell python -c "import sys; print sys.version[:1]" 2>/dev/null)
+y = $(subst ., ,$(TRAVIS_PYTHON_VERSION))
+PYTHON_MAJOR := $(word 1, $(y))
 ifeq ($(PYTHON_MAJOR), 2)
 ALL_PYTHONS = $(PYTHON2) python
 else
@@ -159,6 +160,7 @@ cover:
 	PYTHONPATH=. coverage2 run tests/test.py 2>&1 | tee ./cover.log
 	coverage2 html --include=./TarSCM/*
 
+.PHONY: tar_scm
 tar_scm: tar_scm.py
 	@echo "Creating $@ which uses $(PYTHON) ..."
 	sed 's,^\#!/usr/bin/.*,#!$(PYTHON),' $< > $@
