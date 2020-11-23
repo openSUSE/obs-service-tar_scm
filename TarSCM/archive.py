@@ -93,6 +93,7 @@ class ObsCpio(BaseArchive):
             # excludes
             dirs[:] = [os.path.join(root, d) for d in dirs]
             dirs[:] = [d for d in dirs if not re.match(excludes, d)]
+            dirs[:] = [d for d in dirs if re.match(includes, d)]
 
             # exclude/include files
             files = [os.path.join(root, f) for f in files]
