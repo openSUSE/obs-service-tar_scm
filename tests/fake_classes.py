@@ -8,6 +8,7 @@ class FakeCli(dict):  # pylint: disable=no-init,too-few-public-methods
         self.user               = ''
         self.keyring_passphrase = ''
         self.maintainers_asc = None
+        self.describe_candidates = 10
 
 
 class FakeTasks():  # pylint: disable=no-init,too-few-public-methods
