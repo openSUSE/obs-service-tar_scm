@@ -38,7 +38,7 @@ class Bzr(Scm):
             interactive=sys.stdout.isatty()
         )
 
-    def detect_version(self, args):
+    def detect_version(self, args, truncate_at_hyphen):
         """
         Automatic detection of version number for checked-out BZR repository.
         """

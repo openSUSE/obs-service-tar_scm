@@ -79,7 +79,7 @@ class Hg(Scm):
             if re.match('.*no changes found.*', str(exc)) is None:
                 raise
 
-    def detect_version(self, args):
+    def detect_version(self, args, truncate_at_hyphen):
         """
         Automatic detection of version number for checked-out HG repository.
         """
@@ -126,11 +126,13 @@ class Hg(Scm):
         ])
 
         version = self.helpers.safe_run(cmd, self.clone_dir)[1]
-        return self.version_iso_cleanup(version)
+        if truncate_at_hyphen:
+            version = self.version_iso_cleanup(version)
+        return version
 
     def get_timestamp(self):
         data = {"parent_tag": None, "versionformat": "{date}"}
-        timestamp = self.detect_version(data)
+        timestamp = self.detect_version(data, True)
         timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
         return int(timestamp)
 

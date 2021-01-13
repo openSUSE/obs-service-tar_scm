@@ -231,7 +231,7 @@ class Git(Scm):
                 logging.info("Please fix corrupt cache directory!")
                 raise exc
 
-    def detect_version(self, args):
+    def detect_version(self, args, truncate_at_hyphen):
         """
         Automatic detection of version number for checked-out GIT repository.
         """
@@ -259,7 +259,9 @@ class Git(Scm):
                                    "--pretty=format:%s" % versionformat],
             self.clone_dir
         )[1]
-        return self.version_iso_cleanup(version, debian)
+        if truncate_at_hyphen:
+            version = self.version_iso_cleanup(version, debian)
+        return version
 
     def _detect_parent_tag(self, args=None):
         parent_tag = ''
@@ -308,7 +310,7 @@ class Git(Scm):
 
     def get_timestamp(self):
         data = {"parent_tag": None, "versionformat": "%ct"}
-        timestamp = self.detect_version(data)
+        timestamp = self.detect_version(data, False)
         return int(timestamp)
 
     def get_current_commit(self):

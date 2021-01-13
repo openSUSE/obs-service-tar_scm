@@ -122,7 +122,7 @@ class Svn(Scm):
             else:
                 raise exc
 
-    def detect_version(self, args):
+    def detect_version(self, args, truncate_at_hyphen):
         """
         Automatic detection of version number for checked-out SVN repository.
         """

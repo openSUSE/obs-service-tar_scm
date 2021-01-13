@@ -261,11 +261,14 @@ class Tasks():
         given as cli option and applying versionrewrite_pattern and
         versionprefix if given as cli option
         '''
+        truncate_at_hyphen = True
+        if self.args.versionrewrite_pattern:
+            truncate_at_hyphen = False
         version = self.args.version
         if version == '_none_':
             return ''
         if version == '_auto_' or self.args.versionformat:
-            version = self.detect_version()
+            version = self.detect_version(truncate_at_hyphen)
         if self.args.versionrewrite_pattern:
             regex = re.compile(self.args.versionrewrite_pattern)
             version = regex.sub(self.args.versionrewrite_replacement, version)
@@ -275,9 +278,9 @@ class Tasks():
         logging.debug("VERSION(auto): %s", version)
         return version
 
-    def detect_version(self):
+    def detect_version(self, truncate_at_hyphen = False):
         """Automatic detection of version number for checked-out repository."""
 
-        version = self.scm_object.detect_version(self.args.__dict__).strip()
+        version = self.scm_object.detect_version(self.args.__dict__, truncate_at_hyphen).strip()
         logging.debug("VERSION(auto): %s", version)
         return version

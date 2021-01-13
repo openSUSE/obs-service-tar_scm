@@ -21,5 +21,5 @@ class FakeSCM():
 
     # pylint: disable=unused-argument,no-self-use,no-init,
     # pylint: disable=too-few-public-methods
-    def detect_version(self, args):
+    def detect_version(self, args, truncate_at_hyphen = False):
         return self.version
