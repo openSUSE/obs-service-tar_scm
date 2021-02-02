@@ -165,7 +165,8 @@ class Tasks():
         try:
             scm_class = getattr(TarSCM.scm, scm2class[args.scm])
         except:
-            raise OptionsError("Please specify valid --scm=... options")
+            msg = "Please specify valid --scm=... options"
+            raise OptionsError(msg)  # pylint: disable=W0707
 
         # self.scm_object is need to unlock cache in cleanup
         # if exception occurs
@@ -269,6 +270,10 @@ class Tasks():
         if self.args.versionrewrite_pattern:
             regex = re.compile(self.args.versionrewrite_pattern)
             version = regex.sub(self.args.versionrewrite_replacement, version)
+        else:
+            args = self.args.__dict__
+            debian = args.get('use_obs_gbp', False)
+            version = self.scm_object.version_iso_cleanup(version, debian)
         if self.args.versionprefix:
             version = "%s.%s" % (self.args.versionprefix, version)
 

@@ -23,3 +23,6 @@ class FakeSCM():
     # pylint: disable=too-few-public-methods
     def detect_version(self, args):
         return self.version
+
+    def version_iso_cleanup(self, version, debian):
+        return self.version

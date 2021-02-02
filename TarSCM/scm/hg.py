@@ -125,8 +125,7 @@ class Hg(Scm):
             versionformat
         ])
 
-        version = self.helpers.safe_run(cmd, self.clone_dir)[1]
-        return self.version_iso_cleanup(version)
+        return self.helpers.safe_run(cmd, self.clone_dir)[1]
 
     def get_timestamp(self):
         data = {"parent_tag": None, "versionformat": "{date}"}

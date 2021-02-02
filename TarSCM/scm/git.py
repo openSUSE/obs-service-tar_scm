@@ -237,7 +237,6 @@ class Git(Scm):
         """
         self._parent_tag = args['parent_tag'] or self._parent_tag
         versionformat = args['versionformat']
-        debian = args.get('use_obs_gbp', False)
         if versionformat is None:
             versionformat = '%ct.%h'
 
@@ -259,7 +258,7 @@ class Git(Scm):
                                    "--pretty=format:%s" % versionformat],
             self.clone_dir
         )[1]
-        return self.version_iso_cleanup(version, debian)
+        return version
 
     def _detect_parent_tag(self, args=None):
         parent_tag = ''
