@@ -12,4 +12,4 @@ override_dh_auto_build: ;
 override_dh_auto_test: ;
 
 override_dh_auto_install:
-	$(MAKE) DESTDIR=`pwd`/$(DESTDIR) PREFIX=/usr install
+	$(MAKE) DESTDIR=`pwd`/$(DESTDIR) PREFIX=/usr WITH_GBP=1 install
