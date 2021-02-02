@@ -11,6 +11,6 @@ Architecture: all
 Provides: obs-service-obs-scm, obs-service-tar, obs-service-gbp
 Depends: ${misc:Depends}, ${python3:Depends}, python3, bzr, git, subversion, cpio, python3-dateutil, python3-yaml, locales-all
 Recommends: mercurial, git-buildpackage, git-lfs
-Description: An OBS source service: fetches SCM tarballs
+Description: OBS source service: fetches SCM tarballs
  This is a source service for openSUSE Build Service.
  It supports downloading from svn, git, hg and bzr repositories.
