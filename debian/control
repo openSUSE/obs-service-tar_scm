@@ -1,6 +1,6 @@
 Source: obs-service-tar-scm
 Section: devel
-Priority: extra
+Priority: optional
 Maintainer: Daniel Gollub <dgollub@brocade.com>
 Build-Depends: debhelper (>= 7.0.0), python3, python3-dateutil, dh-python
 Standards-Version: 3.9.3
