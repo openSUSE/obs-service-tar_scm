@@ -5,7 +5,6 @@ Maintainer: Daniel Gollub <dgollub@brocade.com>
 Build-Depends: debhelper (>= 7.0.0), python3, python3-dateutil, dh-python
 Standards-Version: 3.9.3
 Homepage: https://github.com/openSUSE/obs-service-tar_scm
-X-Python-Version: >= 2.6
 
 Package: obs-service-tar-scm
 Architecture: all
