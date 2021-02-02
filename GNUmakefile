@@ -53,7 +53,7 @@ $(or \
 )
 endef
 
-PYTHON3 = python3.7 python-3.7 python3.6 python-3.6 python3.5 python-3.5 python3.4 python-3.4 python3.3 python-3.3 python3.2 python-3.2 python3
+PYTHON3 = python3.8 python3.7 python-3.7 python3.6 python-3.6 python3.5 python-3.5 python3.4 python-3.4 python3.3 python-3.3 python3.2 python-3.2 python3
 PYTHON2 = python2.7 python-2.7 python2.6 python-2.6 python2
 
 # Ensure that correct python version is used in travis
@@ -73,8 +73,8 @@ mycfgdir = $(SYSCFG)/obs/services
 LIST_PY_FILES=git ls-tree --name-only -r HEAD | grep '\.py$$'
 PY_FILES=$(shell $(LIST_PY_FILES))
 
-ALL_PYLINT2 = pylint-2.7 pylint2.7 pylint
-ALL_PYLINT3 = pylint-3.4 pylint3.4 pylint-3.5 pylint3.5 pylint-3.6 pylint3.6 pylint-3.7 pylint3.7
+ALL_PYLINT2 = pylint-2.7 pylint2.7
+ALL_PYLINT3 = pylint-3.4 pylint3.4 pylint-3.5 pylint3.5 pylint-3.6 pylint3.6 pylint-3.7 pylint3.7 pylint-3.8
 ALL_FLAKE83 = flake8-3.6 flake8-36 flake8-37 flake8-3.7 flake8
 
 PYLINT2 = $(call first_in_path_opt,$(ALL_PYLINT2))
