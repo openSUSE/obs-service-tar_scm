@@ -36,7 +36,7 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
         f_dir                = os.path.join(self.fixtures_dir, tc_name, 'repo')
         shutil.copytree(f_dir, c_dir)
         scmlogs              = ScmInvocationLogs('git', c_dir)
-        scmlogs.next('start-test')
+        scmlogs.next('start-test') # pylint: disable=E1102
         fixture              = GitFixtures(c_dir, scmlogs)
         fixture.init()
         scm_object           = Git(self.cli, self.tasks)
@@ -139,7 +139,7 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
         cl_name              = self.__class__.__name__
         c_dir                = os.path.join(self.tmp_dir, tc_name)
         scmlogs              = ScmInvocationLogs('git', c_dir)
-        scmlogs.next('start-test')
+        scmlogs.next('start-test')  # pylint: disable=E1102
         fixture              = GitFixtures(c_dir, scmlogs)
         fixture.init()
         scm_object           = Git(self.cli, self.tasks)

@@ -98,7 +98,7 @@ class Svn(Scm):
                                   interactive=sys.stdout.isatty())
         except SystemExit as exc:
             if re.search(ENCODING_RE, exc.code):
-                raise SystemExit(ENCODING_MSG)
+                raise SystemExit(ENCODING_MSG)  # pylint: disable=W0707
             raise exc
 
     def update_cache(self):
@@ -118,7 +118,7 @@ class Svn(Scm):
                 shutil.rmtree(self.clone_dir)
                 self.fetch_upstream_scm()
             elif re.search(ENCODING_RE, exc.code):
-                raise SystemExit(ENCODING_MSG)
+                raise SystemExit(ENCODING_MSG)  # pylint: disable=W0707
             else:
                 raise exc
 
