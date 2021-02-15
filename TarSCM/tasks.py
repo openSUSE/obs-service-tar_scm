@@ -141,11 +141,36 @@ class Tasks():
                 if rcode != 0:
                     raise RuntimeError("download_files has failed:%s" % output)
 
+    def check_for_branch_request(self, args):
+        # we may have a _branch_request file. In that case we life in a
+        # branch create by a webhook from github or gitlab pull/merge request
+        # the source supposed to be merged is more important then the code
+        # referenced in the _service file.
+        if not os.path.exists('_branch_request'):
+            return args
+
+        # is it a branch request?
+        import json
+        f = open("_branch_request", "r")
+        j = json.load(f)
+        if j['object_kind'] == 'merge_request':
+            # gitlab merge request
+            args.url = j['project']['http_url']
+            args.revision = j['object_attributes']['source']['default_branch']
+        elif j['action'] == 'opened':
+            # github pull request
+            args.url = "https://github.com/"
+            args.url += j['pull_request']['head']['repo']['full_name']
+            args.revision = j['pull_request']['head']['sha']
+
+        return args
+
+
     def process_single_task(self, args):
         '''
         do the work for a single task
         '''
-        self.args = args
+        self.args = self.check_for_branch_request(args)
 
         logging.basicConfig(format="%(message)s", stream=sys.stderr,
                             level=logging.INFO)
