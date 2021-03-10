@@ -216,7 +216,8 @@ class Tasks():
 
         version = self.get_version()
         changesversion = version
-        if version and not sys.argv[0].endswith("/tar") \
+        if version and args.filename_add_version \
+           and not sys.argv[0].endswith("/tar") \
            and not sys.argv[0].endswith("/snapcraft") \
            and not sys.argv[0].endswith("/appimage"):
             if isinstance(dstname, bytes):

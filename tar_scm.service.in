@@ -154,6 +154,11 @@
   <parameter name="extension">
     <description>Specify suffix name of package, which is used together with filename to determine tarball name.</description>
   </parameter>
+  <parameter name="filename_add_version">
+    <description>whether to automatically append the version to the file name</description>
+    <allowedvalue>enable</allowedvalue>
+    <allowedvalue>disable</allowedvalue>
+  </parameter>
   <parameter name="exclude">
     <description>Specify glob pattern to exclude when creating the tarball.</description>
   </parameter>

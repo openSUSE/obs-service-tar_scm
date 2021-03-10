@@ -105,6 +105,10 @@ class Cli():
         parser.add_argument('--extension', default='tar',
                             help='suffix name of package - used together with '
                                  'filename to determine tarball name')
+        parser.add_argument('--filename-add-version',
+                            choices=['enable', 'disable'], default='enable',
+                            help='whether to automatically append the version '
+                            'to the file name')
         parser.add_argument('--changesgenerate', choices=['enable', 'disable'],
                             default='disable',
                             help='Specify whether to generate changes file '
@@ -213,6 +217,7 @@ class Cli():
             sys.exit('--filename must not specify a path')
 
         # booleanize non-standard parameters
+        args.filename_add_version = bool(args.filename_add_version == 'enable')
         args.changesgenerate      = bool(args.changesgenerate == 'enable')
         args.package_meta         = bool(args.package_meta == 'yes')
         args.sslverify            = bool(args.sslverify != 'disable')
