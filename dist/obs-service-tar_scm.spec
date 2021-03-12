@@ -1,7 +1,7 @@
 #
 # spec file for package obs-service-tar_scm
 #
-# Copyright (c) 2020 SUSE LLC
+# Copyright (c) 2021 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -252,6 +252,7 @@ source artefacts (.dsc, .origin.tar.gz and .debian.tar.gz if non-native).
 make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}" PYTHON="%{_bindir}/%{use_python}" WITH_GBP="%{enable_gbp}"
 
 %else
+
 # moved conditional to the top as it helps to have it all in one place and only rely on the bcond_with here.
 %check
 # No need to run PEP8 tests here; that would require a potentially
@@ -275,7 +276,7 @@ make %{use_test}
 %dir %{_sysconfdir}/obs
 %dir %{_sysconfdir}/obs/services
 %verify (not user group) %dir %{_sysconfdir}/obs/services/tar_scm.d
-%config(noreplace) %{_sysconfdir}/obs/services/
+%config(noreplace) %{_sysconfdir}/obs/services/*
 %ghost %dir %{_sysconfdir}/obs/services/tar_scm.d/python_keyring
 
 %files -n obs-service-tar
