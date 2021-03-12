@@ -368,7 +368,7 @@ class Git(Scm):
         # between multiple services
         org_clone_dir = self.clone_dir
         self.clone_dir = self.repodir
-        command = self._get_scm_cmd() + ['clone', '--no-checkout']
+        command = self._get_scm_cmd() + ['clone']
         use_reference = True
         try:
             if self.args.package_meta:
@@ -380,7 +380,7 @@ class Git(Scm):
         if use_reference:
             command.extend(['--reference', org_clone_dir, self.url])
         else:
-            command.append(org_clone_dir)
+            command.extend(['--no-checkout', org_clone_dir])
         command.append(self.clone_dir)
         wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
         self.helpers.safe_run(
