@@ -48,7 +48,7 @@ class UnitTestCases(unittest.TestCase):
         for cdir in clone_dirs:
             scm.url = cdir
             scm._calc_dir_to_clone_to("")  # pylint: disable=protected-access
-            self.assertTrue(scm.clone_dir.endswith('/repo'))
+            self.assertTrue(scm.clone_dir.endswith('/repo_service'))
             self.tasks.cleanup()
 
     @patch('TarSCM.Helpers.safe_run')
@@ -205,6 +205,7 @@ class UnitTestCases(unittest.TestCase):
         f_h = open(info, 'w')
         f_h.write(
             "name: test\n" +
+            "scmdir: test_service\n" +
             "version: 0.1.1\n" +
             "mtime: 1476683264\n" +
             "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
@@ -227,6 +228,7 @@ class UnitTestCases(unittest.TestCase):
         f_h = open(info, 'w')
         f_h.write(
             "name: nonexistantbase\n" +
+            "scmdir: nonexistantbase_service\n" +
             "version: 0.1.1\n" +
             "mtime: 1476683264\n" +
             "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
@@ -344,6 +346,7 @@ class UnitTestCases(unittest.TestCase):
         f_h = open(info, 'w')
         f_h.write(
             "name: test/test\n" +
+            "scmdir: test/test_service\n" +
             "version: 0.1.1\n" +
             "mtime: 1476683264\n" +
             "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
@@ -361,6 +364,7 @@ class UnitTestCases(unittest.TestCase):
         f_h = open(info, 'w')
         f_h.write(
             "name: test\n" +
+            "scmdir: test_service\n" +
             "version: a/0.1.1\n" +
             "mtime: 1476683264\n" +
             "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
@@ -378,6 +382,7 @@ class UnitTestCases(unittest.TestCase):
         f_h = open(info, 'w')
         f_h.write(
             "name: test\n" +
+            "scmdir: test_service\n" +
             "version: ..0.1.1\n" +
             "mtime: 1476683264\n" +
             "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"

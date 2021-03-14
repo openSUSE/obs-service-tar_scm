@@ -131,6 +131,8 @@ class ObsCpio(BaseArchive):
         # write meta data
         metafile = open(os.path.join(args.outdir, basename + '.obsinfo'), "w")
         metafile.write("name: " + basename + "\n")
+        metafile.write(
+            "scmdir: " + os.path.basename(scm_object.clone_dir) + "\n")
         metafile.write("version: " + version + "\n")
         metafile.write("mtime: " + str(tstamp) + "\n")
 
