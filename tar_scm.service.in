@@ -48,7 +48,7 @@
     To store credentials please use the following command lines:
     "sudo chown obsservicerun:obsrun /etc/obs/services/tar_scm.d"
     "sudo -H -u obsservicerun XDG_DATA_HOME=/etc/obs/services/tar_scm.d keyring -b keyrings.alt.file.EncryptedKeyring set URL username"
-      Its only available for the following combinaison of SCM / protocols:
+      Its only available for the following combination of SCM / protocols:
         - git: ftp(s),http(s)
         - svn
         - bzr: bzr,ftp,http(s)
@@ -114,7 +114,7 @@
   </parameter>
   <parameter name="match-tag">
     <description>
-      With this parameter you can specifiy a glob pattern (e.g. v*) to filter
+      With this parameter you can specify a glob pattern (e.g. v*) to filter
       relevant tags in your project e.g. if you use @PARENT_TAG@.
     </description>
   </parameter>
