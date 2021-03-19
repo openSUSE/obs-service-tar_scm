@@ -238,6 +238,7 @@ class Cli():
         # Allow forcing verbose mode from the environment; this
         # allows debugging when running "osc service disabledrun" etc.
         if bool(os.getenv('DEBUG_TAR_SCM')) or args.verbose:
+            logging.basicConfig(format='%(asctime)s %(message)s')
             logging.getLogger().setLevel(logging.DEBUG)
 
         for attr in args.__dict__.keys():
