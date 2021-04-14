@@ -265,7 +265,8 @@ class Tasks():
            and not sys.argv[0].endswith("/appimage"):
             if isinstance(dstname, bytes):
                 version = version.encode('UTF-8')
-            dstname += '-' + version
+            if not args.without_version:
+                dstname += '-' + version
         return (dstname, version)
 
     def _process_changes(self, args, ver, changesversion, detected_changes):

@@ -365,3 +365,12 @@ class GitTests(GitHgTests, GitSvnTests):
         self.tar_scm_std("--revision", "@PARENT_TAG@")
         self.assertTarOnly(self.basename(version="1234567890." +
           fix.sha1s[fix.wd]["tag2"][:7]))
+
+    def test_without_version(self):
+        fix = self.fixtures
+        fix.create_commits(2)
+        repo_path = fix.repo_path
+        os.chdir(repo_path)
+        self.tar_scm_std("--without-version", "1")
+        tar_path = os.path.join(self.outdir, 'repo.tar')
+        self.assertTrue(os.path.isfile(tar_path))
