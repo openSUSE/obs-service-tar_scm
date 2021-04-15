@@ -184,6 +184,8 @@ class Cli():
         parser.add_argument('--maintainers-asc', default = False,
                             help='File which contains maintainers pubkeys. '
                                  '(only used with \'--latest-signed-*\')')
+        parser.add_argument('--without-version', default = False,
+                            help='Do not add version to output file.')
 
         self.verify_args(parser.parse_args(options))
 

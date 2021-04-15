@@ -212,4 +212,7 @@ which get maintained in the SCM. Can be used multiple times.</description>
   <parameter name="maintainers-asc">
     <description>File which contains maintainers pubkeys (only used with '--latest-signed-*')</description>
   </parameter>
+  <parameter name="without-version">
+    <description>Do not add version to output file.</description>
+  </parameter>
 </service>
