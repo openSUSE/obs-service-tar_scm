@@ -7,6 +7,7 @@ import inspect
 import shutil
 import unittest
 import six
+import yaml
 
 import TarSCM
 
@@ -48,13 +49,25 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
         self.cli.outdir      = outdir
         arch                 = ObsCpio()
         os.makedirs(outdir)
+        version  = '0.1.1'
+        (dst, chgv, bname) = self.tasks._dstname(scm_object, version)
         arch.create_archive(
             scm_object,
             cli      = self.cli,
-            basename = 'test',
-            dstname  = 'test',
-            version  = '0.1.1'
+            basename = bname ,
+            dstname  = dst,
+            version  = chgv
         )
+        cpiofile = os.path.join(outdir, "%s-%s.obscpio" % (bname, version))
+        infofile = os.path.join(outdir, bname + ".obsinfo")
+        self.assertTrue(os.path.isfile(cpiofile))
+        self.assertTrue(os.path.isfile(infofile))
+        data = yaml.safe_load(open(infofile, 'r'))
+        self.assertDictEqual(data,
+                            {'name': bname,
+                             'version': chgv,
+                             'mtime': 1234567890,
+                             'commit': data['commit']})
 
     def test_obscpio_extract_of(self):
         '''
