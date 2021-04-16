@@ -399,3 +399,19 @@ class UnitTestCases(unittest.TestCase):
         wdir       = os.path.join(self.tmp_dir, cl_name, tc_name)
         os.makedirs(wdir)
         scm_object.prep_tree_for_archive('test', wdir, 'test')
+
+    def test_method__dstname(self):
+        '''
+            basename != dstname
+            basename is the package name or given by '--filename'
+            dstname includes version string
+            This is important for obscpio/obsinfo
+        '''
+        tc_name    = inspect.stack()[0][3]
+        version    = '0.1.1'
+        scm_object = Git(self.cli, self.tasks)
+        scm_object.clone_dir = os.path.join(self.fixtures_dir, tc_name)
+        (dst, chgv, bname) = self.tasks._dstname(scm_object, version)
+        self.assertEqual(tc_name, bname)
+        self.assertEqual('%s-%s' % (tc_name, version), dst)
+        self.assertEqual(chgv, version)
