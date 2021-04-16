@@ -51,6 +51,7 @@ class ObsCpio(BaseArchive):
     def create_archive(self, scm_object, **kwargs):
         """Create an OBS cpio archive of repodir in destination directory.
         """
+        basename         = kwargs['basename']
         dstname          = kwargs['dstname']
         version          = kwargs['version']
         args             = kwargs['cli']
@@ -128,8 +129,10 @@ class ObsCpio(BaseArchive):
         archivefile.close()
 
         # write meta data
-        metafile = open(os.path.join(args.outdir, dstname + '.obsinfo'), "w")
-        metafile.write("name: " + dstname + "\n")
+        infofile = os.path.join(args.outdir, basename + '.obsinfo')
+        logging.debug("Writing to obsinfo file '%s'", infofile)
+        metafile = open(infofile, "w")
+        metafile.write("name: " + basename + "\n")
         metafile.write("version: " + version + "\n")
         metafile.write("mtime: " + str(tstamp) + "\n")
 

@@ -211,8 +211,8 @@ class Tasks():
         scm_object.fetch_upstream()
         version = self.get_version()
 
-        (dstname) = self._dstname(scm_object,
-                                  version)
+        (dstname, changesversion, basename) = self._dstname(scm_object,
+                                                            version)
 
         logging.debug("DST: %s", dstname)
 
@@ -239,6 +239,7 @@ class Tasks():
 
         arch.create_archive(
             scm_object,
+            basename  = basename,
             dstname   = dstname,
             version   = version,
             cli       = args
@@ -247,6 +248,7 @@ class Tasks():
         if detected_changes:
             self._process_changes(args,
                                   version,
+                                  changesversion,
                                   detected_changes)
 
         scm_object.finalize()
@@ -254,9 +256,9 @@ class Tasks():
     def _dstname(self, scm_object, version):
         args = self.args
         if args.filename:
-            dstname = args.filename
+            basename = dstname = args.filename
         else:
-            dstname = os.path.basename(scm_object.clone_dir)
+            basename = dstname = os.path.basename(scm_object.clone_dir)
 
         if version and not sys.argv[0].endswith("/tar") \
            and not sys.argv[0].endswith("/snapcraft") \
@@ -265,11 +267,10 @@ class Tasks():
                 version = version.encode('UTF-8')
             if not args.without_version:
                 dstname += '-' + version
-        return (dstname)
+        return (dstname, version, basename)
 
-    def _process_changes(self, args, ver, detected_changes):
-        changesversion = ver
-        changesauthor  = self.changes.get_changesauthor(args)
+    def _process_changes(self, args, ver, changesversion, detected_changes):
+        changesauthor = self.changes.get_changesauthor(args)
 
         logging.debug("AUTHOR: %s", changesauthor)
 
