@@ -192,64 +192,6 @@ class UnitTestCases(unittest.TestCase):
             repohash,
             'b9761648b96f105d82a97b8a81f1ca060b015a3f882ef9a55ae6b5bf7be0d48a')
 
-    @unittest.skip("Broken test, relies on the results of an other test case")
-    def test_scm_tar(self):
-        tc_name    = inspect.stack()[0][3]
-        cl_name    = self.__class__.__name__
-        cur_cwd    = os.getcwd()
-        scm_object = TarSCM.scm.Tar(self.cli, self.tasks)
-        wdir       = os.path.join(self.tmp_dir, cl_name, tc_name)
-        os.makedirs(os.path.join(wdir, 'test'))
-        info = os.path.join(wdir, "test.obsinfo")
-        print("INFOFILE: '%s'" % info)
-        f_h = open(info, 'w')
-        f_h.write(
-            "name: test\n" +
-            "version: 0.1.1\n" +
-            "mtime: 1476683264\n" +
-            "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
-        )
-        f_h.close()
-        os.chdir(wdir)
-        scm_object.fetch_upstream()
-        # just to make coverage happy
-        scm_object.update_cache()
-        tstamp  = scm_object.get_timestamp()
-        ver     = scm_object.detect_version(self.cli)
-        empty   = scm_object.read_from_obsinfo(info, "nonexistantkey")
-
-        self.assertTrue(os.path.isdir(os.path.join(wdir, "test-0.1.1")))
-        self.assertFalse(os.path.isdir(os.path.join(wdir, "test")))
-        self.assertEqual(tstamp, 1476683264)
-        self.assertEqual(ver, "0.1.1")
-        self.assertEqual(empty, "")
-        # testing non existant basename
-        f_h = open(info, 'w')
-        f_h.write(
-            "name: nonexistantbase\n" +
-            "version: 0.1.1\n" +
-            "mtime: 1476683264\n" +
-            "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
-        )
-        f_h.close()
-
-        six.assertRaisesRegex(
-            self,
-            SystemExit,
-            re.compile('Error while moving from '),
-            scm_object.fetch_upstream
-        )
-
-        # testing with no info
-        os.chdir(cur_cwd)
-        scm_object.args.obsinfo = None
-        six.assertRaisesRegex(
-            self,
-            SystemExit,
-            re.compile('ERROR: no .obsinfo file found in directory:'),
-            scm_object.fetch_upstream
-        )
-
     def test_check_url_valid(self):
         tc_arr = [
             {
