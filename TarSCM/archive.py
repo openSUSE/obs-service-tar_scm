@@ -129,7 +129,9 @@ class ObsCpio(BaseArchive):
         archivefile.close()
 
         # write meta data
-        metafile = open(os.path.join(args.outdir, basename + '.obsinfo'), "w")
+        infofile = os.path.join(args.outdir, basename + '.obsinfo')
+        logging.debug("Writing to obsinfo file '%s'", infofile)
+        metafile = open(infofile, "w")
         metafile.write("name: " + basename + "\n")
         metafile.write("version: " + version + "\n")
         metafile.write("mtime: " + str(tstamp) + "\n")
