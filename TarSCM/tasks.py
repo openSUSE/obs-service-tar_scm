@@ -154,12 +154,12 @@ class Tasks():
         # is it a branch request?
         ofh = open("_branch_request", "r")
         dat = json.load(ofh)
-        if dat['object_kind'] == 'merge_request':
+        if dat.get('object_kind') == 'merge_request':
             # gitlab merge request
             args.url = dat['project']['http_url']
             rev = dat['object_attributes']['source']['default_branch']
             args.revision = rev
-        elif dat['action'] == 'opened':
+        elif dat.get('action') == 'opened':
             # github pull request
             args.url = "https://github.com/"
             args.url += dat['pull_request']['head']['repo']['full_name']
