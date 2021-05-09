@@ -30,7 +30,8 @@ class Tar(Scm):
         if "/" in version or '..' in version:
             sys.exit("verion in obsinfo contains '/' or '..'.")
 
-        self.clone_dir += "-" + version
+        if version != '':
+            self.clone_dir += "-" + version
 
         if not os.path.exists(self.clone_dir):
             self._final_rename_needed = True
