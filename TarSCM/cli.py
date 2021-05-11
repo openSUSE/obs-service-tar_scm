@@ -205,7 +205,8 @@ class Cli():
 
         args.outdir = os.path.abspath(args.outdir)
         orig_subdir = args.subdir
-        args.subdir = os.path.normpath(orig_subdir)
+        if orig_subdir:
+            args.subdir = os.path.normpath(orig_subdir)
         if args.subdir.startswith('/'):
             sys.exit("Absolute path '%s' is not allowed for --subdir" %
                      orig_subdir)
