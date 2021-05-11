@@ -130,8 +130,10 @@ class Git(Scm):
         """SCM specific version of fetch_uptream for git."""
         self.auth_url()
         # clone if no .git dir exists
-        command = self._get_scm_cmd() + ['clone', '--filter=tree:0',
+        command = self._get_scm_cmd() + ['clone',
                                          self.url, self.clone_dir]
+        if not self.args.subdir:
+            command.insert(-2, '--filter=tree:0')
         if not self.is_sslverify_enabled():
             command += ['--config', 'http.sslverify=false']
         if self.repocachedir:
@@ -143,14 +145,14 @@ class Git(Scm):
         except SystemExit as exc:
             os.removedirs(os.path.join(wdir, self.clone_dir))
             raise exc
+        if not self.args.subdir:
+            config_command = self._get_scm_cmd() + ['config', '--local',
+                                                    'extensions.partialClone',
+                                                    'origin']
 
-        config_command = self._get_scm_cmd() + ['config', '--local',
-                                                'extensions.partialClone',
-                                                'origin']
-
-        self.helpers.safe_run(
-            config_command, cwd=self.clone_dir,
-            interactive=sys.stdout.isatty())
+            self.helpers.safe_run(
+                config_command, cwd=self.clone_dir,
+                interactive=sys.stdout.isatty())
 
         if self.revision == "@PARENT_TAG@":
             self.revision = self._detect_parent_tag()
@@ -169,10 +171,13 @@ class Git(Scm):
 
     def fetch_specific_revision(self):
         if self.revision and not self._ref_exists(self.revision):
+            rev = self.revision + ':' + self.revision
+            command = self._get_scm_cmd() + ['fetch', self.url, rev]
+            if not self.args.subdir:
+                command.insert(-2, '--filter=tree:0')
             # fetch reference from url and create locally
             self.helpers.safe_run(
-                self._get_scm_cmd() + ['fetch', '--filter=tree:0', self.url,
-                                       self.revision + ':' + self.revision],
+                command,
                 cwd=self.clone_dir, interactive=sys.stdout.isatty()
             )
 
@@ -217,13 +222,19 @@ class Git(Scm):
                 interactive=sys.stdout.isatty()
             )
 
+            command = self._get_scm_cmd() + ['fetch', '--tags']
+            if not self.args.subdir:
+                command.insert(-1, '--filter=tree:0')
             self.helpers.safe_run(
-                self._get_scm_cmd() + ['fetch', '--tags', '--filter=tree:0'],
+                command,
                 cwd=self.clone_dir,
                 interactive=sys.stdout.isatty()
             )
+            command = self._get_scm_cmd() + ['fetch']
+            if not self.args.subdir:
+                command.insert(-1, '--filter=tree:0')
             self.helpers.safe_run(
-                self._get_scm_cmd() + ['fetch', '--filter=tree:0'],
+                command,
                 cwd=self.clone_dir,
                 interactive=sys.stdout.isatty()
             )
@@ -389,8 +400,10 @@ class Git(Scm):
         # between multiple services
         org_clone_dir = self.clone_dir
         self.clone_dir = self.repodir
-        command = self._get_scm_cmd() + ['clone', '--filter=tree:0',
+        command = self._get_scm_cmd() + ['clone',
                                          '--no-checkout']
+        if not self.args.subdir:
+            command.insert(-1, '--filter=tree:0')
         use_reference = True
 
         try:
@@ -408,14 +421,14 @@ class Git(Scm):
         wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
         self.helpers.safe_run(
             command, cwd=wdir, interactive=sys.stdout.isatty())
+        if not self.args.subdir:
+            config_command = self._get_scm_cmd() + ['config', '--local',
+                                                    'extensions.partialClone',
+                                                    'origin']
 
-        config_command = self._get_scm_cmd() + ['config', '--local',
-                                                'extensions.partialClone',
-                                                'origin']
-
-        self.helpers.safe_run(
-            config_command, cwd=self.clone_dir,
-            interactive=sys.stdout.isatty())
+            self.helpers.safe_run(
+                config_command, cwd=self.clone_dir,
+                interactive=sys.stdout.isatty())
 
         if self.revision == "@PARENT_TAG@":
             self.revision = self._detect_parent_tag()
@@ -426,7 +439,9 @@ class Git(Scm):
 
         if self.revision and not self._ref_exists(self.revision):
             refspec = self.revision + ":" + self.revision
-            cmd = self._get_scm_cmd() + ['fetch', '--filter=tree:0', 'origin',
+            if not self.args.subdir:
+                command.insert(-3, '--filter=tree:0')
+            cmd = self._get_scm_cmd() + ['fetch', 'origin',
                                          refspec]
             self.helpers.safe_run(
                 cmd, cwd=self.clone_dir, interactive=sys.stdout.isatty())
