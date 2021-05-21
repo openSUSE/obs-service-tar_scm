@@ -252,12 +252,12 @@ class Git(Scm):
             versionformat = self._detect_version_tag_offset(
                 self._parent_tag,
                 versionformat)
-
-        version = self.helpers.safe_run(
-            self._get_scm_cmd() + ['log', '-n1', '--date=short',
-                                   "--pretty=format:%s" % versionformat],
-            self.clone_dir
-        )[1]
+        log_cmd = self._get_scm_cmd() + ['log', '-n1', '--date=short',
+                                         "--pretty=format:%s" % versionformat]
+        if self.revision:
+            log_cmd.append('--source')
+            log_cmd.append(self.revision)
+        version = self.helpers.safe_run(log_cmd, self.clone_dir)[1]
         return version
 
     def _detect_parent_tag(self, args=None):
