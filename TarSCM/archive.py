@@ -68,7 +68,7 @@ class ObsCpio(BaseArchive):
         archivefile     = open(archivefilename, "w")
 
         # detect reproducible support
-        params = ['cpio', '--create', '--format=newc']
+        params = ['cpio', '--create', '--format=newc', '--owner', '0:0']
         chkcmd = "cpio --create --format=newc --reproducible "
         chkcmd += "</dev/null >/dev/null 2>&1"
         if os.system(chkcmd) == 0:
