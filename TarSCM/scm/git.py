@@ -257,6 +257,10 @@ class Git(Scm):
         if self.revision:
             log_cmd.append('--source')
             log_cmd.append(self.revision)
+            revpath = os.path.join(self.clone_dir, self.revision)
+            if os.path.exists(revpath):
+                log_cmd.append('--')
+
         version = self.helpers.safe_run(log_cmd, self.clone_dir)[1]
         return version
 

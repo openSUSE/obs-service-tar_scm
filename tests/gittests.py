@@ -374,3 +374,16 @@ class GitTests(GitHgTests, GitSvnTests):
         self.tar_scm_std("--without-version", "1")
         tar_path = os.path.join(self.outdir, 'repo.tar')
         self.assertTrue(os.path.isfile(tar_path))
+
+    def test_file_conflicts_revision(self):
+        fix = self.fixtures
+        fix.create_commits(2)
+        repo_path = fix.repo_path
+        os.chdir(repo_path)
+        os.mkdir("test")
+        with open("test/myfile.txt", 'w') as file:
+            file.write("just for testing")
+        fix.safe_run('add test') 
+        fix.safe_run('commit -m "added tests"') 
+        fix.safe_run('tag test') 
+        self.tar_scm_std("--revision", 'test')
