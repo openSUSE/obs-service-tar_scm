@@ -83,9 +83,15 @@ class ObsCpio(BaseArchive):
         )
 
         # transform glob patterns to regular expressions
-        includes = r'|'.join([fnmatch.translate(x) for x in args.include])
-        excl_arr = [fnmatch.translate(x) for x in args.exclude]
-        excludes = r'|'.join(excl_arr) or r'$.'
+        includes  = ''
+        excludes  = r'$.'
+        topdir_re = '(' + topdir + '/)('
+        if args.include:
+            incl_arr = [fnmatch.translate(x) for x in args.include]
+            includes = topdir_re + r'|'.join(incl_arr) + ')'
+        if args.exclude:
+            excl_arr = [fnmatch.translate(x) for x in args.exclude]
+            excludes = topdir_re + r'|'.join(excl_arr) + ')'
 
         # add topdir without filtering for now
         cpiolist = []
