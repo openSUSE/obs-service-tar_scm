@@ -92,7 +92,7 @@ ExclusiveArch:  skip-build
 
 # Mageia 8 has package names python-*
 # but requires python3 in shebang
-%if 0%{?mageia} >= 8
+%if 0%{?mageia} >= 8 || 0%{?centos_version} >= 800 || 0%{?rhel_version} >= 800
 %define python_path %{_bindir}/python3
 %else
 %define python_path %{_bindir}/%{use_python}
