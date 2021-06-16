@@ -90,6 +90,14 @@ ExclusiveArch:  skip-build
 %define locale_package locales
 %endif
 
+# Mageia 8 has package names python-*
+# but requires python3 in shebang
+%if 0%{?mageia} >= 8
+%define python_path %{_bindir}/python3
+%else
+%define python_path %{_bindir}/%{use_python}
+%endif
+
 # avoid code duplication
 %define scm_common_dep                                          \
 Requires:       obs-service-obs_scm-common = %version-%release  \
@@ -249,7 +257,7 @@ source artefacts (.dsc, .origin.tar.gz and .debian.tar.gz if non-native).
 
 %install
 %if %{without obs_scm_testsuite}
-make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}" PYTHON="%{_bindir}/%{use_python}" WITH_GBP="%{enable_gbp}"
+make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}" PYTHON="%{python_path}" WITH_GBP="%{enable_gbp}"
 
 %else
 
