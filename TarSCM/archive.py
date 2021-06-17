@@ -87,8 +87,9 @@ class ObsCpio(BaseArchive):
         excludes  = r'$.'
         topdir_re = '(' + topdir + '/)('
         if args.include:
-            incl_arr = [fnmatch.translate(x) for x in args.include]
-            includes = topdir_re + r'|'.join(incl_arr) + ')'
+            incl_arr = [fnmatch.translate(x+'*') for x in args.include]
+            match_list = r'|'.join(incl_arr)
+            includes = topdir_re + match_list + ')'
         if args.exclude:
             excl_arr = [fnmatch.translate(x) for x in args.exclude]
             excludes = topdir_re + r'|'.join(excl_arr) + ')'
@@ -223,21 +224,19 @@ class Tar(BaseArchive):
 
         out_file = os.path.join(outdir, dstname + '.' + extension)
 
-        tar = tarfile.open(out_file, "w", encoding=enc)
-
-        try:
-            tar.add(topdir, recursive=False, filter=reset)
-        except TypeError:
-            # Python 2.6 compatibility
-            tar.add(topdir, recursive=False)
-        for entry in map(lambda x: os.path.join(topdir, x),
-                         sorted(os.listdir(topdir))):
+        with tarfile.open(out_file, "w", encoding=enc) as tar:
             try:
-                tar.add(entry, filter=tar_filter)
+                tar.add(topdir, recursive=False, filter=reset)
             except TypeError:
                 # Python 2.6 compatibility
-                tar.add(entry, exclude=tar_exclude)
-        tar.close()
+                tar.add(topdir, recursive=False)
+            for entry in map(lambda x: os.path.join(topdir, x),
+                             sorted(os.listdir(topdir))):
+                try:
+                    tar.add(entry, filter=tar_filter)
+                except TypeError:
+                    # Python 2.6 compatibility
+                    tar.add(entry, exclude=tar_exclude)
 
         self.archivefile    = tar.name
 
