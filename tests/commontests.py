@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
 import os
+import tarfile
+
 
 from pprint         import pprint, pformat
 
 from tests.testassertions import TestAssertions
 from tests.testenv        import TestEnvironment
-from tests.utils          import mkfreshdir
+from tests.utils          import mkfreshdir, run_cmd
 
 
 class CommonTests(TestEnvironment, TestAssertions):
@@ -50,15 +52,48 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.assertTrue(member.issym())
         self.assertRegexpMatches(member.linkname, '[/.]*/nir/va/na$')
 
-    def test_exclude(self):
+    def test_tar_exclude(self):
         self.tar_scm_std('--exclude', 'a', '--exclude', 'c')
-        self.assertTarOnly(self.basename(),
-                           tarchecker=self.assertIncludeSubdirTar)
+        tar     = os.path.join(self.outdir, self.basename()+'.tar')
+        th      = tarfile.open(tar)
+        tarents = th.getnames()
+        expected = [self.basename(),
+                    self.basename() + '/subdir',
+                    self.basename() + '/subdir/b']
+        self.assertTrue(tarents == expected)
 
-    def test_include(self):
+    def test_tar_include(self):
         self.tar_scm_std('--include', self.fixtures.subdir)
-        self.assertTarOnly(self.basename(),
-                           tarchecker=self.assertIncludeSubdirTar)
+        tar     = os.path.join(self.outdir, self.basename()+'.tar')
+        th      = tarfile.open(tar)
+        tarents = th.getnames()
+        expected = [self.basename(),
+                    self.basename() + '/subdir',
+                    self.basename() + '/subdir/b']
+        self.assertTrue(tarents == expected)
+
+    def test_obs_scm_exclude(self):
+        self.tar_scm_std('--exclude', 'a', '--exclude', 'c', '--use-obs-scm', 'True')
+        cpio    = os.path.join(self.outdir, self.basename()+'.obscpio')
+        cmd = "cpio -it < "+cpio
+        (stdout, stderr, ret) = run_cmd(cmd)
+        got = stdout.decode().split("\n")
+        got.pop()
+        expected = [self.basename() + '/subdir',
+                    self.basename() + '/subdir/b']
+        self.assertTrue(got == expected)
+
+    def test_obs_scm_include(self):
+        self.tar_scm_std('--include', self.fixtures.subdir, '--use-obs-scm', 'True')
+        cpio    = os.path.join(self.outdir, self.basename()+'.obscpio')
+        cmd = "cpio -it < "+cpio
+        (stdout, stderr, ret) = run_cmd(cmd)
+        got = stdout.decode().split("\n")
+        got.pop()
+        expected = [self.basename() + '/subdir',
+                    self.basename() + '/subdir/b']
+        self.assertTrue(got == expected)
+
 
     def test_absolute_subdir(self):
         (_stdout, stderr, _ret) = self.tar_scm_std_fail('--subdir', '/')
