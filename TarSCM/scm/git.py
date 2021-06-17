@@ -252,7 +252,7 @@ class Git(Scm):
             versionformat = self._detect_version_tag_offset(
                 self._parent_tag,
                 versionformat)
-        log_cmd = self._get_scm_cmd() + ['log', '-n1', '--date=short',
+        log_cmd = self._get_scm_cmd() + ['log', '-n1', '--date=format:%Y%m%d',
                                          "--pretty=format:%s" % versionformat]
         if self.revision:
             log_cmd.append('--source')
