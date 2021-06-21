@@ -16,7 +16,7 @@
 #
 
 
-%if 0%{?fedora_version}%{?centos_version}%{?rhel_version}
+%if 0%{?fedora_version}%{?centos_version}%{?rhel_version}%{?almalinux}
 %define _pkg_base %nil
 %else
 %define _pkg_base -base
@@ -40,7 +40,7 @@
 ExclusiveArch:  skip-build
 %endif
 
-%if 0%{?suse_version} >= 1315 || 0%{?fedora_version} >= 29 || 0%{?centos_version} >= 800 || 0%{?rhel_version} >= 800
+%if 0%{?suse_version} >= 1315 || 0%{?fedora_version} >= 29 || 0%{?centos_version} >= 800 || 0%{?rhel_version} >= 800 || 0%{?almalinux} >= 8
 %bcond_without python3
 %else
 %bcond_with    python3
@@ -71,14 +71,14 @@ ExclusiveArch:  skip-build
 %endif
 %endif
 
-%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version} || 0%{?scientificlinux_version}
-%if 0%{?fedora_version} >= 29 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
+%if 0%{?fedora_version} || 0%{?rhel_version} || 0%{?centos_version} || 0%{?scientificlinux_version} || 0%{?almalinux}
+%if 0%{?fedora_version} >= 29 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800 || 0%{?almalinux} >= 8
 %define pyyaml_package %{use_python}-PyYAML
 %else
 %define pyyaml_package PyYAML
 %endif
 
-%if 0%{?fedora_version} >= 24 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800
+%if 0%{?fedora_version} >= 24 || 0%{?rhel_version} >= 800 || 0%{?centos_version} >= 800 || 0%{?almalinux} >= 8
 %define locale_package glibc-langpack-en
 %else
 %define locale_package glibc-common
@@ -92,7 +92,7 @@ ExclusiveArch:  skip-build
 
 # Mageia 8 has package names python-*
 # but requires python3 in shebang
-%if 0%{?mageia} >= 8
+%if 0%{?mageia} >= 8 || 0%{?centos_version} >= 800 || 0%{?rhel_version} >= 800 || 0%{?almalinux} >= 8
 %define python_path %{_bindir}/python3
 %else
 %define python_path %{_bindir}/%{use_python}
