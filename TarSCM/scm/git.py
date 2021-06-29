@@ -266,7 +266,9 @@ class Git(Scm):
 
     def _detect_parent_tag(self, args=None):
         parent_tag = ''
-        cmd = self._get_scm_cmd() + ['describe', '--tags', '--abbrev=0']
+        cmd = self._get_scm_cmd() + ['describe', '--tags', '--abbrev=0',
+                                     '--candidates=%s' %
+                                     self.args.describe_candidates]
         try:
             if args and args['match_tag']:
                 cmd.append("--match=%s" % args['match_tag'])
