@@ -87,7 +87,7 @@ class ObsCpio(BaseArchive):
         excludes  = r'$.'
         topdir_re = '(' + topdir + '/)('
         if args.include:
-            incl_arr = [fnmatch.translate(x+'*') for x in args.include]
+            incl_arr = [fnmatch.translate(x + '*') for x in args.include]
             match_list = r'|'.join(incl_arr)
             includes = topdir_re + match_list + ')'
         if args.exclude:
