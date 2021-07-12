@@ -32,13 +32,11 @@ jobs:
 
       - name: Generate default locales
         run: |
-          sudo update-locale "LANG=C.UTF-8"
-          sudo update-locale "LC_ALL=C.UTF-8"
-          sudo update-locale "LC_CTYPE=C.UTF-8"
-          sudo update-locale "LC_MESSAGES=C.UTF-8"
-          sudo update-locale "LC_COLLATE=C.UTF-8"
-          locale -a
-          localectl
+          sudo locale-gen "en_US.UTF-8"
+          sudo dpkg-reconfigure locales
+          sudo update-locale "LANG=en_US.UTF-8"
+          sudo update-locale "LC_ALL=en_US.UTF-8"
+          locale
 
       - name: Setup python
         uses: actions/setup-python@v2
@@ -58,4 +56,6 @@ jobs:
         run: pylint --rcfile=.pylinttestsrc ./tests/__init__.py ./tests/utils.py ./tests/tarfixtures.py ./tests/unittestcases.py ./tests/archiveobscpiotestcases.py ./tests/test.py ./tests/scmlogs.py ./tests/tartests.py
 
       - name: Run tests
-        run: TAR_SCM_TESTMODE=1 PYTHONPATH=. python tests/test.py
+        run: |
+          locale
+          TAR_SCM_TESTMODE=1 PYTHONPATH=. python tests/test.py
