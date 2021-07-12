@@ -63,11 +63,11 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
         self.assertTrue(os.path.isfile(cpiofile))
         self.assertTrue(os.path.isfile(infofile))
         data = yaml.safe_load(open(infofile, 'r'))
-        self.assertDictEqual(data,
-                            {'name': bname,
-                             'version': chgv,
-                             'mtime': 1234567890,
-                             'commit': data['commit']})
+        self.assertDictEqual(data,{
+            'name': bname,
+            'version': chgv,
+            'mtime': 1234567890,
+            'commit': data['commit']})
 
     def test_obscpio_extract_of(self):
         '''

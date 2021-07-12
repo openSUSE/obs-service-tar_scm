@@ -53,7 +53,7 @@ $(or \
 )
 endef
 
-PYTHON3 = python3.8 python3.7 python-3.7 python3.6 python-3.6 python3.5 python-3.5 python3.4 python-3.4 python3.3 python-3.3 python3.2 python-3.2 python3
+PYTHON3 = python3.9 python3.8 python3.7 python-3.7 python3.6 python-3.6 python3.5 python-3.5 python3.4 python-3.4 python3.3 python-3.3 python3.2 python-3.2 python3
 PYTHON2 = python2.7 python-2.7 python2.6 python-2.6 python2
 
 # Ensure that correct python version is used in travis

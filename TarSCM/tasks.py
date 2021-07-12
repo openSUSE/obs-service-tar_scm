@@ -192,7 +192,7 @@ class Tasks():
             scm_class = getattr(TarSCM.scm, scm2class[args.scm])
         except:
             msg = "Please specify valid --scm=... options"
-            raise OptionsError(msg)  # pylint: disable=W0707
+            raise OptionsError(msg)  # pylint: disable=E0012,W0707
 
         # self.scm_object is need to unlock cache in cleanup
         # if exception occurs

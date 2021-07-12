@@ -20,23 +20,42 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '2.x', '3.x', 'pypy-2.6', 'pypy-2.7', 'pypy-3.6', 'pypy-3.7' ]
+        python-version: [ '2.7', '3.7', '3.8', '3.9' ]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      - name: Install required dpkg packages
+        run: sudo apt-get install libxslt1-dev bzr subversion mercurial
+
+      - name: Generate default locales
+        run: |
+          sudo update-locale "LANG=C.UTF-8"
+          sudo update-locale "LC_ALL=C.UTF-8"
+          sudo update-locale "LC_CTYPE=C.UTF-8"
+          sudo update-locale "LC_MESSAGES=C.UTF-8"
+          sudo update-locale "LC_COLLATE=C.UTF-8"
+          locale -a
+          localectl
+
       - name: Setup python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Runs a single command using the runners shell
-      #- name: Run a one-line script
-      #  run: make check3
+      - name: Install python dependencies
+        run: pip install -r requirements.txt
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          pip install -f requirements.txt
-          make check
+      - name: Lint with flake8
+        run: flake8
+
+      - name: Lint code with pylint
+        run: pylint --rcfile=.pylintrc ./tar_scm.py ./TarSCM/scm/bzr.py ./TarSCM/scm/svn.py ./TarSCM/exceptions.py ./TarSCM/__init__.py ./TarSCM/scm/git.py ./TarSCM/scm/hg.py ./TarSCM/scm/__init__.py ./TarSCM/cli.py ./TarSCM/tasks.py
+
+      - name: Lint tests with pylint
+        run: pylint --rcfile=.pylinttestsrc ./tests/__init__.py ./tests/utils.py ./tests/tarfixtures.py ./tests/unittestcases.py ./tests/archiveobscpiotestcases.py ./tests/test.py ./tests/scmlogs.py ./tests/tartests.py
+
+      - name: Run tests
+        run: TAR_SCM_TESTMODE=1 PYTHONPATH=. python tests/test.py
