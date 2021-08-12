@@ -155,3 +155,18 @@ class Fixtures:
         self.safe_run('commit -m"füfüfü nününü %d" %s' % (new_rev, date))
         self.record_rev(wd, new_rev)
         self.scmlogs.annotate("Created 1 commit; now at %s" % (new_rev))
+
+    def touch(self, fname, times=None):
+        with open(os.path.join(self.wd, fname), 'a'):
+           os.utime(fname, times)
+
+    def remove(self, fname):
+        os.remove(os.path.join(self.wd, fname))
+
+    def tag(self, tag):
+        self.safe_run('tag %s' % tag)
+
+    def commit_file_with_tag(self, tag, file):
+        self.touch(file)
+        self.create_commit(self.wd)
+        self.tag(tag)

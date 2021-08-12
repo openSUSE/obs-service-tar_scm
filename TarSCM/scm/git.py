@@ -74,13 +74,13 @@ class Git(Scm):
             # Ensure that the call of "git stash" is done with
             # LANG=C to get a reliable output
             self._stash_and_merge()
-        else:
-            # is doing the checkout in a hard way
-            # may not exist before when using cache
-            self.helpers.safe_run(
-                self._get_scm_cmd() + ['reset', '--hard', self.revision],
-                cwd=self.clone_dir
-            )
+
+        # is doing the checkout in a hard way
+        # may not exist before when using cache
+        self.helpers.safe_run(
+            self._get_scm_cmd() + ['reset', '--hard', self.revision],
+            cwd=self.clone_dir
+        )
 
         # only update submodules if they have been enabled
         if os.path.exists(os.path.join(self.clone_dir, '.git', 'modules')):

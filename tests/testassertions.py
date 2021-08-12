@@ -138,6 +138,13 @@ class TestAssertions(unittest.TestCase):
         self._find(logpath, loglines,
                    self.update_cache_command, should_not_find)
 
+    def assertTarIsDeeply(self, tar, expected):
+        th = tarfile.open(tar)
+        got = []
+        for mem in th.getmembers():
+            got.append(mem.name)
+        self.assertTrue(got == expected)
+
     def _find(self, logpath, loglines, should_find, should_not_find):
         found = False
         regexp = re.compile('^' + should_find)
