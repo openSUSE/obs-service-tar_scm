@@ -387,3 +387,42 @@ class GitTests(GitHgTests, GitSvnTests):
         fix.safe_run('commit -m "added tests"') 
         fix.safe_run('tag test') 
         self.tar_scm_std("--revision", 'test')
+
+    def test_osc_reset_hard(self):
+        fix = self.fixtures
+
+        fix.commit_file_with_tag('0.0.1', 'file.1')
+        fix.commit_file_with_tag('0.0.2', 'file.2')
+
+        fix.remove('file.2')
+
+        fix.commit_file_with_tag('0.0.3', 'file.3')
+        fix.commit_file_with_tag('0.0.4', 'file.4')
+
+        # prepare local cache like osc would do
+        # otherwise the git repo would only contain the .git dir and
+        # git._stash_and_merge() would not be executed
+        repo_dir = os.path.join(self.pkgdir, 'repo')
+        fix.safe_run('clone %s %s' % (fix.wd, repo_dir))
+
+        # disable cachedirectory (would not be used with osc by default)
+        os.environ['CACHEDIRECTORY'] = ""
+
+        # enable osc mode
+        os.environ['OSC_VERSION'] = "1"
+        self.tar_scm_std("--revision", '0.0.3')
+        # reset osc mode
+        del os.environ['OSC_VERSION']
+
+        # check result
+        expected = [
+            'repo-1234567890.3b43614',
+            'repo-1234567890.3b43614/a',
+            'repo-1234567890.3b43614/c',
+            'repo-1234567890.3b43614/file.1',
+            'repo-1234567890.3b43614/file.3',
+            'repo-1234567890.3b43614/subdir',
+            'repo-1234567890.3b43614/subdir/b'
+        ]
+        tar = os.path.join(self.test_dir, 'out', 'repo-1234567890.3b43614.tar')
+        self.assertTarIsDeeply(tar, expected)
