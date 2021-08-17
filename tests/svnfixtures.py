@@ -2,10 +2,10 @@
 
 import os
 import stat
-
-from fixtures import Fixtures
-from utils    import mkfreshdir, quietrun, run_svn
 from datetime import datetime
+
+from utils    import mkfreshdir, quietrun, run_svn
+from fixtures import Fixtures
 
 
 class SvnFixtures(Fixtures):
@@ -37,19 +37,19 @@ class SvnFixtures(Fixtures):
         quietrun('svnadmin create ' + self.repo_path)
         # allow revprop changes to explicitly set svn:date
         hook = self.repo_path + '/hooks/pre-revprop-change'
-        f = open(hook, 'w')
-        f.write("#!/bin/sh\nexit 0;\n")
-        f.close()
-        st = os.stat(hook)
-        os.chmod(hook, st.st_mode | stat.S_IEXEC)
+        with open(hook, 'w') as cfh:
+            cfh.write("#!/bin/sh\nexit 0;\n")
+
+        sta = os.stat(hook)
+        os.chmod(hook, sta.st_mode | stat.S_IEXEC)
         print("created repo %s" % self.repo_path)
 
     def checkout_repo(self):
         mkfreshdir(self.wd_path)
         quietrun('svn checkout %s %s' % (self.repo_url, self.wd_path))
-        self.wd = self.wd_path
+        self.wdir = self.wd_path
 
-    def do_commit(self, wd, new_rev, newly_created):
+    def do_commit(self, wdir, new_rev, newly_created):  # pylint: disable=W0612
         for new in newly_created:
             if new not in self.added:
                 self.safe_run('add ' + new)
@@ -62,6 +62,7 @@ class SvnFixtures(Fixtures):
     def get_metadata(self, formatstr):
         return self.safe_run('log -n1' % formatstr)[0]
 
-    def record_rev(self, wd, rev_num):
+    def record_rev(self, *args):
+        rev_num = args[0]
         self.revs[rev_num] = str(rev_num)
         self.scmlogs.annotate("Recorded rev %d" % rev_num)

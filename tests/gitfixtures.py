@@ -3,7 +3,7 @@
 import os
 
 from fixtures import Fixtures
-from utils    import mkfreshdir, run_git
+from utils    import run_git
 
 
 class GitFixtures(Fixtures):
@@ -17,7 +17,7 @@ class GitFixtures(Fixtures):
         self.user_name  = 'test'
         self.user_email = 'test@test.com'
         self.create_repo(self.repo_path)
-        self.wd = self.repo_path
+        self.wdir = self.repo_path
         self.submodules_path = self.container_dir + '/submodules'
 
         # These will be two-level dicts; top level keys are
@@ -31,7 +31,7 @@ class GitFixtures(Fixtures):
 
         self.create_commits(2)
 
-    def run(self, cmd):
+    def run(self, cmd):  # pylint: disable=R0201
         return run_git(cmd)
 
     def create_repo(self, repo_path):
@@ -45,24 +45,26 @@ class GitFixtures(Fixtures):
     def get_metadata(self, fmt):
         return self.safe_run('log -n1 --pretty=format:"%s"' % fmt)[0].decode()
 
-    def record_rev(self, wd, rev_num):
+    def record_rev(self, rev_num, *args):
+        wdir = args[0]
+        print(" ****** wdir: %s" % wdir)
         tag = 'tag' + str(rev_num)
         self.safe_run('tag ' + tag)
 
-        for d in (self.revs, self.timestamps, self.sha1s):
-            if wd not in d:
-                d[wd] = {}
+        for dname in (self.revs, self.timestamps, self.sha1s):
+            if wdir not in dname:
+                dname[wdir] = {}
 
-        self.revs[wd][rev_num]   = tag
-        self.timestamps[wd][tag] = self.get_metadata('%ct')
-        self.sha1s[wd][tag]      = self.get_metadata('%H')
+        self.revs[wdir][rev_num]   = tag
+        self.timestamps[wdir][tag] = self.get_metadata('%ct')
+        self.sha1s[wdir][tag]      = self.get_metadata('%H')
         self.scmlogs.annotate(
             "Recorded rev %d: id %s, timestamp %s, SHA1 %s in %s" %
             (rev_num,
              tag,
-             self.timestamps[wd][tag],
-             self.sha1s[wd][tag],
-             wd)
+             self.timestamps[wdir][tag],
+             self.sha1s[wdir][tag],
+             wdir)
         )
 
     def submodule_path(self, submodule_name):

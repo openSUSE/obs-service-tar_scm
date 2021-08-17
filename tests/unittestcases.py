@@ -154,7 +154,8 @@ class UnitTestCases(unittest.TestCase):
         '''Test to get git repocache dir without subdir'''
         scm_object = Git(self.cli, self.tasks)
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
-        repohash = scm_object.get_repocache_hash(None)
+        scm_object.args.subdir = None
+        repohash = scm_object.get_repocache_hash()
         self.assertEqual(
             repohash,
             'c0f3245498ad916e9ee404acfd7aa59e29d53b7a063a8609735c1284c67b2161')
@@ -165,8 +166,9 @@ class UnitTestCases(unittest.TestCase):
         TarSCM.base.scm.get_repocache_hash
         '''
         scm_object = Git(self.cli, self.tasks)
+        scm_object.args.subdir = 'subdir'
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
-        repohash = scm_object.get_repocache_hash('subdir')
+        repohash = scm_object.get_repocache_hash()
         self.assertEqual(
             repohash,
             'c0f3245498ad916e9ee404acfd7aa59e29d53b7a063a8609735c1284c67b2161')
@@ -175,7 +177,8 @@ class UnitTestCases(unittest.TestCase):
         '''Test to get svn repocache dir without subdir'''
         scm_object = Svn(self.cli, self.tasks)
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
-        repohash = scm_object.get_repocache_hash('')
+        scm_object.args.subdir = ''
+        repohash = scm_object.get_repocache_hash()
         self.assertEqual(
             repohash,
             'd5a57bc8ad6a3ecbca514a1a6fb48e2c9ee183ceb5f7d42e9fd5836918bd540c')
@@ -187,7 +190,8 @@ class UnitTestCases(unittest.TestCase):
         '''
         scm_object = Svn(self.cli, self.tasks)
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
-        repohash = scm_object.get_repocache_hash('subdir')
+        scm_object.args.subdir = 'subdir'
+        repohash = scm_object.get_repocache_hash()
         self.assertEqual(
             repohash,
             'b9761648b96f105d82a97b8a81f1ca060b015a3f882ef9a55ae6b5bf7be0d48a')

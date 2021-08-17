@@ -45,6 +45,7 @@ def check_locale(loc):
 class Cli():
     # pylint: disable=too-few-public-methods
     DEFAULT_AUTHOR = 'obs-service-tar-scm@invalid'
+    outdir = None
 
     def __init__(self):
         self.use_obs_scm = False

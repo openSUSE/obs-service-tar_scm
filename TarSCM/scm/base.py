@@ -9,26 +9,28 @@ import fcntl
 import time
 import subprocess
 import glob
-import locale
 
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
 from TarSCM.config import Config
 
 try:
-    from urllib.parse import urlparse, urlencode
+    from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
 
-keyring_import_error = 0
+KEYRING_IMPORT_ERROR = 0
 
 try:
     import keyrings.alt.file
 except ImportError:
-    keyring_import_error = 1
+    KEYRING_IMPORT_ERROR = 1
 
 
 class Scm():
+
+    scm = None
+
     def __init__(self, args, task):
         # default settings
         # arch_dir - Directory which is used for the archive
@@ -43,6 +45,10 @@ class Scm():
         self.password          = None
         self._parent_tag       = None
         self._backup_gnupghome = None
+        # proxy support
+        self.httpproxy         = None
+        self.httpsproxy        = None
+        self.noproxy           = None
 
         # mandatory arguments
         self.args           = args
@@ -52,7 +58,7 @@ class Scm():
         # optional arguments
         self.revision       = args.revision
         if args.user and args.keyring_passphrase:
-            if keyring_import_error == 1:
+            if KEYRING_IMPORT_ERROR == 1:
                 raise SystemExit('Error while importing keyrings.alt.file but '
                                  '"--user" and "--keyring_passphrase" are set.'
                                  ' Please install keyrings.alt.file!')
@@ -76,10 +82,6 @@ class Scm():
         self._calc_repocachedir()
         self._final_rename_needed = False
 
-        # proxy support
-        self.httpproxy      = None
-        self.httpsproxy     = None
-        self.noproxy        = None
         self._calc_proxies()
 
         if self.args.maintainers_asc:
@@ -178,11 +180,9 @@ class Scm():
 
     def fetch_submodules(self):
         """NOOP in other scm's than git"""
-        pass
 
     def fetch_lfs(self):
         """NOOP in other scm's than git"""
-        pass
 
     def detect_changes(self):
         """Detect changes between revisions."""
@@ -191,7 +191,7 @@ class Scm():
 
         old_servicedata = os.path.join(os.getcwd(), '.old', '_servicedata')
         old_changes_glob = os.path.join(os.getcwd(), '.old', '*.changes')
-        if (os.path.isfile(old_servicedata)):
+        if os.path.isfile(old_servicedata):
             shutil.copy2(old_servicedata, os.getcwd())
             for filename in glob.glob(old_changes_glob):
                 shutil.copy2(filename, os.getcwd())
@@ -201,14 +201,14 @@ class Scm():
 
         logging.debug("CHANGES: %s", repr(chgs))
 
-        chgs = self.detect_changes_scm(self.args.subdir, chgs)
+        chgs = self.detect_changes_scm(chgs)
         logging.debug("Detected changes:\n%s", repr(chgs))
         return chgs
 
-    def detect_changes_scm(self, subdir, chgs):
+    def detect_changes_scm(self, chgs):  # pylint: disable=W0613
         sys.exit("changesgenerate not supported with %s SCM" % self.scm)
 
-    def get_repocache_hash(self, subdir):
+    def get_repocache_hash(self):
         """Calculate hash fingerprint for repository cache."""
         u_url = self.url.encode()
         return hashlib.sha256(u_url).hexdigest()
@@ -235,7 +235,7 @@ class Scm():
 
         if repocachedir:
             logging.debug("REPOCACHE: %s", repocachedir)
-            self.repohash = self.get_repocache_hash(self.args.subdir)
+            self.repohash = self.get_repocache_hash()
             self.repocachedir = os.path.join(repocachedir, self.repohash)
 
     def _calc_proxies(self):
@@ -362,7 +362,7 @@ class Scm():
         if not r_path.startswith(c_dir):
             sys.exit("--subdir %s tries to escape repository." % subdir)
 
-        logging.debug("copying tree: '%s' to '%s'" % (src, dst))
+        logging.debug("copying tree: '%s' to '%s'", src, dst)
 
         shutil.copytree(src, dst, symlinks=True)
 

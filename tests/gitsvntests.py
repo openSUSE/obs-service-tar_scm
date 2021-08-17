@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-
+# pylint: disable=W1401,E1101
+# noqa: W605,E501
 import os
 import textwrap
 import re
 import shutil
 import glob
+import six
 
 from commontests import CommonTests
-from utils       import run_git, run_svn
 
 
 class GitSvnTests(CommonTests):
@@ -24,30 +25,30 @@ class GitSvnTests(CommonTests):
     def test_changesgenerate_disabled(self):
         self._tar_scm_changesgenerate('disable')
 
-    def test_changesgenerate_no_servicedata(self):
+    def test_changesgenerate_no_servicedata(self):  # pylint: disable=C0103
         self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
-    def test_changesgenerate_corrupt_servicedata(self):
-        with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sd:
-            sd.write('this is not valid xml')
+    def test_changesgenerate_corrupt_servicedata(self):  # pylint: disable=C0103
+        with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sdat:
+            sdat.write('this is not valid xml')
         self._tar_scm_changesgenerate('enable', should_succeed=False)
 
-    def test_changesgenerate_empty_servicedata_file(self):
-        sd = open(os.path.join(self.pkgdir, '_servicedata'), 'w')
-        sd.close()
+    def test_changesgenerate_empty_servicedata_file(self):  # pylint: disable=C0103
+        sdat = open(os.path.join(self.pkgdir, '_servicedata'), 'w')
+        sdat.close()
         self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
-    def test_changesgenerate_empty_servicedata_element(self):
-        with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sd:
-            sd.write("<servicedata>\n</servicedata>\n")
+    def test_changesgenerate_empty_servicedata_element(self):   # pylint: disable=C0103
+        with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sdat:
+            sdat.write("<servicedata>\n</servicedata>\n")
         self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
-    def test_changesgenerate_no_changesrevision(self):
-        with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sd:
-            sd.write(textwrap.dedent("""\
+    def test_changesgenerate_no_changesrevision(self):  # pylint: disable=C0103
+        with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sdat:
+            sdat.write(textwrap.dedent("""\
               <servicedata>
                 <service name="tar_scm">
                   <param name="url">%s</param>
@@ -68,28 +69,28 @@ class GitSvnTests(CommonTests):
 
           - 1
         """ % (self.fixtures.user_email, self.fixtures.user_email))
-        with open(os.path.join(self.pkgdir, 'pkg.changes'), 'w') as f:
-            f.write(contents)
+        with open(os.path.join(self.pkgdir, 'pkg.changes'), 'w') as pkg:
+            pkg.write(contents)
         return contents
 
-    def test_changesgenerate_no_change_or_changes_file(self):
+    def test_changesgenerate_no_change_or_changes_file(self):  # pylint: disable=C0103
         self._write_servicedata(2)
         self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
-    def test_changesgenerate_no_change_same_changes_file(self):
+    def test_changesgenerate_no_change_same_changes_file(self):  # pylint: disable=C0103
         self._write_servicedata(2)
         self._write_changes_file()
         self._tar_scm_changesgenerate('enable')
         self._check_servicedata()
 
-    def test_changesgenerate_new_commit_no_changes_file(self):
+    def test_changesgenerate_new_commit_no_changes_file(self):  # pylint: disable=C0103
         self._write_servicedata(2)
         self.fixtures.create_commits(1)
         self._tar_scm_changesgenerate('enable')
         self._check_servicedata(revision=3)
 
-    def _new_change_entry_regexp(self, author, changes):
+    def _new_change_entry_regexp(self, author, changes):  # pylint: disable=R0201
         return textwrap.dedent("""\
           ^-------------------------------------------------------------------
           \w{3} \w{3} [ \d]\d \d\d:\d\d:\d\d [A-Z]{3} 20\d\d - %s
@@ -100,27 +101,27 @@ class GitSvnTests(CommonTests):
     def _check_changes(self, orig_changes, expected_changes_regexp):
         new_changes_file = os.path.join(self.outdir, 'pkg.changes')
         self.assertTrue(os.path.exists(new_changes_file))
-        with open(new_changes_file) as f:
-            new_changes = f.read()
+        with open(new_changes_file) as chg:
+            new_changes = chg.read()
             self.assertNotEqual(orig_changes, new_changes)
             print(new_changes)
             expected_changes_regexp += "(.*)"
-            self.assertRegexpMatches(new_changes, expected_changes_regexp)
-            m = re.match(expected_changes_regexp, new_changes, re.DOTALL)
-            self.assertEqual(m.group(1), orig_changes)
+            six.assertRegex(self, new_changes, expected_changes_regexp)
+            reg = re.match(expected_changes_regexp, new_changes, re.DOTALL)
+            self.assertEqual(reg.group(1), orig_changes)
 
-    def t_test_changesgenerate_new_commit_and_changes_fileest_changesgenerate_new_commit_and_changes_file(self):
+    def test_changesgenerate_new_commit_and_changes_file(self):  # pylint: disable=C0103
         self._test_changesgenerate_new_commit_and_changes_file(
             self.fixtures.user_email)
 
-    def test_changesgenerate_new_commit_and_changes_file_default_author(self):
+    def test_changesgenerate_new_commit_and_changes_file_default_author(self):  # pylint: disable=C0103
         os.environ['OBS_SERVICE_DAEMON'] = "1"
         self._test_changesgenerate_new_commit_and_changes_file()
         os.environ['OBS_SERVICE_DAEMON'] = "0"
 
     def _write_servicedata(self, rev):
-        with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sd:
-            sd.write(textwrap.dedent("""\
+        with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sdat:
+            sdat.write(textwrap.dedent("""\
               <servicedata>
                 <service name="tar_scm">
                   <param name="url">%s</param>
@@ -128,7 +129,7 @@ class GitSvnTests(CommonTests):
                 </service>
               </servicedata>""" % (self.fixtures.repo_url, self.changesrevision(rev))))
 
-    def _test_changesgenerate_new_commit_and_changes_file(self, author=None):
+    def _test_changesgenerate_new_commit_and_changes_file(self, author=None):  # pylint: disable=C0103
         self._write_servicedata(2)
         orig_changes = self._write_changes_file()
         self.fixtures.create_commits(3)
@@ -160,7 +161,7 @@ class GitSvnTests(CommonTests):
         )
         self._check_changes(orig_changes, expected_changes_regexp)
 
-    def test_changesgenerate_new_commit_and_changes_file_no_version(self):
+    def test_changesgenerate_new_commit_and_changes_file_no_version(self):  # pylint: disable=C0103
         self._write_servicedata(2)
         orig_changes = self._write_changes_file()
         self.fixtures.create_commits(3)
@@ -190,7 +191,7 @@ class GitSvnTests(CommonTests):
         )
         self._check_changes(orig_changes, expected_changes_regexp)
 
-    def test_changesgenerate_new_commit_and_changes_file_with_subdir(self):
+    def test_changesgenerate_new_commit_and_changes_file_with_subdir(self):   # pylint: disable=C0103
         self._write_servicedata(2)
         orig_changes = self._write_changes_file()
         self.fixtures.create_commits(3)
@@ -220,7 +221,7 @@ class GitSvnTests(CommonTests):
         )
         self._check_changes(orig_changes, expected_changes_regexp)
 
-    def test_changesgenerate_old_servicedata(self):
+    def test_changesgenerate_old_servicedata(self):   # pylint: disable=C0103
         self._write_servicedata(2)
         orig_changes = self._write_changes_file()
         self.fixtures.create_commits(3)

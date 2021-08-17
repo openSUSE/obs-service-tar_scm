@@ -160,10 +160,11 @@ class Svn(Scm):
         timestamp = dateutil.parser.parse(timestamp).strftime("%s")
         return int(timestamp)
 
-    def detect_changes_scm(self, subdir, chgs):
+    def detect_changes_scm(self, chgs):
         """Detect changes between SVN revisions."""
         last_rev = chgs['revision']
         first_run = False
+        subdir = self.args.subdir
         if subdir:
             clone_dir = os.path.join(self.clone_dir, subdir)
         else:
@@ -192,9 +193,9 @@ class Svn(Scm):
         chgs['lines'] = lines
         return chgs
 
-    def get_repocache_hash(self, subdir):
+    def get_repocache_hash(self):
         """Calculate hash fingerprint for repository cache."""
-        string = self.url + '/' + subdir
+        string = self.url + '/' + self.args.subdir
         return hashlib.sha256(string.encode('UTF-8')).hexdigest()
 
     def _get_log(self, clone_dir, revision1, revision2):

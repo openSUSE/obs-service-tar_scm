@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# pylint: disable=C0103
 
 import os
 from pprint import pprint, pformat
@@ -19,8 +20,8 @@ class TestAssertions(unittest.TestCase):
     with operations which the tar_scm unit tests commonly need.
     """
 
-    def assertNumDirents(self, dir, expected, msg=''):
-        dirents = os.listdir(dir)
+    def assertNumDirents(self, wdir, expected, msg=''):
+        dirents = os.listdir(wdir)
         got = len(dirents)
         if len(msg) > 0:
             msg += "\n"
@@ -46,7 +47,7 @@ class TestAssertions(unittest.TestCase):
         directly change the mtime for an entry in the tarball.'''
         if sys.hexversion < 0x02070000:
             return
-        for i in range(0, len(entries)):
+        for i in range(len(entries)):
             self.assertEqual(entries[i].mtime, 1234567890)
 
     def assertDirents(self, entries, top):
@@ -102,32 +103,32 @@ class TestAssertions(unittest.TestCase):
         pprint(dirents)
 
         if dirents[0][-4:] == '.tar':
-            tar = dirents[0]
-            wd  = dirents[1]
+            tar  = dirents[0]
+            wdir = dirents[1]
         elif dirents[1][-4:] == '.tar':
-            tar = dirents[1]
-            wd  = dirents[0]
+            tar  = dirents[1]
+            wdir = dirents[0]
         else:
             self.fail('no .tar found in ' + self.outdir)
 
-        self.assertEqual(wd, dirname)
-        self.assertTrue(os.path.isdir(os.path.join(self.outdir, wd)),
+        self.assertEqual(wdir, dirname)
+        self.assertTrue(os.path.isdir(os.path.join(self.outdir, wdir)),
                         dirname + ' should be directory')
 
         return self.checkTar(tar, tarbasename, **kwargs)
 
-    def assertTarMemberContains(self, th, tarmember, contents):
-        f = th.extractfile(tarmember)
-        self.assertEqual(contents, f.read().decode())
+    def assertTarMemberContains(self, tar, tarmember, contents):
+        files = tar.extractfile(tarmember)
+        self.assertEqual(contents, files.read().decode())
 
     def assertRanInitialClone(self, logpath, loglines):
         self._find(logpath, loglines,
                    self.initial_clone_command, self.update_cache_command)
 
     def assertSSLVerifyFalse(self, logpath, loglines):
+        term = self.initial_clone_command + '.*' + self.sslverify_false_args
         self._find(logpath, loglines,
-                   self.initial_clone_command +
-                   '.*' + self.sslverify_false_args,
+                   term,
                    self.sslverify_false_args + 'true')
 
     def assertRanUpdate(self, logpath, loglines):

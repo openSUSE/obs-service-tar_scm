@@ -47,15 +47,15 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Lint with flake8
-        run: flake8
+        run: make flake8
 
       - name: Lint code with pylint
-        run: pylint --rcfile=.pylintrc ./tar_scm.py ./TarSCM/scm/bzr.py ./TarSCM/scm/svn.py ./TarSCM/exceptions.py ./TarSCM/__init__.py ./TarSCM/scm/git.py ./TarSCM/scm/hg.py ./TarSCM/scm/__init__.py ./TarSCM/cli.py ./TarSCM/tasks.py
+        run: make pylint
 
-      - name: Lint tests with pylint
-        run: pylint --rcfile=.pylinttestsrc ./tests/__init__.py ./tests/utils.py ./tests/tarfixtures.py ./tests/unittestcases.py ./tests/archiveobscpiotestcases.py ./tests/test.py ./tests/scmlogs.py ./tests/tartests.py
+      - name: Lint test with pylint
+        run: make pylinttest
 
       - name: Run tests
         run: |
           locale
-          TAR_SCM_TESTMODE=1 PYTHONPATH=. python tests/test.py
+          make test

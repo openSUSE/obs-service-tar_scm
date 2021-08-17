@@ -2,11 +2,9 @@
 
 import os
 import re
-import textwrap
 
 from gitsvntests import GitSvnTests
 from svnfixtures import SvnFixtures
-from utils       import run_svn
 
 
 class SvnTests(GitSvnTests):
@@ -26,13 +24,13 @@ class SvnTests(GitSvnTests):
     def default_version(self):
         return self.rev(2)
 
-    def changesrevision(self, rev, abbrev=False):
+    def changesrevision(self, rev, abbrev=False):  # noqa: E501 pylint: disable=W0613,R0201
         return rev
 
-    def changesregex(self, rev):
+    def changesregex(self, rev):  # pylint: disable=R0201
         return rev
 
-    def tar_scm_args(self):
+    def tar_scm_args(self):   # pylint: disable=R0201
         scm_args = [
             '--changesgenerate', 'enable',
             '--versionformat', '0.6.%r',
@@ -51,14 +49,14 @@ class SvnTests(GitSvnTests):
         self.fixtures.create_commits(4)
         self.tar_scm_std('--versionformat', 'foo%r', '--revision', self.rev(2))
         basename = self.basename(version='foo2')
-        th = self.assertTarOnly(basename)
-        self.assertTarMemberContains(th, basename + '/a', '2')
+        tar = self.assertTarOnly(basename)
+        self.assertTarMemberContains(tar, basename + '/a', '2')
 
-    def _check_servicedata(self, expected_dirents=2, revision=2):
+    def _check_servicedata(self, expected_dirents=2, revision=2):  # noqa: E501 pylint: disable=W0613
         dirents = self.assertNumDirents(self.outdir, expected_dirents)
         self.assertTrue('_servicedata' in dirents,
                         '_servicedata in %s' % repr(dirents))
-        sd = open(os.path.join(self.outdir, '_servicedata')).read()
+        sdat = open(os.path.join(self.outdir, '_servicedata')).read()
         expected = (
             r"<servicedata>"
             r"\s*<service name=\"tar_scm\">"
@@ -67,9 +65,9 @@ class SvnTests(GitSvnTests):
             r"\s*</service>"
             r"\s*</servicedata>" % self.fixtures.repo_url
         )
-        m = re.match(expected, sd)
-        if m:
+        reg = re.match(expected, sdat)
+        if reg:
             print("matched")
         else:
             print("matched not")
-        self.assertTrue(m, "\n'%s'\n!~ /%s/" % (sd, expected))
+        self.assertTrue(reg, "\n'%s'\n!~ /%s/" % (sdat, expected))

@@ -1,14 +1,7 @@
-import sys
 import os
-import argparse
-import inspect
-import re
-import copy
 import shutil
 import unittest
 import six
-
-from mock import MagicMock
 
 from TarSCM.scm.base import Scm
 
@@ -52,12 +45,12 @@ class SCMBaseTestCases(unittest.TestCase):
                 "test1"
             )
 
-        if (hasattr(ctx.exception, 'message')):
+        if hasattr(ctx.exception, 'message'):
             msg = ctx.exception.message
         else:
             msg = ctx.exception
 
-        self.assertRegexpMatches(str(msg), 'No such file or directory')
+        six.assertRegex(self, str(msg), 'No such file or directory')
 
         scm_base.prep_tree_for_archive("test1", basedir, "test2")
 

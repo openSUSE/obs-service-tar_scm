@@ -335,9 +335,10 @@ class Git(Scm):
             cmd += ['--', subdir]
         return self.helpers.safe_run(cmd, cwd=self.clone_dir)[1]
 
-    def detect_changes_scm(self, subdir, chgs):
+    def detect_changes_scm(self, chgs):
         """Detect changes between GIT revisions."""
         last_rev = chgs['revision']
+        subdir = self.args.subdir
 
         if last_rev is None:
             last_rev = self._log_cmd(

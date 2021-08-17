@@ -1,13 +1,15 @@
+# -*- coding: utf-8 -*-
 class FakeCli(dict):  # pylint: disable=no-init,too-few-public-methods
+    url                = ''
+    revision           = ''
+    changesgenerate    = False
+    subdir             = ''
+    user               = ''
+    keyring_passphrase = ''
+    maintainers_asc = None
     def __init__(self, match_tag=False):
-        self.url                = ''
-        self.revision           = ''
-        self.changesgenerate    = False
-        self.subdir             = ''
+        super(FakeCli, self).__init__()  # pylint: disable=R1725
         self.match_tag          = match_tag
-        self.user               = ''
-        self.keyring_passphrase = ''
-        self.maintainers_asc = None
 
 
 class FakeTasks():  # pylint: disable=no-init,too-few-public-methods

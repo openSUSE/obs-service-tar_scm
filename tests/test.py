@@ -24,7 +24,6 @@ from tests.tartests import TarTestCases
 from tests.archiveobscpiotestcases import ArchiveOBSCpioTestCases
 
 
-
 def str_to_class(string):
     '''Convert string into class'''
     return getattr(sys.modules[__name__], string)

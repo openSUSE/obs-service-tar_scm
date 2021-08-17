@@ -66,7 +66,7 @@ class ScmInvocationLogs:
     def get_log_path(self, identifier):
         return os.path.join(self.test_dir, self.get_log_file(identifier))
 
-    def next(self, identifier=''):
+    def nextlog(self, identifier=''):
         self.counter += 1
         self.current_log_path = self.get_log_path(identifier)
         if os.path.exists(self.current_log_path):

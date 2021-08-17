@@ -3,7 +3,7 @@
 import os
 
 from fixtures import Fixtures
-from utils    import mkfreshdir, run_hg
+from utils    import run_hg
 
 
 class HgFixtures(Fixtures):
@@ -29,16 +29,17 @@ class HgFixtures(Fixtures):
         os.makedirs(self.repo_path)
         os.chdir(self.repo_path)
         self.safe_run('init')
-        c = open('.hg/hgrc', 'w')
-        c.write("[ui]\nusername = %s\n" % self.name_and_email)
-        c.close()
-        self.wd = self.repo_path
+        with open('.hg/hgrc', 'w') as rcf:
+            rcf.write("[ui]\nusername = %s\n" % self.name_and_email)
+
+        self.wdir = self.repo_path
         print("created repo %s" % self.repo_path)
 
     def get_metadata(self, formatstr):
         return self.safe_run('log -l1 --template "%s"' % formatstr)[0].decode()
 
-    def record_rev(self, wd, rev_num):
+    def record_rev(self, *args):
+        rev_num = args[0]
         tag = str(rev_num - 1)  # hg starts counting changesets at 0
         self.revs[rev_num] = tag
         epoch_secs, tz_delta_to_utc = \
