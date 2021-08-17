@@ -2,7 +2,6 @@
 
 from commontests import CommonTests
 from bzrfixtures import BzrFixtures
-from utils       import run_bzr
 
 
 class BzrTests(CommonTests):
@@ -34,8 +33,8 @@ class BzrTests(CommonTests):
         self.fixtures.create_commits(4)
         self.tar_scm_std('--versionformat', 'foo%r', '--revision', self.rev(2))
         basename = self.basename(version='foo2')
-        th = self.assertTarOnly(basename)
-        self.assertTarMemberContains(th, basename + '/a', '2')
+        tar = self.assertTarOnly(basename)
+        self.assertTarMemberContains(tar, basename + '/a', '2')
 
     def assertDirentsMtime(self, entries):
         '''Skip this test with bazaar because there seem to be no way to create

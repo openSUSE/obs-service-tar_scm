@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=R0902
 
 import os
 import shutil
@@ -25,6 +26,16 @@ class Fixtures:
         self.scmlogs       = scmlogs
         self.repo_path     = self.container_dir + '/repo'
         self.repo_url      = 'file://' + self.repo_path
+        self.wdir          = None
+        self.user_name     = None
+        self.user_email    = None
+        self.timestamps    = None
+        self.sha1s         = None
+        self.short_sha1s   = None
+        self.wd_path       = None
+        self.added         = None
+        self.submodules_path = None
+
 
         # Keys are stringified integers representing commit sequence numbers;
         # values can be passed to --revision
@@ -49,38 +60,38 @@ class Fixtures:
         raise NotImplementedError(
             self.__class__.__name__ + " didn't implement init()")
 
-    def create_commits(self, num_commits, wd=None, subdir=None):
+    def create_commits(self, num_commits, wdir=None, subdir=None):
         self.scmlogs.annotate("Creating %d commits ..." % num_commits)
         if num_commits == 0:
             return
 
-        if wd is None:
-            wd = self.wd
+        if wdir is None:
+            wdir = self.wdir
         orig_wd = os.getcwd()
-        os.chdir(wd)
+        os.chdir(wdir)
 
-        for i in range(0, num_commits):
-            new_rev = self.create_commit(wd, subdir=subdir)
-        self.record_rev(wd, new_rev)
+        for inc in range(0, num_commits):  # pylint: disable=W0612
+            new_rev = self.create_commit(wdir, subdir=subdir)
+        self.record_rev(new_rev, wdir)
 
         self.scmlogs.annotate("Created %d commits; now at %s" %
                               (num_commits, new_rev))
-        os.chdir(wd)
+        os.chdir(orig_wd)
 
-    def next_commit_rev(self, wd):
-        if wd not in self._next_commit_revs:
-            self._next_commit_revs[wd] = 1
-        new_rev = self._next_commit_revs[wd]
-        self._next_commit_revs[wd] += 1
+    def next_commit_rev(self, wdir):
+        if wdir not in self._next_commit_revs:
+            self._next_commit_revs[wdir] = 1
+        new_rev = self._next_commit_revs[wdir]
+        self._next_commit_revs[wdir] += 1
         return new_rev
 
-    def create_commit(self, wd, subdir=None):
-        new_rev = self.next_commit_rev(wd)
+    def create_commit(self, wdir, subdir=None):
+        new_rev = self.next_commit_rev(wdir)
         newly_created = self.prep_commit(new_rev, subdir=subdir)
-        self.do_commit(wd, new_rev, newly_created)
+        self.do_commit(wdir, new_rev, newly_created)
         return new_rev
 
-    def do_commit(self, wd, new_rev, newly_created):
+    def do_commit(self, wdir, new_rev, newly_created):  # pylint: disable=W0613
         self.safe_run('add .')
         date = self.get_committer_date()
         self.safe_run('commit -m%d %s' % (new_rev, date))
@@ -106,11 +117,11 @@ class Fixtures:
             # This will take care of adding subdir/b too
             newly_created.append(subdir)
 
-        for fn in ('a', subdir + '/b'):
-            f = open(fn, 'w')
-            f.write(str(new_rev))
-            f.close()
-            self.scmlogs.annotate("Wrote %s to %s" % (new_rev, fn))
+        for fname in ('a', subdir + '/b'):
+            fhandle = open(fname, 'w')
+            fhandle.write(str(new_rev))
+            fhandle.close()
+            self.scmlogs.annotate("Wrote %s to %s" % (new_rev, fname))
 
         # we never commit through symlink 'c' but instead see the updated
         # revision through the symlink
@@ -120,53 +131,52 @@ class Fixtures:
 
         return newly_created
 
-    def create_commit_broken_symlink(self, wd=None):
+    def create_commit_broken_symlink(self, wdir=None):
         self.scmlogs.annotate("Creating broken symlink commit")
 
-        if wd is None:
-            wd = self.wd
-        os.chdir(wd)
+        if wdir is None:
+            wdir = self.wdir
+        os.chdir(wdir)
 
-        new_rev = self.next_commit_rev(wd)
+        new_rev = self.next_commit_rev(wdir)
         newly_created = self.prep_commit(new_rev)
         os.unlink('c')
         os.symlink('/../nir/va/na', 'c')
         newly_created.append('c')
-        self.do_commit(wd, new_rev, newly_created)
-        self.record_rev(wd, new_rev)
+        self.do_commit(wdir, new_rev, newly_created)
+        self.record_rev(new_rev, wdir)
         self.scmlogs.annotate("Created 1 commit; now at %s" % (new_rev))
 
-    def create_commit_unicode(self, wd=None):
+    def create_commit_unicode(self, wdir=None):
         self.scmlogs.annotate("Creating commit with unicode commit message")
 
-        if wd is None:
-            wd = self.wd
-        os.chdir(wd)
+        if wdir is None:
+            wdir = self.wdir
+        os.chdir(wdir)
 
-        new_rev = self.next_commit_rev(wd)
+        new_rev = self.next_commit_rev(wdir)
         fname = 'd'
         cfh = open(fname, 'w')
         cfh.write(str(new_rev))
         cfh.close()
         self.scmlogs.annotate("Wrote %s to %s" % (new_rev, fname))
-        #self.do_commit(wd, new_rev, newly_created)
         self.safe_run('add .')
         date = self.get_committer_date()
         self.safe_run('commit -m"füfüfü nününü %d" %s' % (new_rev, date))
-        self.record_rev(wd, new_rev)
+        self.record_rev(new_rev, wdir)
         self.scmlogs.annotate("Created 1 commit; now at %s" % (new_rev))
 
     def touch(self, fname, times=None):
-        with open(os.path.join(self.wd, fname), 'a'):
-           os.utime(fname, times)
+        with open(os.path.join(self.wdir, fname), 'a'):
+            os.utime(fname, times)
 
     def remove(self, fname):
-        os.remove(os.path.join(self.wd, fname))
+        os.remove(os.path.join(self.wdir, fname))
 
     def tag(self, tag):
         self.safe_run('tag %s' % tag)
 
     def commit_file_with_tag(self, tag, file):
         self.touch(file)
-        self.create_commit(self.wd)
+        self.create_commit(self.wdir)
         self.tag(tag)

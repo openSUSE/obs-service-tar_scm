@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-
-import os
-
+# -*- coding: utf-8 -*-
+# pylint: disable=E1101
 from commontests import CommonTests
-from utils       import run_hg
 
 
 class GitHgTests(CommonTests):
@@ -22,12 +20,12 @@ class GitHgTests(CommonTests):
         self.assertTarOnly(
             self.basename(version=self.version(2)))
 
-    def test_versionformat_dateYYYYMMDD(self):
+    def test_versionformat_dateYYYYMMDD(self):  # pylint: disable=C0103
         self.tar_scm_std('--versionformat', self.yyyymmdd_format)
         self.assertTarOnly(
             self.basename(version=self.dateYYYYMMDD(self.rev(2))))
 
-    def test_versionformat_dateYYYYMMDDHHMMSS(self):
+    def test_versionformat_dateYYYYMMDDHHMMSS(self): # pylint: disable=C0103
         self.tar_scm_std('--versionformat', self.yyyymmddhhmmss_format)
         ver = self.dateYYYYMMDDHHMMSS(self.rev(2))
         print(ver)
@@ -55,5 +53,5 @@ class GitHgTests(CommonTests):
         self.tar_scm_std('--versionformat', self.abbrev_hash_format,
                          '--revision', self.rev(2))
         basename = self.basename(version=self.abbrev_sha1s(self.rev(2)))
-        th = self.assertTarOnly(basename)
-        self.assertTarMemberContains(th, basename + '/a', '2')
+        tar = self.assertTarOnly(basename)
+        self.assertTarMemberContains(tar, basename + '/a', '2')

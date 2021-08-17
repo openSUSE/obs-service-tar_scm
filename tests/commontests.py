@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
+from pprint               import pformat
 import os
 import tarfile
-
-
-from pprint         import pprint, pformat
+import six
 
 from tests.testassertions import TestAssertions
 from tests.testenv        import TestEnvironment
@@ -18,10 +17,11 @@ class CommonTests(TestEnvironment, TestAssertions):
     Unit tests here are not specific to any particular version control
     system, and will be run for all of git / hg / svn / bzr.
     """
+    scm = None
 
     def basename(self, name='repo', version=None):
         if version is None:
-            version = self.default_version()
+            version = self.default_version()  # pylint: disable=E1101
         return '%s-%s' % (name, version)
 
     def test_plain(self):
@@ -38,7 +38,7 @@ class CommonTests(TestEnvironment, TestAssertions):
         # relative symlinks as a file object so we construct linkname manually
         member = tar_handle.getmember(basename + '/c')
         self.assertTrue(member.issym())
-        self.assertEquals(member.linkname, 'a')
+        self.assertEqual(member.linkname, 'a')
         linkname = '/'.join([os.path.dirname(member.name), member.linkname])
         self.assertTarMemberContains(tar_handle, linkname, '3')
 
@@ -50,13 +50,13 @@ class CommonTests(TestEnvironment, TestAssertions):
         tar_handle = self.assertTarOnly(basename)
         member     = tar_handle.getmember(basename + '/c')
         self.assertTrue(member.issym())
-        self.assertRegexpMatches(member.linkname, '[/.]*/nir/va/na$')
+        six.assertRegex(self, member.linkname, '[/.]*/nir/va/na$')
 
     def test_tar_exclude(self):
         self.tar_scm_std('--exclude', 'a', '--exclude', 'c')
-        tar     = os.path.join(self.outdir, self.basename()+'.tar')
-        th      = tarfile.open(tar)
-        tarents = th.getnames()
+        tar_file = os.path.join(self.outdir, self.basename()+'.tar')
+        tar      = tarfile.open(tar_file)
+        tarents  = tar.getnames()
         expected = [self.basename(),
                     self.basename() + '/subdir',
                     self.basename() + '/subdir/b']
@@ -64,9 +64,9 @@ class CommonTests(TestEnvironment, TestAssertions):
 
     def test_tar_include(self):
         self.tar_scm_std('--include', self.fixtures.subdir)
-        tar     = os.path.join(self.outdir, self.basename()+'.tar')
-        th      = tarfile.open(tar)
-        tarents = th.getnames()
+        tar_file = os.path.join(self.outdir, self.basename()+'.tar')
+        tar      = tarfile.open(tar_file)
+        tarents = tar.getnames()
         expected = [self.basename(),
                     self.basename() + '/subdir',
                     self.basename() + '/subdir/b']
@@ -76,7 +76,7 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.tar_scm_std('--exclude', 'a', '--exclude', 'c', '--use-obs-scm', 'True')
         cpio    = os.path.join(self.outdir, self.basename()+'.obscpio')
         cmd = "cpio -it < "+cpio
-        (stdout, stderr, ret) = run_cmd(cmd)
+        (stdout, _stderr, _ret) = run_cmd(cmd)
         got = stdout.decode().split("\n")
         got.pop()
         expected = [self.basename() + '/subdir',
@@ -87,7 +87,7 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.tar_scm_std('--include', self.fixtures.subdir, '--use-obs-scm', 'True')
         cpio    = os.path.join(self.outdir, self.basename()+'.obscpio')
         cmd = "cpio -it < "+cpio
-        (stdout, stderr, ret) = run_cmd(cmd)
+        (stdout, _stderr, _ret) = run_cmd(cmd)
         got = stdout.decode().split("\n")
         got.pop()
         expected = [self.basename() + '/subdir',
@@ -97,26 +97,26 @@ class CommonTests(TestEnvironment, TestAssertions):
 
     def test_absolute_subdir(self):
         (_stdout, stderr, _ret) = self.tar_scm_std_fail('--subdir', '/')
-        self.assertRegexpMatches(
-            stderr, "Absolute path '/' is not allowed for --subdir")
+        six.assertRegex(
+            self, stderr, "Absolute path '/' is not allowed for --subdir")
 
     def test_subdir_parent(self):
         for path in ('..', '../', '../foo', 'foo/../../bar'):
             (_stdout, stderr, _ret) = self.tar_scm_std_fail('--subdir', path)
-            self.assertRegexpMatches(
-                stderr, "--subdir path '%s' must stay within repo" % path)
+            six.assertRegex(
+                self, stderr, "--subdir path '%s' must stay within repo" % path)
 
     def test_extract_parent(self):
         for path in ('..', '../', '../foo', 'foo/../../bar'):
             (_stdout, stderr, _ret) = self.tar_scm_std_fail('--extract', path)
-            self.assertRegexpMatches(
-                stderr, '--extract is not allowed to contain ".."')
+            six.assertRegex(
+                self, stderr, '--extract is not allowed to contain ".."')
 
     def test_filename(self):
         for path in ('/tmp/somepkg.tar', '../somepkg.tar'):
             (_stdout, stderr, _ret) = self.tar_scm_std_fail('--filename', path)
-            self.assertRegexpMatches(
-                stderr, '--filename must not specify a path')
+            six.assertRegex(
+                self, stderr, '--filename must not specify a path')
 
     def test_subdir(self):
         self.tar_scm_std('--subdir', self.fixtures.subdir)
@@ -124,9 +124,9 @@ class CommonTests(TestEnvironment, TestAssertions):
 
     def test_history_depth_obsolete(self):
         (stdout, _stderr, _ret) = self.tar_scm_std('--history-depth', '1')
-        self.assertRegexpMatches(stdout, 'obsolete')
+        six.assertRegex(self, stdout, 'obsolete')
 
-    def test_filename(self):
+    def test_myfilename(self):
         name = 'myfilename'
         self.tar_scm_std('--filename', name)
         self.assertTarOnly(self.basename(name=name))
@@ -282,7 +282,7 @@ class CommonTests(TestEnvironment, TestAssertions):
                 expected
             )
 
-            self.scmlogs.next()
+            self.scmlogs.nextlog()
             self.postRun()
 
     def test_switch_revision_and_subdir(self):

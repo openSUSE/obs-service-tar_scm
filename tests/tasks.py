@@ -1,11 +1,9 @@
 from __future__ import print_function
 
-import sys
 import os
 import inspect
 import shutil
 import unittest
-import six
 from mock import MagicMock
 
 from tar_scm import TarSCM
@@ -62,7 +60,7 @@ class TasksTestCases(unittest.TestCase):
         tasks = TarSCM.Tasks(self.cli)
         tasks.generate_list()
         self._restore_cwd()
-        for k in expected:
+        for k in expected:  # pylint: disable=C0206
             self.assertEqual(tasks.task_list[0].__dict__[k], expected[k])
         self.assertEqual(len(tasks.task_list), 1)
 
@@ -82,7 +80,7 @@ class TasksTestCases(unittest.TestCase):
         tasks = TarSCM.Tasks(self.cli)
         tasks.generate_list()
         self._restore_cwd()
-        for k in expected:
+        for k in expected:  # pylint: disable=C0206
             self.assertEqual(tasks.task_list[0].__dict__[k], expected[k])
         self.assertEqual(len(tasks.task_list), 1)
 

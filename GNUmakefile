@@ -17,9 +17,20 @@ CLEAN_PYFILES = \
 CLEAN_TEST_PYFILES = \
   ./tests/__init__.py \
   ./tests/utils.py \
-  ./tests/tarfixtures.py \
+  ./tests/tasks.py \
+  ./tests/fake_classes.py \
   ./tests/unittestcases.py \
   ./tests/archiveobscpiotestcases.py \
+  ./tests/gittests.py \
+  ./tests/fixtures.py \
+  ./tests/bzrfixtures.py \
+  ./tests/gitfixtures.py \
+  ./tests/hgfixtures.py \
+  ./tests/svnfixtures.py \
+  ./tests/tarfixtures.py \
+  ./tests/commontests.py \
+  ./tests/bzrtests.py \
+  ./tests/svntests.py \
 
 PYLINT_READY_TEST_MODULES = \
   $(CLEAN_TEST_PYFILES) \
@@ -53,19 +64,20 @@ $(or \
 )
 endef
 
-PYTHON3 = python3.9 python3.8 python3.7 python-3.7 python3.6 python-3.6 python3.5 python-3.5 python3.4 python-3.4 python3.3 python-3.3 python3.2 python-3.2 python3
-PYTHON2 = python2.7 python-2.7 python2.6 python-2.6 python2
+ALL_PYTHON3 = python3.9 python3.8 python3.7 python-3.7 python3.6 python-3.6 python3.5 python-3.5 python3.4 python-3.4 python3.3 python-3.3 python3.2 python-3.2 python3
+ALL_PYTHON2 = python2.7 python-2.7 python2.6 python-2.6 python2
 
 # Ensure that correct python version is used in travis
 y = $(subst ., ,$(TRAVIS_PYTHON_VERSION))
 PYTHON_MAJOR := $(word 1, $(y))
 ifeq ($(PYTHON_MAJOR), 2)
-ALL_PYTHONS = $(PYTHON2) python
+ALL_PYTHONS = $(ALL_PYTHON2) python
 else
-ALL_PYTHONS = $(PYTHON3) $(PYTHON2) python
+	ALL_PYTHONS = $(ALL_PYTHON3) $(ALL_PYTHON2) python
 endif
 
 PYTHON = $(call first_in_path,$(ALL_PYTHONS))
+PYTHON2 = $(call first_in_path,$(ALL_PYTHON2))
 
 mylibdir = $(PREFIX)/lib/obs/service
 mycfgdir = $(SYSCFG)/obs/services
@@ -73,25 +85,23 @@ mycfgdir = $(SYSCFG)/obs/services
 LIST_PY_FILES=git ls-tree --name-only -r HEAD | grep '\.py$$'
 PY_FILES=$(shell $(LIST_PY_FILES))
 
-ALL_PYLINT2 = pylint-2.7 pylint2.7
-ALL_PYLINT3 = pylint-3.4 pylint3.4 pylint-3.5 pylint3.5 pylint-3.6 pylint3.6 pylint-3.7 pylint3.7 pylint-3.8
+ALL_PYLINT3 = pylint-3.4 pylint3.4 pylint-3.5 pylint3.5 pylint-3.6 pylint3.6 pylint-3.7 pylint3.7 pylint-3.8 pylint
 ALL_FLAKE83 = flake8-3.6 flake8-36 flake8-37 flake8-3.7 flake8
 
-PYLINT2 = $(call first_in_path_opt,$(ALL_PYLINT2))
 PYLINT3 = $(call first_in_path_opt,$(ALL_PYLINT3))
 
 FLAKE83 = $(call first_in_path_opt,$(ALL_FLAKE83))
 
-default: check
+python_version_full := $(wordlist 2,4,$(subst ., ,$(shell python --version 2>&1)))
+python_version_major := $(word 1,${python_version_full})
 
-.PHONY: check check_all
-check: check2 check3
+all: check
 
-.PHONY: check2
-check2: flake8 pylint test
+.PHONY: check
+check: check3 test2
 
 .PHONY: check3
-check3: flake83 pylint3 test3
+check3: flake8 pylint pylinttest test3
 
 .PHONY: list-py-files
 list-py-files:
@@ -99,60 +109,57 @@ list-py-files:
 
 .PHONY: flake8
 flake8:
-	@if ! which flake8 >/dev/null 2>&1; then \
-		echo "flake8 not installed!  Cannot check PEP8 compliance with flake8. Skipping tests." >&2; \
-	else \
-		echo "Running flake8";\
-		flake8;\
-		echo "Finished flake8";\
-	fi
-
-.PHONY: flake83
-flake83:
-	@if [ "x$(FLAKE83)" != "x" ]; then \
-		echo "Running flake83";\
-		$(FLAKE83);\
-		echo "Finished flake83";\
-	else \
-		echo "flake8 for python3 not found";\
+	@if [ "x$(python_version_major)" == "x2" -a -n "$(CI)" ]; then \
+		echo "Skipping flake8 - python2 in CI" \
+	;else \
+		if [ "x$(FLAKE83)" != "x" ]; then \
+			echo "Running flake83";\
+			$(FLAKE83);\
+			echo "Finished flake83";\
+		else \
+			echo "flake8 for python3 not found or python major version == 2 ($(python_version_major))";\
+		fi \
 	fi
 
 
-.PHONY: test
-test:
+.PHONY: test2
+test2:
 	: Running the test suite.  Please be patient - this takes a few minutes ...
-	TAR_SCM_TESTMODE=1 PYTHONPATH=. $(PYTHON) tests/test.py 2>&1 | tee ./test.log
+	TAR_SCM_TESTMODE=1 PYTHONPATH=. $(PYTHON2) tests/test.py 2>&1 | tee ./test.log
 
+.PHONY: test3
 test3:
 	: Running the test suite.  Please be patient - this takes a few minutes ...
 	TAR_SCM_TESTMODE=1 PYTHONPATH=. python3 tests/test.py 2>&1 | tee ./test3.log
 
+.PHONY: test
+test:
+	: Running the test suite.  Please be patient - this takes a few minutes ...
+	TAR_SCM_TESTMODE=1 PYTHONPATH=. python tests/test.py 2>&1 | tee ./test3.log
+
 .PHONY: pylint
-pylint: pylint2 pylinttest2
-
-.PHONY: pylint3
-pylint3:
-	@if [ "x$(PYLINT3)" != "x" ]; then \
-		$(PYLINT3) --rcfile=./.pylintrc $(PYLINT_READY_MODULES); \
-		PYTHONPATH=tests $(PYLINT3) --rcfile=./.pylinttestsrc $(PYLINT_READY_TEST_MODULES); \
-	else \
-		echo "PYLINT3 not set - Skipping tests"; \
+pylint:
+	@if [ "x$(python_version_major)" == "x2" -a -n "$(CI)" ]; then \
+		echo "Skipping pylint - python2 in CI" \
+	;else \
+		if [ "x$(PYLINT3)" != "x" ]; then \
+			$(PYLINT3) --rcfile=./.pylintrc $(PYLINT_READY_MODULES); \
+			PYTHONPATH=tests $(PYLINT3) --rcfile=./.pylintrc $(PYLINT_READY_MODULES); \
+		else \
+			echo "PYLINT3 not set or python major version == 2 ($(python_version_major)) - Skipping tests!"; \
+		fi \
 	fi
 
-.PHONY: pylint2
-pylint2:
-	@if [ "x$(PYLINT2)" != "x" ]; then \
-		$(PYLINT2) --rcfile=./.pylintrc $(PYLINT_READY_MODULES); \
-	else \
-		echo "PYLINT2 not set - Skipping tests"; \
-	fi
-
-.PHONY: pylinttest2
-pylinttest2:
-	@if [ "x$(PYLINT2)" != "x" ]; then \
-		PYTHONPATH=tests $(PYLINT2) --rcfile=./.pylinttestsrc $(PYLINT_READY_TEST_MODULES); \
-	else \
-		echo "PYLINT2 not set - Skipping tests"; \
+.PHONY: pylinttest
+pylinttest:
+	@if [ "x$(python_version_major)" == "x2" -a -n "$(CI)" ]; then \
+		echo "Skipping pylinttest - python2 in CI" \
+	;else \
+		if [ "x$(PYLINT3)" != "x" ]; then \
+			PYTHONPATH=tests $(PYLINT3) --rcfile=./.pylinttestsrc $(PYLINT_READY_TEST_MODULES); \
+		else \
+			echo "PYLINT3 not set or python major version == 2 ($(python_version_major)) - Skip linting tests!"; \
+		fi \
 	fi
 
 
