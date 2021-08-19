@@ -410,19 +410,19 @@ class GitTests(GitHgTests, GitSvnTests):
 
         # enable osc mode
         os.environ['OSC_VERSION'] = "1"
-        self.tar_scm_std("--revision", '0.0.3')
+        self.tar_scm_std("--revision", '0.0.3', '--version', '0.0.3')
         # reset osc mode
         del os.environ['OSC_VERSION']
 
         # check result
         expected = [
-            'repo-1234567890.3b43614',
-            'repo-1234567890.3b43614/a',
-            'repo-1234567890.3b43614/c',
-            'repo-1234567890.3b43614/file.1',
-            'repo-1234567890.3b43614/file.3',
-            'repo-1234567890.3b43614/subdir',
-            'repo-1234567890.3b43614/subdir/b'
+            'repo-0.0.3',
+            'repo-0.0.3/a',
+            'repo-0.0.3/c',
+            'repo-0.0.3/file.1',
+            'repo-0.0.3/file.3',
+            'repo-0.0.3/subdir',
+            'repo-0.0.3/subdir/b'
         ]
-        tar = os.path.join(self.test_dir, 'out', 'repo-1234567890.3b43614.tar')
+        tar = os.path.join(self.test_dir, 'out', 'repo-0.0.3.tar')
         self.assertTarIsDeeply(tar, expected)
