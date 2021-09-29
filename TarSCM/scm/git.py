@@ -21,6 +21,7 @@ def search_tags(comment, limit=None):
 
 class Git(Scm):
     scm = 'git'
+    _stash_pop_required = False
 
     def _get_scm_cmd(self):
         """Compose a GIT-specific command line using http proxies"""
@@ -94,6 +95,8 @@ class Git(Scm):
         if 'LANG' in os.environ:
             lang_bak = os.environ['LANG']
             os.environ['LANG'] = "C"
+
+        logging.debug("[switch_revision] GIT STASHING")
         stash_text = self.helpers.safe_run(
             self._get_scm_cmd() + ['stash'],
             cwd=self.clone_dir)[1]
@@ -117,11 +120,8 @@ class Git(Scm):
             sys.exit('%s: No such revision' % self.revision)
 
         if stash_text != "No local changes to save\n":
-            logging.debug("[switch_revision] GIT STASHING")
-            self.helpers.run_cmd(
-                self._get_scm_cmd() + ['stash', 'pop'],
-                cwd=self.clone_dir,
-                interactive=True)
+            self._stash_pop_required = [self.get_current_branch(),
+                                        self.get_current_commit()]
 
         if lang_bak:
             os.environ['LANG'] = lang_bak
@@ -318,7 +318,13 @@ class Git(Scm):
     def get_current_commit(self):
         return self.helpers.safe_run(self._get_scm_cmd() + ['rev-parse',
                                                             'HEAD'],
-                                     self.clone_dir)[1]
+                                     self.clone_dir)[1].rstrip()
+
+    def get_current_branch(self):
+        return self.helpers.safe_run(self._get_scm_cmd() + ['rev-parse',
+                                                            '--abbrev-ref',
+                                                            'HEAD'],
+                                     self.clone_dir)[1].rstrip()
 
     def _ref_exists(self, rev):
         rcode, _ = self.helpers.run_cmd(
@@ -405,9 +411,26 @@ class Git(Scm):
             self.helpers.safe_run(
                 cmd, cwd=self.clone_dir, interactive=sys.stdout.isatty())
 
-    # no cleanup is necessary for git
     def cleanup(self):
-        pass
+        logging.debug("Doing cleanup")
+        if self._stash_pop_required:
+            logging.debug("Stash pop required!")
+            branch = self._stash_pop_required[0]
+            commit = self._stash_pop_required[1]
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['checkout', branch],
+                self.clone_dir)
+
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['reset', '--hard', commit],
+                self.clone_dir)
+
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['stash', 'pop'],
+                cwd=self.clone_dir,
+                interactive=True)
+            self._stash_pop_required = False
+        return True
 
     def check_url(self):
         """check if url is a remote url"""
