@@ -140,11 +140,18 @@ class TestAssertions(unittest.TestCase):
                    self.update_cache_command, should_not_find)
 
     def assertTarIsDeeply(self, tar, expected):
+        if not os.path.isfile(tar):
+            print("File '%s' not found" % tar)
+            return False
         th = tarfile.open(tar)
         got = []
         for mem in th.getmembers():
             got.append(mem.name)
-        self.assertTrue(got == expected)
+        result = got == expected
+        if result == False:
+            print("got: %r" % got)
+            print("expected: %r" % expected)
+        self.assertTrue(result)
 
     def _find(self, logpath, loglines, should_find, should_not_find):
         found = False
