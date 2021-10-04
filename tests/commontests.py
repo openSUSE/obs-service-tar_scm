@@ -283,7 +283,6 @@ class CommonTests(TestEnvironment, TestAssertions):
             )
 
             self.scmlogs.nextlog()
-            self.postRun()
 
     def test_switch_revision_and_subdir(self):
         self._switch_revision_and_subdir()
