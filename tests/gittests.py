@@ -391,16 +391,19 @@ class GitTests(GitHgTests, GitSvnTests):
         # git._stash_and_merge() would not be executed
         repo_dir = os.path.join(self.pkgdir, 'repo')
         fix.safe_run('clone %s %s' % (fix.wdir, repo_dir))
+        fix.touch(os.path.join(repo_dir, 'test.txt'))
+        with open(os.path.join(repo_dir, 'file.4'), 'a') as file4:
+            file4.write("just for testing")
 
         # disable cachedirectory (would not be used with osc by default)
         os.environ['CACHEDIRECTORY'] = ""
 
         # enable osc mode
         os.environ['OSC_VERSION'] = "1"
+
         self.tar_scm_std("--revision", '0.0.3', '--version', '0.0.3')
         # reset osc mode
         del os.environ['OSC_VERSION']
-
         # check result
         expected = [
             'repo-0.0.3',
@@ -409,7 +412,13 @@ class GitTests(GitHgTests, GitSvnTests):
             'repo-0.0.3/file.1',
             'repo-0.0.3/file.3',
             'repo-0.0.3/subdir',
-            'repo-0.0.3/subdir/b'
+            'repo-0.0.3/subdir/b',
+            'repo-0.0.3/test.txt'
         ]
-        tar = os.path.join(self.test_dir, 'out', 'repo-0.0.3.tar')
+        tar = os.path.join(self.outdir, 'repo-0.0.3.tar')
         self.assertTarIsDeeply(tar, expected)
+        cwd = os.getcwd()
+        os.chdir(repo_dir)
+        status = fix.safe_run('status -s')
+        os.chdir(cwd)
+        self.assertTrue(status[0] == b' M file.4\n?? test.txt\n')
