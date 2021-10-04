@@ -109,46 +109,6 @@ class TestEnvironment:
         os.unsetenv('CACHEDIRECTORY')
         os.environ['CACHEDIRECTORY'] = ""
 
-    def tearDown(self):
-        print()
-        print("--v-v-- begin tearDown for %s --v-v--" % self.test_name)
-        self.postRun()
-        print("--^-^-- end   tearDown for %s --^-^--" % self.test_name)
-        print()
-
-    def postRun(self):
-        self.service = {'mode': 'disabled'}
-        if os.path.exists(self.outdir):
-            self.simulate_osc_postrun()
-
-    def simulate_osc_postrun(self):
-        """
-        Simulate osc copying files from temporary --outdir back to
-        package source directory, so our tests can catch any
-        potential side-effects due to the persistent nature of the
-        package source directory.
-        """
-
-        temp_dir = self.outdir
-        pdir = self.pkgdir
-        service = self.service
-
-        # This code was copied straight out of osc/core.py's
-        # Serviceinfo.execute() (and then line-wrapped for PEP8):
-        # --------- 8< --------- 8< --------- 8< --------- 8< ---------
-        if service['mode'] == "disabled"  or \
-           service['mode'] == "trylocal"  or \
-           service['mode'] == "localonly":
-            for filename in os.listdir(temp_dir):
-                shutil.move(os.path.join(temp_dir, filename),
-                            os.path.join(pdir, filename))
-        else:
-            for filename in os.listdir(temp_dir):
-                shutil.move(os.path.join(temp_dir, filename),
-                            os.path.join(pdir,
-                                         "_service::" + filename))
-        # --------- 8< --------- 8< --------- 8< --------- 8< ---------
-
     def tar_scm_std(self, *args, **kwargs):
         return self.tar_scm(self.stdargs(*args), **kwargs)
 
@@ -190,13 +150,7 @@ class TestEnvironment:
         succeeded = True
         ret = 0
         try:
-            tracer = trace.Trace(
-                ignoredirs=[sys.prefix, sys.exec_prefix],
-                trace=0,
-                count=0)
-            tracer.runfunc(TarSCM.run)
-            # r = tracer.results()
-            # r.write_results(show_missing=True, coverdir=".")
+            TarSCM.run()
         except SystemExit as exp:
             print("raised system exit %r" % exp)
             if exp.code == 0:
