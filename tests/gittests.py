@@ -204,7 +204,9 @@ class GitTests(GitHgTests, GitSvnTests):
         dirents = self.assertNumDirents(self.outdir, expected_dirents)
         self.assertTrue('_servicedata' in dirents,
                         '_servicedata in %s' % repr(dirents))
-        sdat = open(os.path.join(self.outdir, '_servicedata')).read()
+        sdf = os.path.join(self.outdir, '_servicedata')
+        with open(sdf, 'r', encoding='UTF-8') as sdatf:
+            sdat = sdatf.read()
         expected = (
             r"\s*<servicedata>"
             r"\s*<service name=\"tar_scm\">"
@@ -295,8 +297,7 @@ class GitTests(GitHgTests, GitSvnTests):
 
         # create
         fix.create_repo(r_dir)
-        f_h = open('f1', 'a')
-        f_h.close()
+        fix.touch('f1')
         fix.safe_run('add .')
         fix.safe_run('commit -m "initial commit"')
 
@@ -368,7 +369,7 @@ class GitTests(GitHgTests, GitSvnTests):
         repo_path = fix.repo_path
         os.chdir(repo_path)
         os.mkdir("test")
-        with open("test/myfile.txt", 'w') as file:
+        with open("test/myfile.txt", 'w', encoding="UTF-8") as file:
             file.write("just for testing")
         fix.safe_run('add test')
         fix.safe_run('commit -m "added tests"')
@@ -391,9 +392,11 @@ class GitTests(GitHgTests, GitSvnTests):
         # git._stash_and_merge() would not be executed
         repo_dir = os.path.join(self.pkgdir, 'repo')
         fix.safe_run('clone %s %s' % (fix.wdir, repo_dir))
-        fix.touch(os.path.join(repo_dir, 'test.txt'))
-        with open(os.path.join(repo_dir, 'file.4'), 'a') as file4:
-            file4.write("just for testing")
+        test_txt = os.path.join(repo_dir, 'test.txt')
+        fix.touch(test_txt)
+        file4 = os.path.join(repo_dir, 'file.4')
+        with open(file4, 'a', encoding='UTF-8') as fh4:
+            fh4.write("just for testing")
 
         # disable cachedirectory (would not be used with osc by default)
         os.environ['CACHEDIRECTORY'] = ""
