@@ -163,10 +163,9 @@ version: 1.0
         tasks.generate_list()
         tasks.finalize()
         self._restore_cwd()
-        scf = open(os.path.join(self.cli.outdir,
-                                '_service:snapcraft:snapcraft.yaml'), 'r')
-        got = scf.read()
-        scf.close()
+        snf = os.path.join(self.cli.outdir,'_service:snapcraft:snapcraft.yaml')
+        with open(snf, 'r', encoding='utf-8') as scf:
+            got = scf.read()
         self.assertEqual(got, expected)
 
     def test_cleanup(self):

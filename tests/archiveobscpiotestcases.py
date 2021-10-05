@@ -62,7 +62,8 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
         infofile = os.path.join(outdir, bname + ".obsinfo")
         self.assertTrue(os.path.isfile(cpiofile))
         self.assertTrue(os.path.isfile(infofile))
-        data = yaml.safe_load(open(infofile, 'r'))
+        with open(infofile, 'r', encoding='UTF-8') as fhl:
+            data = yaml.safe_load(fhl)
         self.assertDictEqual(
             data, {
                 'name': bname,

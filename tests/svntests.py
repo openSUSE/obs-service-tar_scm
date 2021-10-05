@@ -56,7 +56,8 @@ class SvnTests(GitSvnTests):
         dirents = self.assertNumDirents(self.outdir, expected_dirents)
         self.assertTrue('_servicedata' in dirents,
                         '_servicedata in %s' % repr(dirents))
-        sdat = open(os.path.join(self.outdir, '_servicedata')).read()
+        with open(os.path.join(self.outdir, '_servicedata')) as sdata:
+            sdat = sdata.read()
         expected = (
             r"<servicedata>"
             r"\s*<service name=\"tar_scm\">"

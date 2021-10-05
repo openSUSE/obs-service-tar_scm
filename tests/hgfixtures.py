@@ -29,7 +29,7 @@ class HgFixtures(Fixtures):
         os.makedirs(self.repo_path)
         os.chdir(self.repo_path)
         self.safe_run('init')
-        with open('.hg/hgrc', 'w') as rcf:
+        with open('.hg/hgrc', 'w', encoding='UTF-8') as rcf:
             rcf.write("[ui]\nusername = %s\n" % self.name_and_email)
 
         self.wdir = self.repo_path

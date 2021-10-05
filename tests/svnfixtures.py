@@ -37,7 +37,7 @@ class SvnFixtures(Fixtures):
         quietrun('svnadmin create ' + self.repo_path)
         # allow revprop changes to explicitly set svn:date
         hook = self.repo_path + '/hooks/pre-revprop-change'
-        with open(hook, 'w') as cfh:
+        with open(hook, 'w', encoding='UTF-8') as cfh:
             cfh.write("#!/bin/sh\nexit 0;\n")
 
         sta = os.stat(hook)
@@ -60,7 +60,7 @@ class SvnFixtures(Fixtures):
         return new_rev
 
     def get_metadata(self, formatstr):
-        return self.safe_run('log -n1' % formatstr)[0]
+        return self.safe_run("log -n1 %s" % formatstr)[0]
 
     def record_rev(self, *args):
         rev_num = args[0]

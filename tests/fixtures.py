@@ -118,9 +118,8 @@ class Fixtures:
             newly_created.append(subdir)
 
         for fname in ('a', subdir + '/b'):
-            fhandle = open(fname, 'w')
-            fhandle.write(str(new_rev))
-            fhandle.close()
+            with open(fname, 'w', encoding="UTF-8") as fhn:
+                fhn.write(str(new_rev))
             self.scmlogs.annotate("Wrote %s to %s" % (new_rev, fname))
 
         # we never commit through symlink 'c' but instead see the updated
@@ -156,9 +155,8 @@ class Fixtures:
 
         new_rev = self.next_commit_rev(wdir)
         fname = 'd'
-        cfh = open(fname, 'w')
-        cfh.write(str(new_rev))
-        cfh.close()
+        with open(fname, 'w', encoding='UTF-8') as cfh:
+            cfh.write(str(new_rev))
         self.scmlogs.annotate("Wrote %s to %s" % (new_rev, fname))
         self.safe_run('add .')
         date = self.get_committer_date()
@@ -167,7 +165,8 @@ class Fixtures:
         self.scmlogs.annotate("Created 1 commit; now at %s" % (new_rev))
 
     def touch(self, fname, times=None):
-        with open(os.path.join(self.wdir, fname), 'a'):
+        fpath = os.path.join(self.wdir, fname)
+        with open(fpath, 'a', encoding='UTF-8'):
             os.utime(fname, times)
 
     def remove(self, fname):

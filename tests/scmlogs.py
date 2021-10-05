@@ -75,16 +75,13 @@ class ScmInvocationLogs:
         os.environ['SCM_INVOCATION_LOG'] = self.current_log_path
 
     def annotate(self, msg):
-        log = open(self.current_log_path, 'a')
-        log.write('# ' + msg + "\n")
         print(msg)
-        log.close()
+        with open(self.current_log_path, 'a', encoding="UTF-8") as log:
+            log.write('# ' + msg + "\n")
 
     def read(self):
         if not os.path.exists(self.current_log_path):
             return '<no %s log>' % self.scm
-
-        log = open(self.current_log_path)
-        loglines = log.readlines()
-        log.close()
+        with open(self.current_log_path, 'r', encoding="UTF-8") as log:
+            loglines = log.readlines()
         return loglines
