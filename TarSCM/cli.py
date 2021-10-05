@@ -26,7 +26,7 @@ def check_locale(loc):
         aloc_tmp, _ = subprocess.Popen(['locale', '-a'],
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.STDOUT).communicate()
-    aloc = dict()
+    aloc = {}
 
     for tloc in aloc_tmp.split(b'\n'):
         aloc[tloc] = 1

@@ -67,9 +67,8 @@ class Tasks():
 
         if args.appimage:
             # we read the SCM config from appimage.yml
-            filehandle = open('appimage.yml')
-            self.data_map = yaml.safe_load(filehandle)
-            filehandle.close()
+            with open('appimage.yml', encoding='utf-8') as filehandle:
+                self.data_map = yaml.safe_load(filehandle)
             args.use_obs_scm = True
             build_scms = ()
             try:
@@ -88,9 +87,8 @@ class Tasks():
         elif args.snapcraft:
             # we read the SCM config from snapcraft.yaml instead
             # getting it via parameters
-            filehandle = open('snapcraft.yaml')
-            self.data_map = yaml.safe_load(filehandle)
-            filehandle.close()
+            with open('snapcraft.yaml', encoding='utf-8') as filehandle:
+                self.data_map = yaml.safe_load(filehandle)
             args.use_obs_scm = True
             # run for each part an own task
             for part in self.data_map['parts'].keys():
@@ -128,7 +126,7 @@ class Tasks():
             # we prefix our own here to be sure to not overwrite user files,
             # if he is using us in "disabled" mode
             new_file = args.outdir + '/_service:snapcraft:snapcraft.yaml'
-            with open(new_file, 'w') as outfile:
+            with open(new_file, 'w', encoding='utf-8') as outfile:
                 outfile.write(yaml.dump(self.data_map,
                                         default_flow_style=False))
 
@@ -152,8 +150,8 @@ class Tasks():
             return args
 
         # is it a branch request?
-        ofh = open("_branch_request", "r")
-        dat = json.load(ofh)
+        with open("_branch_request", "r", encoding='utf-8') as ofh:
+            dat = json.load(ofh)
         if dat.get('object_kind') == 'merge_request':
             # gitlab merge request
             args.url = dat['project']['http_url']
