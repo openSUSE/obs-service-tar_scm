@@ -125,7 +125,7 @@ class Tasks():
         if args.snapcraft:
             # write the new snapcraft.yaml file
             # we prefix our own here to be sure to not overwrite user files,
-            # if he is using us in "disabled" mode
+            # if they are using it in "disabled" mode
             new_file = args.outdir + '/_service:snapcraft:snapcraft.yaml'
             yml_str = yaml.dump(self.data_map, default_flow_style=False)
             file_write_legacy(new_file, yml_str)
