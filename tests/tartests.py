@@ -3,6 +3,8 @@ from __future__ import print_function
 
 import os
 
+from utils import file_write_legacy
+
 from tests.tarfixtures    import TarFixtures
 from tests.testenv        import TestEnvironment
 from tests.testassertions import TestAssertions
@@ -26,13 +28,12 @@ class TarTestCases(TestEnvironment, TestAssertions):
         info = os.path.join(wdir, "test.obsinfo")
         print("INFOFILE: '%s'" % info)
         os.chdir(self.pkgdir)
-        with open(info, 'w', encoding='UTF-8') as obsinfo:
-            obsinfo.write(
-                "name: pkgname\n" +
-                "version: 0.1.1\n" +
-                "mtime: 1476683264\n" +
-                "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
-            )
+        out_str = "name: pkgname\n" \
+                  "version: 0.1.1\n" \
+                  "mtime: 1476683264\n" \
+                  "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        file_write_legacy(info, out_str)
+
         src_dir = os.path.join(wdir, "pkgname")
         os.mkdir(src_dir)
         self.tar_scm_std()

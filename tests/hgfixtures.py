@@ -3,7 +3,7 @@
 import os
 
 from fixtures import Fixtures
-from utils    import run_hg
+from utils    import run_hg, file_write_legacy
 
 
 class HgFixtures(Fixtures):
@@ -29,8 +29,8 @@ class HgFixtures(Fixtures):
         os.makedirs(self.repo_path)
         os.chdir(self.repo_path)
         self.safe_run('init')
-        with open('.hg/hgrc', 'w', encoding='UTF-8') as rcf:
-            rcf.write("[ui]\nusername = %s\n" % self.name_and_email)
+        out = "[ui]\nusername = %s\n" % self.name_and_email
+        file_write_legacy('.hg/hgrc', out)
 
         self.wdir = self.repo_path
         print("created repo %s" % self.repo_path)

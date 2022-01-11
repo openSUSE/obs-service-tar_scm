@@ -6,7 +6,10 @@ import os
 import re
 import tarfile
 import shutil
+import io
 import mock
+
+from utils import file_write_legacy
 
 from tests.githgtests   import GitHgTests
 from tests.gitsvntests  import GitSvnTests
@@ -205,7 +208,7 @@ class GitTests(GitHgTests, GitSvnTests):
         self.assertTrue('_servicedata' in dirents,
                         '_servicedata in %s' % repr(dirents))
         sdf = os.path.join(self.outdir, '_servicedata')
-        with open(sdf, 'r', encoding='UTF-8') as sdatf:
+        with io.open(sdf, 'r', encoding='UTF-8') as sdatf:
             sdat = sdatf.read()
         expected = (
             r"\s*<servicedata>"
@@ -369,8 +372,7 @@ class GitTests(GitHgTests, GitSvnTests):
         repo_path = fix.repo_path
         os.chdir(repo_path)
         os.mkdir("test")
-        with open("test/myfile.txt", 'w', encoding="UTF-8") as file:
-            file.write("just for testing")
+        file_write_legacy("test/myfile.txt", "just for testing")
         fix.safe_run('add test')
         fix.safe_run('commit -m "added tests"')
         fix.safe_run('tag test')
@@ -395,8 +397,7 @@ class GitTests(GitHgTests, GitSvnTests):
         test_txt = os.path.join(repo_dir, 'test.txt')
         fix.touch(test_txt)
         file4 = os.path.join(repo_dir, 'file.4')
-        with open(file4, 'a', encoding='UTF-8') as fh4:
-            fh4.write("just for testing")
+        file_write_legacy(file4, "just for testing")
 
         # disable cachedirectory (would not be used with osc by default)
         os.environ['CACHEDIRECTORY'] = ""

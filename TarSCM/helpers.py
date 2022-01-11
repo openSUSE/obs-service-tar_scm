@@ -4,12 +4,24 @@ import datetime
 import os
 import logging
 import subprocess
+import io
 
 # python3 renaming of StringIO
 try:
     import StringIO
 except:
     from io import StringIO
+
+
+def file_write_legacy(fname, string, *args):
+    '''function to write string to file python 2/3 compatible'''
+    mode = 'w'
+    if args:
+        mode = args[0]
+
+    with io.open(fname, mode, encoding='utf-8') as outfile:
+        # 'str().encode().decode()' is required for pyhton 2/3 compatibility
+        outfile.write(str(string).encode('UTF-8').decode('UTF-8'))
 
 
 class Helpers():

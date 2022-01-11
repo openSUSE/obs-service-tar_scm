@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import os
 import re
+import io
 import shutil
 import subprocess
 import six
@@ -70,3 +71,13 @@ def run_hg(repo, args):
 
 def run_bzr(repo, args):
     return run_scm('bzr', repo, args)
+
+def file_write_legacy(fname, string, *args):
+    '''function to write string to file python 2/3 compatible'''
+    mode = 'w'
+    if args:
+        mode = args[0]
+
+    with io.open(fname, mode, encoding='utf-8') as outfile:
+        # 'str().encode().decode()' is required for pyhton 2/3 compatibility
+        outfile.write(str(string).encode('UTF-8').decode('UTF-8'))

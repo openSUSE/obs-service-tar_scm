@@ -57,4 +57,4 @@ jobs:
         # test python3
         - make -C /tmp/kanku clean check3
         # test python2
-        - make -C /tmp/kanku clean check2
+        - make -C /tmp/kanku clean test2

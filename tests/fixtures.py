@@ -3,7 +3,9 @@
 
 import os
 import shutil
+import io
 
+from utils import file_write_legacy
 
 class Fixtures:
 
@@ -118,8 +120,7 @@ class Fixtures:
             newly_created.append(subdir)
 
         for fname in ('a', subdir + '/b'):
-            with open(fname, 'w', encoding="UTF-8") as fhn:
-                fhn.write(str(new_rev))
+            file_write_legacy(fname, new_rev)
             self.scmlogs.annotate("Wrote %s to %s" % (new_rev, fname))
 
         # we never commit through symlink 'c' but instead see the updated
@@ -155,8 +156,7 @@ class Fixtures:
 
         new_rev = self.next_commit_rev(wdir)
         fname = 'd'
-        with open(fname, 'w', encoding='UTF-8') as cfh:
-            cfh.write(str(new_rev))
+        file_write_legacy(fname, new_rev)
         self.scmlogs.annotate("Wrote %s to %s" % (new_rev, fname))
         self.safe_run('add .')
         date = self.get_committer_date()
@@ -166,7 +166,7 @@ class Fixtures:
 
     def touch(self, fname, times=None):
         fpath = os.path.join(self.wdir, fname)
-        with open(fpath, 'a', encoding='UTF-8'):
+        with io.open(fpath, 'a', encoding='UTF-8'):
             os.utime(fname, times)
 
     def remove(self, fname):
