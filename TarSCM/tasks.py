@@ -13,11 +13,12 @@ import sys
 import re
 import locale
 import json
+import io
 import yaml
 
 import TarSCM.scm
 import TarSCM.archive
-from TarSCM.helpers import Helpers
+from TarSCM.helpers import Helpers, file_write_legacy
 from TarSCM.changes import Changes
 from TarSCM.exceptions import OptionsError
 
@@ -67,7 +68,7 @@ class Tasks():
 
         if args.appimage:
             # we read the SCM config from appimage.yml
-            with open('appimage.yml', encoding='utf-8') as filehandle:
+            with io.open('appimage.yml', encoding='utf-8') as filehandle:
                 self.data_map = yaml.safe_load(filehandle)
             args.use_obs_scm = True
             build_scms = ()
@@ -87,7 +88,7 @@ class Tasks():
         elif args.snapcraft:
             # we read the SCM config from snapcraft.yaml instead
             # getting it via parameters
-            with open('snapcraft.yaml', encoding='utf-8') as filehandle:
+            with io.open('snapcraft.yaml', encoding='utf-8') as filehandle:
                 self.data_map = yaml.safe_load(filehandle)
             args.use_obs_scm = True
             # run for each part an own task
@@ -126,9 +127,8 @@ class Tasks():
             # we prefix our own here to be sure to not overwrite user files,
             # if he is using us in "disabled" mode
             new_file = args.outdir + '/_service:snapcraft:snapcraft.yaml'
-            with open(new_file, 'w', encoding='utf-8') as outfile:
-                outfile.write(yaml.dump(self.data_map,
-                                        default_flow_style=False))
+            yml_str = yaml.dump(self.data_map, default_flow_style=False)
+            file_write_legacy(new_file, yml_str)
 
         # execute also download_files for downloading single sources
         if args.snapcraft or args.appimage:
@@ -150,7 +150,7 @@ class Tasks():
             return args
 
         # is it a branch request?
-        with open("_branch_request", "r", encoding='utf-8') as ofh:
+        with io.open("_branch_request", "r", encoding='utf-8') as ofh:
             dat = json.load(ofh)
         if dat.get('object_kind') == 'merge_request':
             # gitlab merge request

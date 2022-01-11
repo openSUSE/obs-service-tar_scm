@@ -7,7 +7,10 @@ import inspect
 import copy
 import unittest
 import six
+
 from mock import patch
+
+from utils import file_write_legacy
 
 import TarSCM
 
@@ -287,13 +290,11 @@ class UnitTestCases(unittest.TestCase):
         print("INFOFILE: '%s'" % info)
 
         # check for slash in name
-        with open(info, 'w', encoding='UTF-8') as f_h:
-            f_h.write(
-                "name: test/test\n" +
-                "version: 0.1.1\n" +
-                "mtime: 1476683264\n" +
-                "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
-            )
+        string = "name: test/test\n" \
+                 "version: 0.1.1\n" \
+                 "mtime: 1476683264\n" \
+                 "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        file_write_legacy(info, string)
         os.chdir(wdir)
         six.assertRaisesRegex(
             self,
@@ -303,13 +304,11 @@ class UnitTestCases(unittest.TestCase):
         )
 
         # check for slash in version
-        with open(info, 'w', encoding='UTF-8') as f_h:
-            f_h.write(
-                "name: test\n" +
-                "version: a/0.1.1\n" +
-                "mtime: 1476683264\n" +
-                "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
-            )
+        string = "name: test\n" \
+                 "version: a/0.1.1\n" \
+                 "mtime: 1476683264\n" \
+                 "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        file_write_legacy(info, string)
         os.chdir(wdir)
         six.assertRaisesRegex(
             self,
@@ -319,13 +318,11 @@ class UnitTestCases(unittest.TestCase):
         )
 
         # check for .. in version
-        with open(info, 'w', encoding='UTF-8') as f_h:
-            f_h.write(
-                "name: test\n" +
-                "version: ..0.1.1\n" +
-                "mtime: 1476683264\n" +
-                "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
-            )
+        string = "name: test\n" \
+                 "version: ..0.1.1\n" \
+                 "mtime: 1476683264\n" \
+                 "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        file_write_legacy(info, string)
         os.chdir(wdir)
         six.assertRaisesRegex(
             self,

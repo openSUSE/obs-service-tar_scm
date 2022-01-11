@@ -2,6 +2,7 @@
 
 import os
 import re
+import io
 
 from gitsvntests import GitSvnTests
 from svnfixtures import SvnFixtures
@@ -56,7 +57,8 @@ class SvnTests(GitSvnTests):
         dirents = self.assertNumDirents(self.outdir, expected_dirents)
         self.assertTrue('_servicedata' in dirents,
                         '_servicedata in %s' % repr(dirents))
-        with open(os.path.join(self.outdir, '_servicedata')) as sdata:
+        infile = os.path.join(self.outdir, '_servicedata')
+        with io.open(infile, 'r', encoding='UTF-8') as sdata:
             sdat = sdata.read()
         expected = (
             r"<servicedata>"

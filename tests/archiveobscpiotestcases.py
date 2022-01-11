@@ -6,6 +6,7 @@ import re
 import inspect
 import shutil
 import unittest
+import io
 import six
 import yaml
 
@@ -62,7 +63,7 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
         infofile = os.path.join(outdir, bname + ".obsinfo")
         self.assertTrue(os.path.isfile(cpiofile))
         self.assertTrue(os.path.isfile(infofile))
-        with open(infofile, 'r', encoding='UTF-8') as fhl:
+        with io.open(infofile, 'r', encoding='UTF-8') as fhl:
             data = yaml.safe_load(fhl)
         self.assertDictEqual(
             data, {

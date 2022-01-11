@@ -8,7 +8,7 @@ class FakeCli(dict):  # pylint: disable=no-init,too-few-public-methods
     keyring_passphrase = ''
     maintainers_asc = None
     def __init__(self, match_tag=False):
-        super(FakeCli, self).__init__()  # pylint: disable=R1725
+        super(FakeCli, self).__init__()
         self.match_tag          = match_tag
 
 

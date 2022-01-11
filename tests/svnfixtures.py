@@ -4,7 +4,7 @@ import os
 import stat
 from datetime import datetime
 
-from utils    import mkfreshdir, quietrun, run_svn
+from utils    import mkfreshdir, quietrun, run_svn, file_write_legacy
 from fixtures import Fixtures
 
 
@@ -37,8 +37,7 @@ class SvnFixtures(Fixtures):
         quietrun('svnadmin create ' + self.repo_path)
         # allow revprop changes to explicitly set svn:date
         hook = self.repo_path + '/hooks/pre-revprop-change'
-        with open(hook, 'w', encoding='UTF-8') as cfh:
-            cfh.write("#!/bin/sh\nexit 0;\n")
+        file_write_legacy(hook, "#!/bin/sh\nexit 0;\n")
 
         sta = os.stat(hook)
         os.chmod(hook, sta.st_mode | stat.S_IEXEC)
