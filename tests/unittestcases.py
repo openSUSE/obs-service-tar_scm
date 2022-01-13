@@ -355,3 +355,11 @@ class UnitTestCases(unittest.TestCase):
         self.assertEqual(tc_name, bname)
         self.assertEqual('%s-%s' % (tc_name, version), dst)
         self.assertEqual(chgv, version)
+
+    def test_cache_locking(self):
+        scm     = Git(self.cli, self.tasks)
+        scm.clone_dir = '.'
+        scm.lock_cache()
+        fname = scm.lock_file.name
+        scm.unlock_cache()
+        assert os.path.exists(fname) == 0
