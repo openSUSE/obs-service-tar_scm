@@ -375,6 +375,7 @@ class Scm():
         if self.lock_file and os.path.isfile(self.lock_file.name):
             fcntl.lockf(self.lock_file, fcntl.LOCK_UN)
             self.lock_file.close()
+            os.unlink(self.lock_file.name)
             self.lock_file = None
 
     def finalize(self):
