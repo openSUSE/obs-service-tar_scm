@@ -44,6 +44,7 @@ def check_locale(loc):
 
 class Cli():
     # pylint: disable=too-few-public-methods
+    # pylint: disable=too-many-instance-attributes
     DEFAULT_AUTHOR = 'obs-service-tar-scm@invalid'
     outdir = None
 
@@ -51,6 +52,12 @@ class Cli():
         self.use_obs_scm = False
         self.snapcraft   = False
         self.appimage    = False
+        self.maintainers_asc = None
+        self.url = None
+        self.revision = None
+        self.user = None
+        self.keyring_passphrase = None
+        self.changesgenerate = False
 
     def parse_args(self, options):
         parser = argparse.ArgumentParser(description='Git Tarballs')
