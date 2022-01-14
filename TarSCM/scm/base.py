@@ -5,7 +5,6 @@ import logging
 import re
 import hashlib
 import shutil
-import fcntl
 import time
 import subprocess
 import glob
@@ -368,14 +367,23 @@ class Scm():
 
     def lock_cache(self):
         pdir = os.path.join(self.clone_dir, os.pardir, '.lock')
-        self.lock_file = open(os.path.abspath(pdir), 'w')
-        fcntl.lockf(self.lock_file, fcntl.LOCK_EX)
+        while True:
+            if os.path.isfile(pdir):
+                time.sleep(0.1)
+            else:
+                logging.debug("Using lockfile: %s", pdir)
+                self.lock_file = open(os.path.abspath(pdir), 'w')
+                break
 
     def unlock_cache(self):
         if self.lock_file and os.path.isfile(self.lock_file.name):
-            fcntl.lockf(self.lock_file, fcntl.LOCK_UN)
-            self.lock_file.close()
-            os.unlink(self.lock_file.name)
+            logging.debug("Unlocking cache: %s", self.lock_file.name)
+            try:
+                self.lock_file.close()
+                os.unlink(self.lock_file.name)
+            except:
+                pass
+
             self.lock_file = None
 
     def finalize(self):
