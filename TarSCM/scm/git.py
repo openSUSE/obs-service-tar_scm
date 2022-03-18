@@ -232,7 +232,7 @@ class Git(Scm):
             )
             command = self._get_scm_cmd() + ['fetch']
             if not self.args.subdir:
-                command.insert(-1, '--filter=tree:0')
+                command.append('--filter=tree:0')
             self.helpers.safe_run(
                 command,
                 cwd=self.clone_dir,
