@@ -29,6 +29,7 @@ except ImportError:
 class Scm():
 
     scm = None
+    partial_clone = False
 
     def __init__(self, args, task):
         # default settings
@@ -291,6 +292,11 @@ class Scm():
         self.basename = prefix + self.basename
 
         osc_version = 0
+
+        if not self.args.subdir:
+            self.partial_clone = True
+            if self.repocachedir:
+                self.repocachedir = self.repocachedir + '-pc'
 
         try:
             osc_version = os.environ['OSC_VERSION']
