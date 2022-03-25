@@ -303,7 +303,7 @@ class CommonTests(TestEnvironment, TestAssertions):
         args_tag2 = args + ['--revision', self.rev(2)]
 
         use_cache_exception = use_cache
-        if self.scm == 'svn' or self.scm == 'git':
+        if self.scm in ('svn', 'git'):
             use_cache_exception = False
 
         self.scmlogs.annotate("use_cache_exception: " + str(use_cache_exception))
