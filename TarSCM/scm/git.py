@@ -156,13 +156,13 @@ class Git(Scm):
                 interactive=sys.stdout.isatty())
 
             argsd = self.args.__dict__
-            if not 'submodules' in argsd:
+            if 'submodules' not in argsd:
                 cfg_cmd = self._get_scm_cmd() + ['config', '--local',
-                        'fetch.recurseSubmodules', 'false']
+                                                 'fetch.recurseSubmodules',
+                                                 'false']
                 self.helpers.safe_run(
                     cfg_cmd, cwd=self.clone_dir,
                     interactive=sys.stdout.isatty())
-
 
         if self.revision == "@PARENT_TAG@":
             self.revision = self._detect_parent_tag()
@@ -235,14 +235,17 @@ class Git(Scm):
             command = self._get_scm_cmd() + ['fetch', '--tags']
             if self.partial_clone:
                 command.insert(-1, '--filter=tree:0')
+
             self.helpers.safe_run(
                 command,
                 cwd=self.clone_dir,
                 interactive=sys.stdout.isatty()
             )
+
             command = self._get_scm_cmd() + ['fetch']
             if self.partial_clone:
                 command.append('--filter=tree:0')
+
             self.helpers.safe_run(
                 command,
                 cwd=self.clone_dir,
@@ -440,9 +443,10 @@ class Git(Scm):
                 config_command, cwd=self.clone_dir,
                 interactive=sys.stdout.isatty())
             argsd = self.args.__dict__
-            if not 'submodules' in argsd:
+            if 'submodules' not in argsd:
                 cfg_cmd = self._get_scm_cmd() + ['config', '--local',
-                        'fetch.recurseSubmodules', 'false']
+                                                 'fetch.recurseSubmodules',
+                                                 'false']
                 self.helpers.safe_run(
                     cfg_cmd, cwd=self.clone_dir,
                     interactive=sys.stdout.isatty())

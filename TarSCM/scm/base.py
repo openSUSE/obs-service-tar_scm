@@ -293,8 +293,10 @@ class Scm():
 
         osc_version = 0
 
-        if not self.args.subdir:
+        logging.debug(" - SUBDIR: %s", self.args.subdir)
+        if not self.args.subdir and self.scm == 'git':
             self.partial_clone = True
+            logging.debug("NO SUBDIR FOUND - USING PARTIAL CLONE")
             if self.repocachedir:
                 self.repocachedir = self.repocachedir + '-pc'
 
