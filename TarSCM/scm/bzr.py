@@ -28,10 +28,12 @@ class Bzr(Scm):
 
     def update_cache(self):
         """Update sources via bzr."""
+        # pylint: disable=duplicate-code
         command = self._get_scm_cmd() + ['update']
         if self.revision:
             command.insert(3, '-r')
             command.insert(4, self.revision)
+
         self.helpers.safe_run(
             command,
             cwd=self.clone_dir,

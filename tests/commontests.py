@@ -262,7 +262,9 @@ class CommonTests(TestEnvironment, TestAssertions):
             self.tar_scm_std(*args)
             logpath = self.scmlogs.current_log_path
             loglines = self.scmlogs.read()
+
             if expect_cache_hit:
+                self.scmlogs.annotate("expected cache hit")
                 self.assertRanUpdate(logpath, loglines)
             else:
                 self.assertRanInitialClone(logpath, loglines)
@@ -276,6 +278,7 @@ class CommonTests(TestEnvironment, TestAssertions):
             else:
                 tar_handle = self.assertTarOnly(basename)
                 tarent = 'a'
+
             self.assertTarMemberContains(
                 tar_handle,
                 basename + '/' + tarent,
@@ -298,11 +301,17 @@ class CommonTests(TestEnvironment, TestAssertions):
         args_subdir = args + ['--subdir', self.fixtures.subdir]
 
         args_tag2 = args + ['--revision', self.rev(2)]
+
+        use_cache_exception = use_cache
+        if self.scm == 'svn' or self.scm == 'git':
+            use_cache_exception = False
+
+        self.scmlogs.annotate("use_cache_exception: " + str(use_cache_exception))
         self._sequential_calls_with_revision(
             version,
             [
                 (0, args_tag2,   '2', False),
-                (0, args_subdir, '2', use_cache and self.scm != 'svn'),
+                (0, args_subdir, '2', use_cache_exception),
                 (2, args_tag2,   '2', use_cache),
                 (0, args_subdir, '4', use_cache),
                 (2, args_tag2,   '2', use_cache),
