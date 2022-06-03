@@ -4,5 +4,5 @@ pep8
 python-dateutil
 PyYAML
 six
-pylint
+pylint < 2.14
 flake8
