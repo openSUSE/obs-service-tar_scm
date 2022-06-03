@@ -102,7 +102,7 @@ def main():
 
     # Cleanup:
     if result.wasSuccessful():
-        if os.path.exists(TestEnvironment.tmp_dir):
+        if os.path.exists(TestEnvironment.tmp_dir) and not os.environ.get('TAR_SCM_SKIP_CLEANUP'):
             shutil.rmtree(TestEnvironment.tmp_dir)
         sys.exit(0)
     else:
