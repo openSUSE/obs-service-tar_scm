@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import os
+import glob
 
 from utils import file_write_legacy
 
@@ -44,3 +45,36 @@ class TarTestCases(TestEnvironment, TestAssertions):
         tasks               = FakeTasks()
         tar_obj             = Tar(cli, tasks)
         tar_obj.finalize()
+
+
+    def test_tar_scm_multiple_obsinfo(self):
+        wdir       = self.pkgdir
+        info = os.path.join(wdir, "test1.obsinfo")
+        print("INFOFILE: '%s'" % info)
+        os.chdir(self.pkgdir)
+        out_str = "name: pkgname1\n" \
+                  "version: 0.1.1\n" \
+                  "mtime: 1476683264\n" \
+                  "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        file_write_legacy(info, out_str)
+
+        info = os.path.join(wdir, "test2.obsinfo")
+        print("INFOFILE: '%s'" % info)
+        os.chdir(self.pkgdir)
+        out_str = "name: pkgname2\n" \
+                  "version: 0.1.2\n" \
+                  "mtime: 1476683264\n" \
+                  "commit: fea6eb5f43841d57424843c591b6c8791367a9e5\n"
+        file_write_legacy(info, out_str)
+
+        src_dir = os.path.join(wdir, "pkgname1")
+        os.mkdir(src_dir)
+        src_dir = os.path.join(wdir, "pkgname2")
+        os.mkdir(src_dir)
+        self.tar_scm_std()
+        self.assertTrue(os.path.isdir(src_dir))
+        os.chdir(self.outdir)
+        files = glob.glob('*.tar')
+        files.sort()
+        expected = ['pkgname1-0.1.1-0.1.1.tar', 'pkgname2-0.1.2-0.1.2.tar']
+        self.assertEqual(files, expected)

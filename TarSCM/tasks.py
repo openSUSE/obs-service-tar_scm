@@ -24,6 +24,7 @@ from TarSCM.exceptions import OptionsError
 
 
 class Tasks():
+    # pylint: disable=too-many-branches
     '''
     Class to create a task list for formats which can contain more then one scm
     job like snapcraft or appimage
@@ -107,6 +108,18 @@ class Tasks():
                 del self.data_map['parts'][part]['source-type']
                 self.task_list.append(copy.copy(args))
 
+        # only try to autodetect obsinfo files if no obsinfo file is given
+        # as cli parameter
+        elif args.scm == 'tar' and args.obsinfo is None:
+            # use all obsinfo files in cwd if none are given
+            files = glob.glob('*.obsinfo')
+            if files:
+                for obsinfo in files:
+                    args.obsinfo = obsinfo
+                    self.task_list.append(copy.copy(args))
+            else:
+                # Fallback if there are no obsinfo files
+                self.task_list.append(args)
         else:
             self.task_list.append(args)
 
