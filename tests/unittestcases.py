@@ -8,7 +8,10 @@ import copy
 import unittest
 import six
 
-from mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 from utils import file_write_legacy
 

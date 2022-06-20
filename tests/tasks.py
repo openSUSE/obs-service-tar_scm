@@ -6,7 +6,10 @@ import shutil
 import unittest
 import io
 
-from mock import MagicMock
+try:
+    from unittest.mock import MagicMock
+except ImportError:
+    from mock import MagicMock
 
 from tar_scm import TarSCM
 from tests.fake_classes import FakeSCM
