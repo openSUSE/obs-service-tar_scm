@@ -7,7 +7,11 @@ import re
 import tarfile
 import shutil
 import io
-import mock
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 from utils import file_write_legacy
 

@@ -137,13 +137,15 @@ BuildRequires:  %{locale_package}
 BuildRequires:  %{pkg_name} = %{version}
 BuildRequires:  %{use_python}-keyring
 BuildRequires:  %{use_python}-keyrings.alt
-BuildRequires:  %{use_python}-mock
 BuildRequires:  %{use_python}-six
 BuildRequires:  %{use_python}-unittest2
 BuildRequires:  bzr
 BuildRequires:  git-core
 BuildRequires:  mercurial
 BuildRequires:  subversion
+%if !%{with python3}
+BuildRequires:  %{use_python}-mock
+%endif
 %endif
 
 BuildRequires:  %{locale_package}
