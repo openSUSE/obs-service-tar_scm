@@ -171,6 +171,7 @@ BuildRequires:  python >= 2.6
 #
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
+Requires:       %{python_path}
 
 %description
 This is a source service for openSUSE Build Service.
