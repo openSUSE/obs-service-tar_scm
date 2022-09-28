@@ -375,6 +375,15 @@ class Scm():
 
     def lock_cache(self):
         pdir = os.path.join(self.clone_dir, os.pardir, '.lock')
+        if os.path.isfile(pdir):
+            mtime = os.path.getmtime(pdir)
+            if mtime < time.time() - 86400:
+                logging.error(" Lock older than 24h")
+                logging.error(" Please check if another process is currently"
+                              " running.")
+                logging.error(" Stale lock must be removed manually: '%s'"
+                              % pdir)
+                raise SystemExit(1)
         while True:
             if os.path.isfile(pdir):
                 time.sleep(0.1)
