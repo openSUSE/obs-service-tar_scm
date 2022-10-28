@@ -7,6 +7,7 @@ import unittest
 import io
 
 try:
+    # pylint: disable=ungrouped-imports
     from unittest.mock import MagicMock
 except ImportError:
     from mock import MagicMock
