@@ -70,6 +70,7 @@ def prepare_testsuite(tclasses):
             to_run = {}
             for arg in sys.argv[1:]:
                 rmatch = re.match('^/(.+)/$', arg)
+                # pylint: disable=unnecessary-lambda-assignment
                 if rmatch:
                     # regexp mode
                     regexp = rmatch.group(1)

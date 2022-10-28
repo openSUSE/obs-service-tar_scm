@@ -65,8 +65,9 @@ class Helpers():
         return (proc.returncode, output)
 
     def safe_run(self, cmd, cwd, interactive=False):
-        """Execute the command cmd in the working directory cwd and check return
-        value. If the command returns non-zero raise a SystemExit exception.
+        """Execute the command cmd in the working directory cwd and check
+        return value. If the command returns non-zero raise a SystemExit
+        exception.
         """
         result = self.run_cmd(cmd, cwd, interactive, raisesysexit=True)
         return result
