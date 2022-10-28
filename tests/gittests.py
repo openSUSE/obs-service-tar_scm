@@ -7,6 +7,7 @@ import re
 import tarfile
 import shutil
 import io
+import inspect
 
 try:
     from unittest import mock
@@ -430,3 +431,133 @@ class GitTests(GitHgTests, GitSvnTests):
         status = fix.safe_run('status -s')
         os.chdir(cwd)
         self.assertTrue(status[0] == b' M file.4\n?? test.txt\n')
+
+    def test_find_valid_commit(self):
+        cln = self.__class__.__name__
+        fnn = inspect.stack()[0][3]
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        tar_path = os.path.join(basedir, 'fixtures', cln, fnn, 'fixtures.tar')
+        if not os.path.isfile(tar_path):
+            raise AssertionError("File does not exist: %s" % tar_path)
+        basedir = os.path.abspath(os.path.join(os.getcwd(),'..'))
+        org_gnupghome = os.getenv('GNUPGHOME')
+        os.environ["GNUPGHOME"] = os.path.join(basedir, '.gnupg')
+        with tarfile.open(tar_path, "r") as tar:
+            tar.extractall(basedir)
+
+        # prepare test
+        f_args  = FakeCli()
+        f_tasks = FakeTasks()
+        git = Git(f_args, f_tasks)
+
+        self.assertEqual(git.merge_is_empty('181fb87'), 0)
+        self.assertEqual(git.merge_is_empty('62368a6'), 1)
+        self.assertEqual(git.merge_is_empty('79880ce'), 1)
+        self.assertEqual(git.merge_is_empty('d4d309f'), 1)
+        self.assertEqual(git.merge_is_empty('2169a75'), 1)
+        self.assertEqual(git.merge_is_empty('b678c16'), 1)
+
+        expected = [
+            [
+                '',
+                '62368a6718a739b89d1d3831cb1305bfc0792a81'
+            ],
+            [
+                '62368a6718a739b89d1d3831cb1305bfc0792a81',
+                '62368a6718a739b89d1d3831cb1305bfc0792a81'
+            ],
+            [
+                '1c2319e4a1e631fbe8b5903eb8df3c9edbd38ac7',
+                '1c2319e4a1e631fbe8b5903eb8df3c9edbd38ac7'
+            ],
+            [
+                '79880ce4f6726d95c6efafced72d997ee712136a',
+                '79880ce4f6726d95c6efafced72d997ee712136a'
+            ],
+            [
+                'f72f7bf1612102aa0cbb37a8d2feb85279b76cfa',
+                'f72f7bf1612102aa0cbb37a8d2feb85279b76cfa'
+            ],
+            [
+                'da3cd3b114c995a53fd5eb41a4366c6a1f067b53',
+                'da3cd3b114c995a53fd5eb41a4366c6a1f067b53'
+            ],
+            [
+                'fb54afb594a0e27dc4047da8ddf2adbe8af60bb5',
+                '2169a7524bb39ba9e0e619ec41f50132c1075a5c'
+            ],
+            [
+                'd4d309f876b927e9816ee0fce439c082d316c6aa',
+                '2169a7524bb39ba9e0e619ec41f50132c1075a5c'
+            ],
+            [
+                '12756203831dcf056b7bc907e516b3ab4b2eae87',
+                '12756203831dcf056b7bc907e516b3ab4b2eae87'
+            ],
+            [
+                '8ae3f352b1e1a08a3e5c696891014b11379c4567',
+                '8ae3f352b1e1a08a3e5c696891014b11379c4567'
+            ],
+            [
+                '82d3064bce8b38956956bbe3130495bd33502cb5',
+                '2169a7524bb39ba9e0e619ec41f50132c1075a5c'
+            ],
+            [
+                '2169a7524bb39ba9e0e619ec41f50132c1075a5c',
+                '2169a7524bb39ba9e0e619ec41f50132c1075a5c'
+            ],
+            [
+                '4d1b74ff1c753843a86310ebb7a14692b30892ad',
+                '4d1b74ff1c753843a86310ebb7a14692b30892ad'
+            ],
+            [
+                '29305458b0dd532c1465cd6bec86aec5f62bd8bb',
+                '29305458b0dd532c1465cd6bec86aec5f62bd8bb'
+            ],
+            [
+                'd1e4164d1bd155bec8ed9370698c8faa40531d68',
+                'd1e4164d1bd155bec8ed9370698c8faa40531d68'
+            ],
+            [
+                '05e017515ae51d6102908399b08a62b69c007002',
+                '05e017515ae51d6102908399b08a62b69c007002'
+            ],
+            [
+                'b678c1654d9fb3e918e4a2147e7b7eb027176910',
+                None
+            ],
+            [
+                'd4e47fe91df3e70621ee17e79c103c25ac9bdd57',
+                None
+            ],
+            [
+                'd0d8815d51145d29b0dc7967e203df804f18f904',
+                None
+            ],
+            [
+                '7627d9029be2f115c2a34af9e0d5e16698e090ca',
+                None
+            ],
+            [
+                'a1a8e5a26e69b31b53dc74f7bdf37e20dc9e0167',
+                None
+            ],
+            [
+                '68cfb194866c2034fa41eb8a1d329e3bc1dc5037',
+                None
+            ],
+            [
+                '6640eafee928cb9bb44065953ffcfb8355e3c88e',
+                None
+            ],
+        ]
+
+        for case in expected:
+            rev = git.find_latest_signed_commit(case[0])
+            self.assertEqual(rev, case[1])
+
+        empty=git.merge_is_empty('181fb87')
+        self.assertEqual(empty, 0)
+
+        if org_gnupghome:
+            os.environ["GNUPGHOME"] = org_gnupghome

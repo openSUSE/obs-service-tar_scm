@@ -60,7 +60,7 @@ class Git(Scm):
                          "\033[0m")
 
         if self.args.latest_signed_commit:
-            self.revision = self.find_latest_signed_commit()
+            self.revision = self.find_latest_signed_commit('HEAD')
             if not self.revision:
                 sys.exit("\033[31mNo signed commit found!"
                          "\033[0m")
@@ -505,42 +505,90 @@ class Git(Scm):
         # Deny by default, might be local path
         return False
 
-    def find_latest_signed_commit(self):
-        result = self.helpers.safe_run(
-            ['git', 'log', '--pretty=format:%H %G? %h %D', "--topo-order"],
-            cwd=self.clone_dir)
+    def find_latest_signed_commit(self, commit):
+        if not commit:
+            commit = 'HEAD'
+        cmd = ['git', 'rev-list', '-n1', commit]
+        result = self.helpers.safe_run(cmd, cwd=self.clone_dir)
+        commit = result[1].rstrip()
 
-        revision = None
+        while commit:
+            parents = self.get_parents(commit)
+            (commit, c_ok) = self.check_commit(commit, parents)
+            if c_ok:
+                return commit
+        return None
 
-        lines = result[1].split("\n")
-        while lines:
-            line = lines.pop(0)
-            commit = line.split(" ", 3)
-            logging.debug("Commit: %s - %s", commit[0], commit[1])
-            if re.match("^(G|U)$", commit[1]):
-                revision = commit[0]
-                logging.debug("Found signed commit: %r", commit)
-                lines[:0] = line
+    def check_commit(self, current_commit, parents):
+        # pylint: disable=R0911,R0912
+        left_parent = None
+        if parents:
+            left_parent = parents[0]
+        right_parent = None
+        if len(parents) > 1:
+            right_parent = parents[1]
+        # skip octopus merges and proceed with left parent
+        if len(parents) > 2:
+            return (left_parent, 0)
+        if not current_commit:
+            return ('', 0)
 
-                while not self._parent_tag and lines:
-                    tline = lines.pop(0)
-                    commit = tline.split(" ", 3)
-                    if len(commit) > 3:
-                        ptg = search_tags(commit[3], 1)
-                        if ptg:
-                            self._parent_tag = ptg[0]
+        cmd = ['git', 'verify-commit', current_commit]
+        result = self.helpers.run_cmd(cmd, cwd=self.clone_dir)
+        if not result[0]:
+            return (current_commit, 1)
 
-                if self._parent_tag:
-                    logging.debug("Found parent tag: %s", self._parent_tag)
+        if right_parent:
+            c_ok = self.check_commit(
+                current_commit,
+                [right_parent])
+            if c_ok[1]:
+                parents = self.get_parents(left_parent)
+                if len(parents) > 1:
+                    mie = self.merge_is_empty(current_commit)
+                    if mie:
+                        c_ok = self.check_commit(
+                            current_commit,
+                            [left_parent])
+                        return (current_commit, c_ok[1])
                 else:
-                    logging.debug("No parent tag found")
+                    c_ok = self.check_commit(
+                        current_commit,
+                        [left_parent])
+                    if c_ok[1]:
+                        return (current_commit, 1)
+        elif left_parent:
+            parents = self.get_parents(left_parent)
+            if len(parents) > 1:
+                c_ok = self.check_commit(current_commit, parents)
+                if c_ok[1]:
+                    return (left_parent, 1)
+            else:
+                cmd = ['git', 'verify-commit', left_parent]
+                result = self.helpers.run_cmd(cmd, cwd=self.clone_dir)
+                if not result[0]:
+                    return (left_parent, 1)
 
-                break
+        return (left_parent, 0)
 
-        if not revision:
-            logging.debug("No signed commit found")
+    def merge_is_empty(self, sha1):
+        cmd  = ['git', 'diff-tree', '--cc', sha1]
+        result = self.helpers.safe_run(cmd, cwd=self.clone_dir)
+        lines = result[1].split("\n")
+        if lines[1]:
+            return 0
+        return 1
 
-        return revision
+    def get_parents(self, sha1):
+        cmd  = ['git', 'rev-list', '--parents', '-n', '1', sha1]
+        result = self.helpers.safe_run(cmd, cwd=self.clone_dir)
+        parents = result[1].rstrip().split(" ")
+        fcm = parents.pop(0)
+        if fcm != sha1:
+            raise Exception("First commit %s no equal sha1 %s" % (fcm, sha1))
+        if parents:
+            return parents
+        return []
 
     def find_latest_signed_tag(self):
         revision = None
