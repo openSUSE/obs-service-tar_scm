@@ -8,6 +8,7 @@ import re
 import io
 import shutil
 import subprocess
+import sys
 import six
 
 
@@ -22,12 +23,32 @@ def mkfreshdir(path):
     os.makedirs(path)
     os.chdir(cwd)
 
+def check_locale(loc):
+    try:
+        aloc_tmp = subprocess.check_output(['locale', '-a'])
+    except AttributeError:
+        aloc_tmp, _ = subprocess.Popen(['locale', '-a'],
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT).communicate()
+    aloc = {}
+
+    for tloc in aloc_tmp.split(b'\n'):
+        aloc[tloc] = 1
+
+    for tloc in loc:
+        print("Checking .... %s"%tloc, file=sys.stderr)
+        try:
+            if aloc[tloc.encode()]:
+                return tloc
+        except KeyError:
+            pass
+
+    return 'C'
 
 def run_cmd(cmd):
-    os.putenv('LANG', 'C.utf-8')
-    os.putenv('LC_ALL', 'C.utf-8')
-    os.environ['LANG'] = 'C.utf-8'
-    os.environ['LC_ALL'] = 'C.utf-8'
+    use_locale = check_locale(["en_US.utf8", 'C.utf8'])
+    os.environ['LANG']   = use_locale
+    os.environ['LC_ALL'] = use_locale
     if six.PY3:
         cmd = cmd.encode('UTF-8')
     proc = subprocess.Popen(

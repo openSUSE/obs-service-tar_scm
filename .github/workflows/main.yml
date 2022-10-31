@@ -25,14 +25,14 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install required dpkg packages
         run: sudo apt-get install libxslt1-dev bzr subversion mercurial
 
       - name: Generate default locales
         run: |
-          sudo locale-gen "en_US.UTF-8"
+          sudo apt-get update && sudo apt-get install tzdata locales -y && sudo locale-gen "en_US.UTF-8"
           sudo dpkg-reconfigure locales
           sudo update-locale "LANG=en_US.UTF-8"
           sudo update-locale "LC_ALL=en_US.UTF-8"
