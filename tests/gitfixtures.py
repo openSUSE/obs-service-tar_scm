@@ -16,6 +16,14 @@ class GitFixtures(Fixtures):
     def init(self):
         self.user_name  = 'test'
         self.user_email = 'test@test.com'
+
+        tmpdir = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), 'tmp')
+        gitconfig = os.path.join(tmpdir, '.gitconfig')
+        os.environ["GIT_CONFIG_GLOBAL"] = gitconfig
+        self.safe_run('config --global protocol.file.allow always')
+        self.safe_run('config --global commit.gpgsign false')
+
         self.create_repo(self.repo_path)
         self.wdir = self.repo_path
         self.submodules_path = self.container_dir + '/submodules'
@@ -40,7 +48,6 @@ class GitFixtures(Fixtures):
         self.safe_run('init')
         self.safe_run('config user.name  ' + self.user_name)
         self.safe_run('config user.email ' + self.user_email)
-        self.safe_run('config commit.gpgsign false')
         print("created repo %s" % repo_path)
 
     def get_metadata(self, fmt):
