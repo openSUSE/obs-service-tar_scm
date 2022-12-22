@@ -133,8 +133,7 @@ under the `tests/fixtures/` subdirectory.
 ### gbp
 The `obs_gbp` service can be used to create Debian source artefacts
 (.dsc, .orig.tar.gz and if non-native .debian.tar.gz or .diff.gz) from
-Git repositories, following the very popular [git-buildpackage workflow.]
-(https://honk.sigxcpu.org/piki/projects/git-buildpackage/)
+Git repositories, following the very popular [git-buildpackage workflow](https://honk.sigxcpu.org/piki/projects/git-buildpackage/).
 Requires git-buildpackage to be installed.
 
 ## Archive Formats
