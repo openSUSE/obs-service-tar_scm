@@ -1,12 +1,13 @@
 import datetime
+import io
+import locale
 import logging
 import os
 import shutil
+import stat
 import sys
 import tempfile
-import stat
-import io
-import locale
+import textwrap
 
 from TarSCM.cli    import Cli
 from TarSCM.config import Config
@@ -199,7 +200,18 @@ class Changes():
         text += '\n'
         text += "- Update to version %s:\n" % version
         for line in changes:
-            text += "  * %s\n" % line
+            # The header rule is currently 67 characters long. Test for lines
+            # longer than 63 characters to take indentation into account. So if
+            # the line is longer than 63 characters, we wrap it by spliting
+            # them and prepending the first splitted line with a bullet point
+            # and the rest with four spaces.
+            if len(line) > 63:
+                lines = textwrap.wrap(line, width=67, initial_indent='  * ',
+                                      subsequent_indent='    ')
+                for wrapped_line in lines:
+                    text += wrapped_line + '\n'
+            else:
+                text += "  * %s\n" % line
         text += '\n'
 
         old_fp = io.open(changes_filename, 'r', encoding='UTF-8')
