@@ -195,7 +195,10 @@ which get maintained in the SCM. Can be used multiple times.</description>
     <allowedvalue>disable</allowedvalue>
   </parameter>
   <parameter name="changesauthor">
-    <description>Specify author of the changes file entry to be written.  Defaults to first email entry in ~/.oscrc, or "obs-service-tar-scm@invalid" if there is no .oscrc found.</description>
+    <description>Specify author of the changes file entry to be written. Defaults to VC_REALNAME environment variable, set by osc, or "service_run" otherwise.</description>
+  </parameter>
+  <parameter name="changesemail">
+    <description>Specify author's email of the changes file entry to be written. Defaults to VC_MAILADDR environment variable, set by osc, or "obs-service-tar-scm@invalid" otherwise.</description>
   </parameter>
   <parameter name="locale">
     <description>DEPRECATED - Please use "encoding" instead. Set locale while execution of service</description>

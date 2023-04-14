@@ -326,9 +326,9 @@ class GitTests(GitHgTests, GitSvnTests):
         tar_scm_args = self.tar_scm_args()
 
         tar_scm_args += [
-            '--changesauthor', self.fixtures.user_email,
+            '--changesauthor', self.fixtures.user_name,
+            '--changesemail', self.fixtures.user_email
         ]
-
         self.tar_scm_std(*tar_scm_args)
 
         self._check_servicedata(revision=rev, expected_dirents=3)
