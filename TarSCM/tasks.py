@@ -115,8 +115,9 @@ class Tasks():
             files = glob.glob('*.obsinfo')
             if files:
                 for obsinfo in files:
-                    args.obsinfo = obsinfo
-                    self.task_list.append(copy.copy(args))
+                    if obsinfo != '_scmsync.obsinfo':
+                        args.obsinfo = obsinfo
+                        self.task_list.append(copy.copy(args))
             else:
                 # Fallback if there are no obsinfo files
                 self.task_list.append(args)
