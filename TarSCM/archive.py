@@ -170,7 +170,7 @@ class Tar(BaseArchive):
             args,
             scm_object.clone_dir
         )
-        
+
         # Check the extension to set the correct tarfile mode
         open_mode = "w:gz" if extension == 'tar.gz' else "w"
 
