@@ -161,7 +161,7 @@ class Tar(BaseArchive):
         args                = kwargs['cli']
         outdir              = args.outdir
         dstname             = kwargs['dstname']
-        extension           = (args.extension or 'tar.gz')
+        extension           = (args.extension or 'tar')
         exclude             = args.exclude
         include             = args.include
         package_metadata    = args.package_meta
@@ -170,6 +170,9 @@ class Tar(BaseArchive):
             args,
             scm_object.clone_dir
         )
+        
+        # Check the extension to set the correct tarfile mode
+        open_mode = "w:gz" if extension == 'tar.gz' else "w"
 
         incl_patterns = []
         excl_patterns = []
@@ -224,7 +227,7 @@ class Tar(BaseArchive):
 
         out_file = os.path.join(outdir, dstname + '.' + extension)
 
-        with tarfile.open(out_file, "w:gz", encoding=enc) as tar:
+        with tarfile.open(out_file, open_mode, encoding=enc) as tar:
             try:
                 tar.add(topdir, recursive=False, filter=reset)
             except TypeError:
