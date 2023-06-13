@@ -5,6 +5,7 @@ import sys
 import shutil
 
 from TarSCM.scm.base import Scm
+from TarSCM.exceptions import GitError
 
 
 def search_tags(comment, limit=None):
@@ -585,7 +586,7 @@ class Git(Scm):
         parents = result[1].rstrip().split(" ")
         fcm = parents.pop(0)
         if fcm != sha1:
-            raise Exception("First commit %s no equal sha1 %s" % (fcm, sha1))
+            raise GitError("First commit %s no equal sha1 %s" % (fcm, sha1))
         if parents:
             return parents
         return []
