@@ -1,3 +1,8 @@
+obs-service-tar-scm (0.10.37) unstable; urgency=medium
+
+  [ Frank Schreiner]
+  * update to version 0.10.37
+
 obs-service-tar-scm (0.10.14) unstable; urgency=medium
 
   [ Roman Neuhauser ]
