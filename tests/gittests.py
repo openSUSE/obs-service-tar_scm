@@ -155,10 +155,10 @@ class GitTests(GitHgTests, GitSvnTests):
                          '--version', 'tag3')
         tar_path = os.path.join(self.outdir,
                                 self.basename(version='tag3') + '.tar')
-        tar = tarfile.open(tar_path)
-        submod_path = os.path.join(self.basename(version='tag3'),
-                                   submod_name, 'a')
-        self.assertTarMemberContains(tar, submod_path, '5')
+        with tarfile.open(tar_path) as tar:
+            submod_path = os.path.join(
+                self.basename(version='tag3'), submod_name, 'a')
+            self.assertTarMemberContains(tar, submod_path, '5')
 
     def test_submodule_disabled_update(self):
         submod_name = 'submod1'
@@ -169,9 +169,9 @@ class GitTests(GitHgTests, GitSvnTests):
                          '--version', 'tag3')
         tar_path = os.path.join(self.outdir,
                                 self.basename(version='tag3') + '.tar')
-        tar = tarfile.open(tar_path)
-        self.assertRaises(KeyError, tar.getmember, os.path.join(
-            self.basename(version='tag3'), submod_name, 'a'))
+        with tarfile.open(tar_path) as tar:
+            self.assertRaises(KeyError, tar.getmember, os.path.join(
+                self.basename(version='tag3'), submod_name, 'a'))
 
     def test_submodule_in_other_branch(self):
         submod_name = 'submod1'
@@ -185,10 +185,10 @@ class GitTests(GitHgTests, GitSvnTests):
                          '--version', rev)
         tar_path = os.path.join(self.outdir,
                                 self.basename(version=rev) + '.tar')
-        tar = tarfile.open(tar_path)
-        submod_path = os.path.join(self.basename(version=rev),
-                                   submod_name, 'a')
-        self.assertTarMemberContains(tar, submod_path, '3')
+        with tarfile.open(tar_path) as tar:
+            submod_path = os.path.join(self.basename(version=rev),
+                                       submod_name, 'a')
+            self.assertTarMemberContains(tar, submod_path, '3')
 
     def test_latest_submodule_in_other_branch(self):  # pylint: disable=C0103
         submod_name = 'submod1'
@@ -202,10 +202,10 @@ class GitTests(GitHgTests, GitSvnTests):
                          '--version', rev)
         tar_path = os.path.join(self.outdir,
                                 self.basename(version=rev) + '.tar')
-        tar = tarfile.open(tar_path)
-        submod_path = os.path.join(self.basename(version=rev),
-                                   submod_name, 'a')
-        self.assertTarMemberContains(tar, submod_path, '5')
+        with tarfile.open(tar_path) as tar:
+            submod_path = os.path.join(
+                self.basename(version=rev), submod_name, 'a')
+            self.assertTarMemberContains(tar, submod_path, '5')
 
     def _check_servicedata(self, expected_dirents=2, revision=2):
         expected_sha1 = self.sha1s('tag%d' % revision)
@@ -289,12 +289,12 @@ class GitTests(GitHgTests, GitSvnTests):
                          'gitlab_hub', "--versionformat", "@PARENT_TAG@")
         tar_path = os.path.join(self.outdir,
                                 self.basename(version='gitlab_hub') + '.tar')
-        tar = tarfile.open(tar_path)
-        submod_path = os.path.join(self.basename(version='gitlab_hub'))
-        hub_path = os.path.join(submod_path, '.github/test')
-        lab_path = os.path.join(submod_path, '.gitlab/test')
-        self.assertTarMemberContains(tar, hub_path, '')
-        self.assertTarMemberContains(tar, lab_path, '')
+        with tarfile.open(tar_path) as tar:
+            submod_path = os.path.join(self.basename(version='gitlab_hub'))
+            hub_path = os.path.join(submod_path, '.github/test')
+            lab_path = os.path.join(submod_path, '.gitlab/test')
+            self.assertTarMemberContains(tar, hub_path, '')
+            self.assertTarMemberContains(tar, lab_path, '')
 
     def test_no_parent_tag(self):
         fix = self.fixtures
@@ -439,11 +439,12 @@ class GitTests(GitHgTests, GitSvnTests):
         tar_path = os.path.join(basedir, 'fixtures', cln, fnn, 'fixtures.tar')
         if not os.path.isfile(tar_path):
             raise AssertionError("File does not exist: %s" % tar_path)
-        basedir = os.path.abspath(os.path.join(os.getcwd(),'..'))
+        basedir = os.path.abspath(os.path.join(os.getcwd(), '..'))
         org_gnupghome = os.getenv('GNUPGHOME')
         os.environ["GNUPGHOME"] = os.path.join(basedir, '.gnupg')
         with tarfile.open(tar_path, "r") as tar:
             tar.extractall(basedir)
+            tar.close()
 
         # prepare test
         f_args  = FakeCli()
@@ -556,7 +557,7 @@ class GitTests(GitHgTests, GitSvnTests):
             rev = git.find_latest_signed_commit(case[0])
             self.assertEqual(rev, case[1])
 
-        empty=git.merge_is_empty('181fb87')
+        empty = git.merge_is_empty('181fb87')
         self.assertEqual(empty, 0)
 
         if org_gnupghome:
