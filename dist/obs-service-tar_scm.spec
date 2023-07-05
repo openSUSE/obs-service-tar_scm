@@ -139,6 +139,7 @@ BuildRequires:  %{use_python}-keyring
 BuildRequires:  %{use_python}-keyrings.alt
 BuildRequires:  %{use_python}-six
 BuildRequires:  bzr
+BuildRequires:  gpg
 BuildRequires:  git-core
 BuildRequires:  mercurial
 BuildRequires:  subversion
