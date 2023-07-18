@@ -1,7 +1,15 @@
+obs-service-tar-scm (0.10.40) unstable; urgency=medium
+
+  * update to upstream version 0.10.40 
+
+ -- Frank Schreiner <fschreiner@suse.de>  Tue, 18 Jul 2023 14:08:09 +0200
+
 obs-service-tar-scm (0.10.37) unstable; urgency=medium
 
   [ Frank Schreiner]
   * update to version 0.10.37
+
+ -- Frank Schreiner <fschreiner@suse.de>  Tue, 13 Jun 2023 15:39:11 +0200
 
 obs-service-tar-scm (0.10.14) unstable; urgency=medium
 
