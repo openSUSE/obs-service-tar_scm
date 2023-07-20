@@ -66,9 +66,17 @@ class Config():
 
         if self.fakeheader:
             logging.debug("Using fakeheader for file '%s'", fname)
-            fake_header = '[' + self.default_section + ']\n'
-            config.read_string(fake_header + open(fname, 'r').read(),
-                               source=fname)
+            try:
+                fake_header = '[' + self.default_section + ']\n'
+                config.read_string(fake_header + open(fname, 'r').read(),
+                                   source=fname)
+            except AttributeError:
+                tmp_fp = StringIO()
+                tmp_fp.write('[' + self.default_section + ']\n')
+                tmp_fp.write(open(fname, 'r').read())
+                tmp_fp.seek(0, os.SEEK_SET)
+                config.readfp(tmp_fp)
+
         else:
             config.read(fname)
 
