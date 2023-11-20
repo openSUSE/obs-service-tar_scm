@@ -172,9 +172,11 @@ tar_scm: tar_scm.py
 	@echo "Creating $@ which uses $(PYTHON) ..."
 	sed 's,^\#!/usr/bin/.*,#!$(PYTHON),' $< > $@
 
+COMPILED_PYTHON = true
+
 .PHONY: install
 
-install: dirs tar_scm service compile
+install: dirs tar_scm service $(if $(findstring $(COMPILED_PYTHON),true),compile)
 	install -m 0755 tar_scm $(DESTDIR)$(mylibdir)/tar_scm
 	install -m 0644 tar_scm.rc $(DESTDIR)$(mycfgdir)/tar_scm
 	# Recreate links, otherwise reinstalling would fail
