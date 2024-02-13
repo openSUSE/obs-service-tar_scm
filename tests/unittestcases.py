@@ -316,7 +316,7 @@ class UnitTestCases(unittest.TestCase):
         six.assertRaisesRegex(
             self,
             SystemExit,
-            re.compile("verion in obsinfo contains '/' or '..'."),
+            re.compile("version in obsinfo contains '/' or '..'."),
             scm_object.fetch_upstream
         )
 
@@ -330,7 +330,7 @@ class UnitTestCases(unittest.TestCase):
         six.assertRaisesRegex(
             self,
             SystemExit,
-            re.compile("verion in obsinfo contains '/' or '..'."),
+            re.compile("version in obsinfo contains '/' or '..'."),
             scm_object.fetch_upstream
         )
 
