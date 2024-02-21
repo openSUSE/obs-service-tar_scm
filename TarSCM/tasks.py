@@ -118,7 +118,7 @@ class Tasks():
                     if obsinfo != '_scmsync.obsinfo':
                         args.obsinfo = obsinfo
                         self.task_list.append(copy.copy(args))
-            else:
+            if not args.obsinfo:
                 # Fallback if there are no obsinfo files
                 self.task_list.append(args)
         else:
