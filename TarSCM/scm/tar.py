@@ -15,25 +15,35 @@ class Tar(Scm):
             if files:
                 # or we refactor and loop about all on future
                 self.args.obsinfo = files[0]
-        if self.args.obsinfo is None:
-            raise SystemExit("ERROR: no .obsinfo file found in directory: "
+
+        version = None
+        if self.args.obsinfo:
+            self.basename = self.clone_dir = self.read_from_obsinfo(
+                self.args.obsinfo, "name"
+            )
+            version = self.read_from_obsinfo(self.args.obsinfo, "version")
+
+        if self.args.filename:
+            self.basename = self.clone_dir = self.args.filename
+
+        if self.args.version and self.args.version != '_auto_':
+            version = self.args.version
+
+        if not self.basename or not self.clone_dir:
+            raise SystemExit("ERROR: no .obsinfo file found in directory\n"
+                             "       and no manual configuration: "
                              "'%s'" % os.getcwd())
-        self.basename = self.clone_dir = self.read_from_obsinfo(
-            self.args.obsinfo,
-            "name"
-        )
         if "/" in self.clone_dir:
             sys.exit("name in obsinfo contains '/'.")
 
-        version = self.read_from_obsinfo(self.args.obsinfo, "version")
-
         if "/" in version or '..' in version:
-            sys.exit("verion in obsinfo contains '/' or '..'.")
+            raise SystemExit("version in obsinfo contains '/' or '..'.")
 
-        if version != '':
+        if version != '' and version != '_none_':
             self.clone_dir += "-" + version
 
-        if not os.path.exists(self.clone_dir):
+        if not os.path.exists(self.clone_dir) \
+                and self.basename != self.clone_dir:
             self._final_rename_needed = True
             # not need in case of local osc build
             try:
@@ -51,10 +61,14 @@ class Tar(Scm):
 
     def detect_version(self, args):
         """Read former stored version."""
-        return self.read_from_obsinfo(self.args.obsinfo, "version")
+        if self.args.obsinfo:
+            return self.read_from_obsinfo(self.args.obsinfo, "version")
 
     def get_timestamp(self):
-        return int(self.read_from_obsinfo(self.args.obsinfo, "mtime"))
+        if self.args.obsinfo:
+            return int(self.read_from_obsinfo(self.args.obsinfo, "mtime"))
+        if self.args.filename:
+            return int(os.path.getmtime(self.args.filename))
 
     def read_from_obsinfo(self, filename, key):
         infofile = open(filename, "r")
