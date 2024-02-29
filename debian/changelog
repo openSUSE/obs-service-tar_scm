@@ -1,3 +1,22 @@
+obs-service-tar-scm (0.10.43) unstable; urgency=medium
+
+  [ Adrian Schröter ]
+  * Allow to use "tar" service also standalone.
+  * fix tar without obsinfo also in git managed packages
+
+  [ Nicholas Brown ]
+  * enable the GBP service
+  * Fix Lintian error about missing python3 dep
+  * Debian X-Python version no longer needed
+  * Debian compat from 8 to 10
+  * Fix priority-extra-is-replaced-by-priority-optional
+  * Fix description-synopsis-starts-with-article
+  * Update debian debhelper dependency
+  * update dist/debian.dsc to match debian packaging
+  * disable compile python in debian package
+
+ -- Nick Brown <nickbroon@graphiant.com>  Thu, 29 Feb 2024 15:51:56 +0000
+
 obs-service-tar-scm (0.10.41) unstable; urgency=medium
 
   * update to upstream version 0.10.41 

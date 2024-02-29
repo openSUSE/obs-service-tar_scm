@@ -7,9 +7,11 @@ DESTDIR=debian/obs-service-tar-scm
 %:
 	dh $@ --with python3
 
-override_dh_auto_build: ;
+# Skip the Makefile and just rely on the python debhelper
+override_dh_auto_build:
 
-override_dh_auto_test: ;
+# Skip tests as slow and don't detect python on debian
+override_dh_auto_test:
 
 override_dh_auto_install:
-	$(MAKE) DESTDIR=`pwd`/$(DESTDIR) PREFIX=/usr install
+	dh_auto_install -- COMPILED_PYTHON=false WITH_GBP=1 install
