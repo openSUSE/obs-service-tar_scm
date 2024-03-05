@@ -11,7 +11,7 @@ https://github.com/openSUSE/obs-service-tar_scm.
 
 ## Services
 
-### tar_scm *(deprecated)*
+### tar_scm
 
 `tar_scm` is the legacy source service used to create a source tarball
 from one of the supported SCM (source code management) tools: `git`,
@@ -33,8 +33,6 @@ tarball to be downloaded.
 e.g. within the [GIT integration](https://en.opensuse.org/openSUSE:Build_Service_Concept_SourceService#Example_2:_GIT_integration)
 workflow.
 
-**`tar_scm` is deprecated in favour of `obs_scm`.**
-
 ### obs_scm
 
 `obs_scm` is similar in concept to `tar_scm`, but instead of directly
@@ -42,17 +40,11 @@ generating tarballs, it instead uses the new `obscpio` archive format
 (see below) as an intermediate space-efficient format in which to
 store the sources.
 
-**It is recommended to use `obs_scm` in favour to `tar_scm`**, because
-it provides the following advantages:
-
-1. When you `osc checkout`, you'll also get a local checkout directory
-   within the project directory, inside which you can develop as usual
-   and test your changes with local builds, even without having to
-   commit or push your changes anywhere.
-
-2. It helps to save a *lot* of disk space on the server side,
-   especially when used in continuous integration (e.g. nightly builds
-   and builds of pull requests).
+Using the special `obscpio` format helps to save a *lot* of disk space on the
+server side, especially when used in continuous integration (e.g. nightly
+builds and builds of pull requests). However, rpmbuild does not support
+unpacking `obscpio` archives making packages using `obscpio` source format
+unbuildable without using obs.
 
 The usual source tarballs can be regenerated from this at build-time
 using the `tar` and `recompress` source services, so no changes to
