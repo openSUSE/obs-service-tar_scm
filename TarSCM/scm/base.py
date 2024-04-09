@@ -146,37 +146,40 @@ class Scm():
         self._calc_dir_to_clone_to(clone_prefix)
         self.prepare_clone_dir()
 
-        self.lock_cache()
+        try:
+            self.lock_cache()
 
-        if not os.path.isdir(self.clone_dir):
-            # initial clone
-            logging.debug(
-                "[fetch_upstream] Initial checkout/clone to directory: '%s'",
-                self.clone_dir
-            )
-            os.mkdir(self.clone_dir)
-            self.fetch_upstream_scm()
-        else:
-            logging.info("Detected cached repository...")
-            self.update_cache()
+            if not os.path.isdir(self.clone_dir):
+                # initial clone
+                logging.debug(
+                    "[fetch_upstream] Initial checkout/clone to directory: '%s'",
+                    self.clone_dir
+                )
+                os.mkdir(self.clone_dir)
+                self.fetch_upstream_scm()
+            else:
+                logging.info("Detected cached repository...")
+                self.update_cache()
 
-        self.prepare_working_copy()
+            self.prepare_working_copy()
 
-        # switch_to_revision
-        self.switch_revision()
+            # switch_to_revision
+            self.switch_revision()
 
-        # git specific: after switching to desired revision its necessary to
-        # update
-        # submodules since they depend on the actual version of the selected
-        # revision
-        self.fetch_submodules()
+            # git specific: after switching to desired revision its necessary to
+            # update
+            # submodules since they depend on the actual version of the selected
+            # revision
+            self.fetch_submodules()
 
-        # obs_scm specific: do not allow running git-lfs to prevent storage
-        #  duplication with tar_scm
-        if self.args.use_obs_scm:
-            self.fetch_lfs()
+            # obs_scm specific: do not allow running git-lfs to prevent storage
+            #  duplication with tar_scm
+            if self.args.use_obs_scm:
+                self.fetch_lfs()
 
-        self.unlock_cache()
+            self.unlock_cache()
+        finally:
+            self.unlock_cache()
 
     def fetch_submodules(self):
         """NOOP in other scm's than git"""
