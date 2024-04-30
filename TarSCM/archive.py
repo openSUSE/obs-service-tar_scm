@@ -118,7 +118,7 @@ class ObsCpio(BaseArchive):
         tstamp = self.helpers.get_timestamp(scm_object, args, topdir)
         for name in sorted(cpiolist):
             try:
-                os.utime(name, (tstamp, tstamp))
+                os.utime(name, (tstamp, tstamp), follow_symlinks=False)
             except OSError:
                 pass
             # bytes() break in python2 with a TypeError as it expects only 1
