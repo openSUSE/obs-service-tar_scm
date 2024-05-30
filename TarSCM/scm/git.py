@@ -307,7 +307,8 @@ class Git(Scm):
                 cmd.append("--match=%s" % args['match_tag'])
         except KeyError:
             pass
-        rcode, output = self.helpers.run_cmd(cmd, self.clone_dir)
+        rcode, output = self.helpers.run_cmd(cmd, self.clone_dir,
+                                             includeStderr=False)
 
         if rcode == 0:
             # strip to remove newlines

@@ -25,7 +25,8 @@ def file_write_legacy(fname, string, *args):
 
 
 class Helpers():
-    def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False):
+    def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False,
+                includeStderr=True):
         """
         Execute the command cmd in the working directory cwd and check return
         value. If the command returns non-zero and raisesysexit is True raise a
@@ -34,11 +35,12 @@ class Helpers():
         """
         logging.debug("COMMAND: %s" % cmd)
 
-        proc = subprocess.Popen(cmd,
-                                shell=False,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT,
-                                cwd=cwd)
+        proc = subprocess.Popen(
+            cmd,
+            shell=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT if includeStderr else subprocess.DEVNULL,
+            cwd=cwd)
         output = ''
         if interactive:
             stdout_lines = []
