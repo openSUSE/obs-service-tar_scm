@@ -76,9 +76,9 @@ class Svn(Scm):
             cfg.close()
             scmcmd += ['--config-dir', self.svntmpdir]
 
-            if self.user and self.password:
-                scmcmd += ['--username', self.user]
-                scmcmd += ['--password', self.password]
+        if self.user and self.password:
+            scmcmd += ['--username', self.user]
+            scmcmd += ['--password', self.password]
 
         return scmcmd
 
