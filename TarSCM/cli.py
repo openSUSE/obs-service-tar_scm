@@ -45,7 +45,8 @@ def check_locale(loc):
 class Cli():
     # pylint: disable=too-few-public-methods
     # pylint: disable=too-many-instance-attributes
-    DEFAULT_AUTHOR = 'obs-service-tar-scm@invalid'
+    DEFAULT_AUTHOR = 'service_run'
+    DEFAULT_EMAIL = 'obs-service-tar-scm@invalid'
     outdir = None
 
     def __init__(self):
@@ -120,10 +121,15 @@ class Cli():
                                  'parent revision (see changesrevision).')
         parser.add_argument('--changesauthor',
                             help='The author of the changes file entry to be '
-                                 'written, defaults to first email entry in '
-                                 'osc rc files or "%s" '
-                                 'if there is no ~/.oscrc found.' %
+                                 'written. Defaults to VC_REALNAME env '
+                                 'variable, set by osc. Or "%s", otherwise.' %
                             self.DEFAULT_AUTHOR)
+        parser.add_argument('--changesemail',
+                            help='The author\'s email of the changes file '
+                                 'entry to be written. Defaults to VC_MAILADDR'
+                                 ' env variable, set by osc. Or "%s", '
+                                 'otherwise.' %
+                            self.DEFAULT_EMAIL)
         parser.add_argument('--subdir', default='',
                             help='Package just a subdirectory of the sources')
         parser.add_argument('--submodules',
