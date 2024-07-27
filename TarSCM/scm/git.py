@@ -421,7 +421,7 @@ class Git(Scm):
         use_reference = True
 
         try:
-            if self.args.package_meta:
+            if (self.args.package_meta and not self.partial_clone):
                 logging.info("Not using '--reference'")
                 use_reference = False
         except KeyError:
