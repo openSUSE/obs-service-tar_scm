@@ -68,8 +68,13 @@ class Scm():
             try:
                 self.password = _kr.get_password(self.url, args.user)
                 if not self.password:
-                    raise Exception('No user {u} in keyring for service {s}'
-                                    .format(u=args.user, s=self.url))
+                    # try just the hostname
+                    url_netloc = urlparse(self.url)[1]
+                    self.password = _kr.get_password(url_netloc, args.user)
+                    if not self.password:
+                        raise Exception(
+                            'No user {u} in keyring for service {s}'
+                            .format(u=args.user, s=self.url))
             except AssertionError:
                 raise Exception('Wrong keyring passphrase')
             self.user     = args.user
