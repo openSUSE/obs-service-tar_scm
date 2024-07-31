@@ -2,9 +2,10 @@
   <summary>handle sources specified in appimage.yml</summary>
   <description>This service needs to be executed to download sources according to appimage.yml file</description>
   <parameter name="submodules">
-    <description>Specify whether to include git submodules.  Default is 'enable'.</description>
+    <description>Specify whether to include git submodules. Default is 'enable'. main or master is override the specified commit with master or main branch.</description>
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>master</allowedvalue>
+    <allowedvalue>main</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </parameter>
   <parameter name="lfs">

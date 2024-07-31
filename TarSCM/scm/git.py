@@ -201,7 +201,8 @@ class Git(Scm):
                                        '--recursive'],
                 cwd=self.clone_dir
             )
-        elif 'submodules' in argsd and argsd['submodules'] == 'master':
+        elif 'submodules' in argsd and \
+             argsd['submodules'] in ['main', 'master']:
             self.helpers.safe_run(
                 self._get_scm_cmd() + ['submodule', 'update', '--init',
                                        '--recursive', '--remote'],
