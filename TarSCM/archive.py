@@ -256,18 +256,14 @@ class Gbp(BaseArchive):
         cwd = os.getcwd()
         os.chdir(workdir)
 
-        if not args.revision:
-            revision = 'origin/master'
-        else:
-            revision = 'origin/' + args.revision
-
         command = ['gbp', 'buildpackage', '--git-notify=off',
                    '--git-force-create', '--git-cleaner="true"']
 
         # we are not on a proper local branch due to using git-reset but we
         # anyway use the --git-export option
         command.extend(['--git-ignore-branch',
-                        "--git-export=%s" % revision])
+                        "--git-export-dir=%s" % workdir,
+                        '--git-export=WC'])
 
         # gbp can load submodules without having to run the git command, and
         # will ignore submodules even if loaded manually unless this option is
