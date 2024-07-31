@@ -172,9 +172,10 @@ which get maintained in the SCM. Can be used multiple times.</description>
     <description>Obsolete parameter which will be ignored.</description>
   </parameter>
   <parameter name="submodules">
-    <description>Specify whether to include git submodules.  Default is 'enable'.</description>
+    <description>Specify whether to include git submodules. Default is 'enable'. main or master is override the specified commit with master or main branch.</description>
     <allowedvalue>enable</allowedvalue>
     <allowedvalue>master</allowedvalue>
+    <allowedvalue>main</allowedvalue>
     <allowedvalue>disable</allowedvalue>
   </parameter>
 ===OBS_ONLY

@@ -127,12 +127,13 @@ class Cli():
         parser.add_argument('--subdir', default='',
                             help='Package just a subdirectory of the sources')
         parser.add_argument('--submodules',
-                            choices=['enable', 'master', 'disable'],
+                            choices=['enable', 'master', 'main', 'disable'],
                             default='enable',
                             help='Whether or not to include git submodules '
                                  'from SCM commit log since a given parent '
                                  'revision (see changesrevision). Use '
-                                 '\'master\' to fetch the latest master.')
+                                 '\'master\' or \'main\' to fetch the latest'
+                                 'development revision.')
         parser.add_argument('--lfs',
                             choices=['enable', 'disable'],
                             default='disable',
