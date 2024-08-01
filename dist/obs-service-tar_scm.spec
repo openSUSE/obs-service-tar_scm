@@ -261,10 +261,11 @@ source artefacts (.dsc, .origin.tar.gz and .debian.tar.gz if non-native).
 %install
 %if %{without obs_scm_testsuite}
 make install DESTDIR="%{buildroot}" PREFIX="%{_prefix}" SYSCFG="%{_sysconfdir}" PYTHON="%{python_path}" WITH_GBP="%{enable_gbp}"
+%if %{with python3}
 # Doing %%python3_fix_shebang_path old fashioned way for the backward compatibility
 sed -i "1s@#\\!.*python\S*@#\\!$(realpath %__python3)@" \
     %{buildroot}%{_prefix}/lib/obs/service/tar_scm
-
+%endif
 %else
 
 # moved conditional to the top as it helps to have it all in one place and only rely on the bcond_with here.
