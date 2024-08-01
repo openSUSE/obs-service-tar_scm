@@ -162,7 +162,7 @@ BuildRequires:  %{use_python}%{_pkg_base}
 # Fix missing Requires in python3-pbr in Leap42.3
 BuildRequires:  %{use_python}-setuptools
 %if 0%{?suse_version}
-BuildRequires:  python-rpm-macros                               \
+BuildRequires:  python-rpm-macros
 %endif
 %else
 BuildRequires:  python >= 2.6
