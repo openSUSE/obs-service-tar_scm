@@ -25,6 +25,11 @@ class Git(Scm):
     _stash_pop_required = False
     partial_clone = False
 
+    def __init__(self, args, task):
+        super().__init__(args, task)
+        if not os.getenv('GIT_CONFIG_GLOBAL', None):
+            os.putenv('GIT_CONFIG_GLOBAL', '/dev/null')
+
     def _get_scm_cmd(self):
         """Compose a GIT-specific command line using http proxies"""
         # git should honor the http[s]_proxy variables, but we need to
@@ -228,7 +233,9 @@ class Git(Scm):
         self.auth_url()
         try:
             self.helpers.safe_run(
-                self._get_scm_cmd() + ['config', 'remote.origin.url',
+                self._get_scm_cmd() + ['config',
+                                       '--local',
+                                       'remote.origin.url',
                                        self.url],
                 cwd=self.clone_dir,
                 interactive=sys.stdout.isatty()
