@@ -112,12 +112,21 @@ class GitSvnTests(CommonTests):
 
     def test_changesgenerate_new_commit_and_changes_file(self):  # pylint: disable=C0103
         self._test_changesgenerate_new_commit_and_changes_file(
-            self.fixtures.user_email)
+            self.fixtures.user_email, self.fixtures.user_email)
 
     def test_changesgenerate_new_commit_and_changes_file_default_author(self):  # pylint: disable=C0103
         os.environ['OBS_SERVICE_DAEMON'] = "1"
-        self._test_changesgenerate_new_commit_and_changes_file()
+        self._test_changesgenerate_new_commit_and_changes_file(None, 'obs-service-tar-scm@invalid')
         os.environ['OBS_SERVICE_DAEMON'] = "0"
+
+    def test_changesgenerate_new_commit_and_changes_file_full_author(self):  # pylint: disable=C0103
+        os.environ['OBS_SERVICE_DAEMON'] = "1"
+        os.environ['VC_REALNAME'] = 'Tar Scm Service'
+        os.environ['VC_MAILADDR'] = 'obs-service-tar-scm@invalid'
+        self._test_changesgenerate_new_commit_and_changes_file(None, 'Tar Scm Service <obs-service-tar-scm@invalid>')
+        os.environ['OBS_SERVICE_DAEMON'] = "0"
+        del os.environ['VC_REALNAME']
+        del os.environ['VC_MAILADDR']
 
     def _write_servicedata(self, rev):
         with open(os.path.join(self.pkgdir, '_servicedata'), 'w') as sdat:
@@ -129,7 +138,7 @@ class GitSvnTests(CommonTests):
                 </service>
               </servicedata>""" % (self.fixtures.repo_url, self.changesrevision(rev))))
 
-    def _test_changesgenerate_new_commit_and_changes_file(self, author=None):  # pylint: disable=C0103
+    def _test_changesgenerate_new_commit_and_changes_file(self, changesauthor, expected_author):  # pylint: disable=C0103
         self._write_servicedata(2)
         orig_changes = self._write_changes_file()
         self.fixtures.create_commits(3)
@@ -137,8 +146,8 @@ class GitSvnTests(CommonTests):
         print("XXXX 1")
         tar_scm_args = self.tar_scm_args()
 
-        if author is not None:
-            tar_scm_args += ['--changesauthor', self.fixtures.user_email]
+        if changesauthor is not None:
+            tar_scm_args += ['--changesauthor', changesauthor]
 
         print("XXXX 2")
         self.tar_scm_std(*tar_scm_args)
@@ -149,7 +158,6 @@ class GitSvnTests(CommonTests):
         rev = self.changesrevision(rev, abbrev=True)
 
         print("XXXX 4")
-        expected_author = author or 'obs-service-tar-scm@invalid'
         expected_changes_regexp = self._new_change_entry_regexp(
             expected_author,
             textwrap.dedent("""\
