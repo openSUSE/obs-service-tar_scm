@@ -219,14 +219,20 @@ class Changes():
             return args.changesauthor
 
         # return changesauthor if set by osc
-        if os.getenv('VC_MAILADDR'):
+        realname, mailaddr = os.getenv('VC_REALNAME'), os.getenv('VC_MAILADDR')
+        if mailaddr and realname:
+            logging.debug("Found VC_REALNAME='%s' and VC_MAILADDR='%s'",
+                          realname, mailaddr)
+            return "%s <%s>" % (realname, mailaddr)
+
+        if mailaddr:
             logging.debug("Found changesauthor in VC_MAILADDR='%s'",
-                          os.environ['VC_MAILADDR'])
-            return os.environ['VC_MAILADDR']
+                          mailaddr)
+            return mailaddr
 
         # return default changesauthor if running on server side
         if os.getenv('OBS_SERVICE_DAEMON'):
-            logging.debug("Running in daemon mode. Using DEFAULT_AUHTOR='%s'",
+            logging.debug("Running in daemon mode. Using DEFAULT_AUTHOR='%s'",
                           Cli.DEFAULT_AUTHOR)
             return Cli.DEFAULT_AUTHOR
 
