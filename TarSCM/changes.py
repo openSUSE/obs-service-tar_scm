@@ -1,12 +1,13 @@
 import datetime
+import io
+import locale
 import logging
 import os
 import shutil
+import stat
 import sys
 import tempfile
-import stat
-import io
-import locale
+import textwrap
 
 from TarSCM.cli    import Cli
 from TarSCM.config import Config
@@ -175,7 +176,7 @@ class Changes():
         if changed:
             xml_tree.write(os.path.join(outdir, "_servicedata"))
 
-    def write_changes(self, changes_filename, changes, version, author):
+    def write_changes(self, changes_filename, changes, version, author, email):
         """Add changes to given *.changes file."""
         if changes is None:
             logging.debug(
@@ -195,11 +196,22 @@ class Changes():
         dtime = datetime.datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y')
 
         text = '-' * 67 + '\n'
-        text += "%s - %s\n" % (dtime, author)
+        text += "%s - %s <%s>\n" % (dtime, author, email)
         text += '\n'
         text += "- Update to version %s:\n" % version
         for line in changes:
-            text += "  * %s\n" % line
+            # The header rule is currently 67 characters long. Test for lines
+            # longer than 63 characters to take indentation into account. So if
+            # the line is longer than 63 characters, we wrap it by spliting
+            # them and prepending the first splitted line with a bullet point
+            # and the rest with four spaces.
+            if len(line) > 63:
+                lines = textwrap.wrap(line, width=67, initial_indent='  * ',
+                                      subsequent_indent='    ')
+                for wrapped_line in lines:
+                    text += wrapped_line + '\n'
+            else:
+                text += "  * %s\n" % line
         text += '\n'
 
         old_fp = io.open(changes_filename, 'r', encoding='UTF-8')
@@ -219,10 +231,10 @@ class Changes():
             return args.changesauthor
 
         # return changesauthor if set by osc
-        if os.getenv('VC_MAILADDR'):
-            logging.debug("Found changesauthor in VC_MAILADDR='%s'",
-                          os.environ['VC_MAILADDR'])
-            return os.environ['VC_MAILADDR']
+        if os.getenv('VC_REALNAME'):
+            logging.debug("Found changesauthor in VC_REALNAME='%s'",
+                          os.environ['VC_REALNAME'])
+            return os.environ['VC_REALNAME']
 
         # return default changesauthor if running on server side
         if os.getenv('OBS_SERVICE_DAEMON'):
@@ -230,14 +242,60 @@ class Changes():
                           Cli.DEFAULT_AUTHOR)
             return Cli.DEFAULT_AUTHOR
 
-        # exit if running locally (non server mode) and now changesauthor
-        # could be determined
+        # exit if running locally (non server mode) and no changesauthor could
+        # be determined, hint user on what to do
         raise SystemExit(
-            """No changesauthor defined!\n"""
-            """You can define it by:\n"""
-            """ * configure 'email=' in ~/.config/osc/oscrc """
-            """in your default api section\n"""
-            """ * configure <param name="changesauthor">"""
-            """...</param> in your _service file\n"""
-            """ * using '--changesauthor' on the cli\n"""
+            """No 'changesauthor' has been defined! You can do it by:\n\n"""
+            """Configuring:\n"""
+            """    * The 'realname' entry for the default API section """
+            """(api.opensuse.org) -- or whatever OBS\n"""
+            """      instance you're working with -- in your OSCRC file """
+            """with:\n\n"""
+            """        osc config "https://api.opensuse.org" realname John """
+            """"Doe"\n\n"""
+            """    * The '<param name="changesauthor">John Doe</param> tag """
+            """nested under the obs_scm/tar_scm\n"""
+            """      service tag in your _service file.\n\n"""
+            """Passing:\n"""
+            """    * '--changesauthor "John Doe"' on the CLI, when using """
+            """the obs_scm/tar_scm script manually.\n"""
+        )
+
+    def get_changesemail(self, args):
+        # return changesemail if given as cli option
+        if args.changesemail:
+            logging.debug("Found changesemail in args.changesemail='%s'",
+                          args.changesemail)
+            return args.changesemail
+
+        # return changesemail if set by osc
+        if os.getenv('VC_MAILADDR'):
+            logging.debug("Found changesemail in VC_MAILADDR='%s'",
+                          os.environ['VC_MAILADDR'])
+            return os.environ['VC_MAILADDR']
+
+        # return default changesemail if running on server side
+        if os.getenv('OBS_SERVICE_DAEMON'):
+            logging.debug("Running in daemon mode. Using DEFAULT_EMAIL='%s'",
+                          Cli.DEFAULT_EMAIL)
+            return Cli.DEFAULT_EMAIL
+
+        # exit if running locally (non server mode) and no changesemail could
+        # be determined, hint user on what to do
+        raise SystemExit(
+            """No 'changesemail' has been defined! You can do it by:\n\n"""
+            """Configuring:\n"""
+            """    * The 'email' entry for the default API section """
+            """(api.opensuse.org) -- or whatever OBS\n"""
+            """      instance you're working with -- in your OSCRC file """
+            """with:\n\n"""
+            """        osc config "https://api.opensuse.org" email """
+            """"jdoe@example.com"\n\n"""
+            """    * The '<param name="changesemail">jdoe@example.com"""
+            """</param> tag nested under the\n"""
+            """      obs_scm/tar_scm service tag in your _service file.\n\n"""
+            """Passing:\n"""
+            """    * '--changesemail "jdoe@example.com"' on the CLI, when """
+            """using the obs_scm/tar_scm script\n"""
+            """      manually.\n"""
         )

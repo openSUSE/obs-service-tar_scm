@@ -17,7 +17,8 @@ class GitSvnTests(CommonTests):
 
     def _tar_scm_changesgenerate(self, mode, **kwargs):
         self.tar_scm_std(
-            '--changesauthor', 'a@b.c',
+            '--changesauthor', 'spam',
+            '--changesemail', 'a@b.c',
             '--changesgenerate', mode,
             **kwargs
         )
@@ -90,13 +91,13 @@ class GitSvnTests(CommonTests):
         self._tar_scm_changesgenerate('enable')
         self._check_servicedata(revision=3)
 
-    def _new_change_entry_regexp(self, author, changes):  # pylint: disable=R0201
+    def _new_change_entry_regexp(self, author, email, changes):  # pylint: disable=R0201
         return textwrap.dedent("""\
           ^-------------------------------------------------------------------
-          \w{3} \w{3} [ \d]\d \d\d:\d\d:\d\d [A-Z]{3} 20\d\d - %s
+          \w{3} \w{3} [ \d]\d \d\d:\d\d:\d\d [A-Z]{3} 20\d\d - %s <%s>
 
           %s
-          """) % (author, changes)
+          """) % (author, email, changes)
 
     def _check_changes(self, orig_changes, expected_changes_regexp):
         new_changes_file = os.path.join(self.outdir, 'pkg.changes')
@@ -129,7 +130,7 @@ class GitSvnTests(CommonTests):
                 </service>
               </servicedata>""" % (self.fixtures.repo_url, self.changesrevision(rev))))
 
-    def _test_changesgenerate_new_commit_and_changes_file(self, author=None):  # pylint: disable=C0103
+    def _test_changesgenerate_new_commit_and_changes_file(self, author=None, email=None):  # pylint: disable=C0103
         self._write_servicedata(2)
         orig_changes = self._write_changes_file()
         self.fixtures.create_commits(3)
@@ -138,7 +139,10 @@ class GitSvnTests(CommonTests):
         tar_scm_args = self.tar_scm_args()
 
         if author is not None:
-            tar_scm_args += ['--changesauthor', self.fixtures.user_email]
+            tar_scm_args += ['--changesauthor', self.fixtures.user_name]
+
+        if email is not None:
+            tar_scm_args += ['--changesemail', self.fixtures.user_email]
 
         print("XXXX 2")
         self.tar_scm_std(*tar_scm_args)
@@ -149,9 +153,11 @@ class GitSvnTests(CommonTests):
         rev = self.changesrevision(rev, abbrev=True)
 
         print("XXXX 4")
-        expected_author = author or 'obs-service-tar-scm@invalid'
+        expected_author = author or 'geeko'
+        expected_email = email or 'obs-service-tar-scm@invalid'
         expected_changes_regexp = self._new_change_entry_regexp(
             expected_author,
+            expected_email,
             textwrap.dedent("""\
               - Update to version 0.6.%s:
                 \* 5
@@ -170,7 +176,8 @@ class GitSvnTests(CommonTests):
         tar_scm_args = [
             '--changesgenerate', 'enable',
             '--version', '',
-            '--changesauthor', self.fixtures.user_email
+            '--changesauthor', self.fixtures.user_name,
+            '--changesemail', self.fixtures.user_email
         ]
         self.tar_scm_std(*tar_scm_args)
 
@@ -179,9 +186,11 @@ class GitSvnTests(CommonTests):
         rev = self.changesrevision(rev, abbrev=True)
         ver_regex = self.changesregex(rev)
 
-        expected_author = self.fixtures.user_email
+        expected_author = self.fixtures.user_name
+        expected_email = self.fixtures.user_email
         expected_changes_regexp = self._new_change_entry_regexp(
             expected_author,
+            expected_email,
             textwrap.dedent("""\
               - Update to version %s:
                 \* 5
@@ -202,16 +211,19 @@ class GitSvnTests(CommonTests):
 
         tar_scm_args += [
             '--subdir', 'another_subdir',
-            '--changesauthor', self.fixtures.user_email,
+            '--changesauthor', self.fixtures.user_name,
+            '--changesemail', self.fixtures.user_email
         ]
 
         self.tar_scm_std(*tar_scm_args)
 
         self._check_servicedata(revision=rev, expected_dirents=3)
 
-        expected_author = self.fixtures.user_email
+        expected_author = self.fixtures.user_name
+        expected_email = self.fixtures.user_email
         expected_changes_regexp = self._new_change_entry_regexp(
             expected_author,
+            expected_email,
             textwrap.dedent("""\
               - Update to version 0.6.%s:
                 \* 8
@@ -236,16 +248,19 @@ class GitSvnTests(CommonTests):
         tar_scm_args = self.tar_scm_args()
 
         tar_scm_args += [
-            '--changesauthor', self.fixtures.user_email,
+            '--changesauthor', self.fixtures.user_name,
+            '--changesemail', self.fixtures.user_email
         ]
 
         self.tar_scm_std(*tar_scm_args)
 
         self._check_servicedata(revision=rev, expected_dirents=3)
 
-        expected_author = self.fixtures.user_email
+        expected_author = self.fixtures.user_name
+        expected_email = self.fixtures.user_email
         expected_changes_regexp = self._new_change_entry_regexp(
             expected_author,
+            expected_email,
             textwrap.dedent("""\
               - Update to version 0.6.%s:
                 \* 5

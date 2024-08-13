@@ -284,8 +284,9 @@ class Tasks():
 
     def _process_changes(self, args, ver, changesversion, detected_changes):
         changesauthor = self.changes.get_changesauthor(args)
+        changesemail = self.changes.get_changesemail(args)
 
-        logging.debug("AUTHOR: %s", changesauthor)
+        logging.debug("AUTHOR <EMAIL>: %s <%s>", changesauthor, changesemail)
 
         if not ver:
             args.version = "_auto_"
@@ -297,7 +298,9 @@ class Tasks():
             shutil.copy(filename, new_changes_file)
             self.changes.write_changes(new_changes_file,
                                        detected_changes['lines'],
-                                       changesversion, changesauthor)
+                                       changesversion,
+                                       changesauthor,
+                                       changesemail)
         self.changes.write_changes_revision(args.url, args.outdir,
                                             detected_changes['revision'])
 

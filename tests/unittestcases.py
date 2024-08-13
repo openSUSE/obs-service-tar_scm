@@ -133,17 +133,17 @@ class UnitTestCases(unittest.TestCase):
         '''Test if getting changesauthor from cli args works'''
         chg                 = Changes()
         cli                 = copy.copy(self.cli)
-        cli.changesauthor   = 'args@example.com'
+        cli.changesauthor   = 'geeko'
         author              = chg.get_changesauthor(cli)
-        self.assertEqual(author, 'args@example.com')
+        self.assertEqual(author, 'geeko')
 
     def test_changes_get_chga_oscrc(self):
         '''Test if getting changesauthor from .oscrc works'''
-        os.environ["VC_MAILADDR"] = 'devel@example.com'
+        os.environ["VC_REALNAME"] = 'geeko'
         chg                 = Changes()
         author              = chg.get_changesauthor(self.cli)
-        self.assertEqual(author, 'devel@example.com')
-        os.environ["VC_MAILADDR"] = ''
+        self.assertEqual(author, 'geeko')
+        os.environ["VC_REALNAME"] = ''
 
     def test_changes_get_chga_default(self):
         '''Test if getting default changesauthor if running inside OBS'''
@@ -153,7 +153,34 @@ class UnitTestCases(unittest.TestCase):
         chg                 = Changes()
         author              = chg.get_changesauthor(self.cli)
         os.environ['HOME']  = home
-        self.assertEqual(author, 'obs-service-tar-scm@invalid')
+        self.assertEqual(author, 'geeko')
+        os.environ['OBS_SERVICE_DAEMON'] = "0"
+
+    def test_changes_get_chge_args(self):
+        '''Test if getting changesemail from cli args works'''
+        chg                 = Changes()
+        cli                 = copy.copy(self.cli)
+        cli.changesemail    = 'args@example.com'
+        email               = chg.get_changesemail(cli)
+        self.assertEqual(email, 'args@example.com')
+
+    def test_changes_get_chge_oscrc(self):
+        '''Test if getting changesemail from osc works'''
+        os.environ["VC_MAILADDR"] = 'devel@example.com'
+        chg                 = Changes()
+        email               = chg.get_changesemail(self.cli)
+        self.assertEqual(email, 'devel@example.com')
+        os.environ["VC_MAILADDR"] = ''
+
+    def test_changes_get_chge_default(self):
+        '''Test if getting default changesemail if running inside OBS'''
+        os.environ['OBS_SERVICE_DAEMON'] = "1"
+        home                = os.environ['HOME']
+        os.environ['HOME']  = '/nir/va/na'
+        chg                 = Changes()
+        email              = chg.get_changesemail(self.cli)
+        os.environ['HOME']  = home
+        self.assertEqual(email, 'obs-service-tar-scm@invalid')
         os.environ['OBS_SERVICE_DAEMON'] = "0"
 
     def test_git_repoc_hash_wo_subdir(self):
