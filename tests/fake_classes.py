@@ -6,7 +6,8 @@ class FakeCli(dict):  # pylint: disable=no-init,too-few-public-methods
     subdir             = ''
     user               = ''
     keyring_passphrase = ''
-    maintainers_asc = None
+    maintainers_asc    = None
+    basename           = None
     def __init__(self, match_tag=False):
         super(FakeCli, self).__init__()
         self.match_tag          = match_tag
