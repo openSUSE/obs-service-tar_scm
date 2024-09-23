@@ -271,7 +271,8 @@ class Git(Scm):
                 self.fetch_upstream_scm()
             else:
                 logging.info("Please fix corrupt cache directory!")
-                raise exc
+
+            raise exc
 
     def detect_version(self, args):
         """
