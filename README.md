@@ -15,16 +15,16 @@ https://github.com/openSUSE/obs-service-tar_scm.
 
 `tar_scm` is the legacy source service used to create a source tarball
 from one of the supported SCM (source code management) tools: `git`,
-`hg`, `svn`, and `bzr`.
+`hg`, and `svn`.
 
 `tar_scm` supports many options, e.g. it can adjust resulting tarball
 parameters, include or exclude particular files when creating the
 tarball, or generate an `rpm` changelog from the SCM commit log. For the
 full list of options please see `tar_scm.service.in`.
 
-Apart from various SCM like git, hg, bzr or svn, it additionally
-supports `--url` option that allows you to specify URL of the upstream
-tarball to be downloaded.
+Apart from various SCM like git, hg, or svn, it additionally supports
+`--url` option that allows you to specify URL of the upstream tarball to
+be downloaded.
 
 `tar_scm` can be used in combination with other services like
 [download_files](https://github.com/openSUSE/obs-service-download_files),

@@ -68,14 +68,6 @@ class TasksTestCases(unittest.TestCase):
             self.assertEqual(tasks.task_list[0].__dict__[key], val)
         self.assertEqual(len(tasks.task_list), 1)
 
-    def test_generate_tl_single_task(self):
-        expected = {
-            'scm': 'bzr', 'clone_prefix': '_obs_', 'snapcraft': True,
-            'revision': None, 'url': 'lp:~mterry/libpipeline/printf',
-            'filename': 'libpipeline', 'use_obs_scm': True,
-            'outdir': self.cli.outdir, 'changesgenerate': False}
-        self._generate_tl_common(expected, 'test_generate_tl_single_task')
-
     def test_generate_tl_st_appimage(self):
         '''Test generates task list with single task from appimage.yml'''
         self.cli.snapcraft = False
@@ -106,17 +98,6 @@ class TasksTestCases(unittest.TestCase):
 
     def test_generate_tl_multi_tasks(self):
         expected = {
-            'libpipeline': {
-                'changesgenerate': False,
-                'clone_prefix': '_obs_',
-                'filename': 'libpipeline',
-                'outdir': self.cli.outdir,
-                'revision': None,
-                'scm': 'bzr',
-                'snapcraft': True,
-                'url': 'lp:~mterry/libpipeline/printf',
-                'use_obs_scm': True
-            },
             'kanku': {
                 'changesgenerate': False,
                 'clone_prefix': '_obs_',

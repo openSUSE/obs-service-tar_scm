@@ -90,9 +90,6 @@ def run_hg(repo, args):
     return run_scm('hg',  repo, args)
 
 
-def run_bzr(repo, args):
-    return run_scm('bzr', repo, args)
-
 def file_write_legacy(fname, string, *args):
     '''function to write string to file python 2/3 compatible'''
     mode = 'w'

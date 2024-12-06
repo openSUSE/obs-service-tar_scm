@@ -66,7 +66,7 @@ class Cli():
                             help='Enable verbose output')
         parser.add_argument('--scm',
                             help='Specify SCM',
-                            choices=['git', 'hg', 'bzr', 'svn', 'tar'])
+                            choices=['git', 'hg', 'svn', 'tar'])
         parser.add_argument('--url',
                             help='Specify URL of upstream tarball to download')
         parser.add_argument('--user',
