@@ -15,7 +15,6 @@ import unittest
 from tests.gittests import GitTests
 from tests.svntests import SvnTests
 from tests.hgtests  import HgTests
-from tests.bzrtests import BzrTests
 from tests.testenv import TestEnvironment
 from tests.unittestcases import UnitTestCases
 from tests.tasks import TasksTestCases

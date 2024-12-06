@@ -113,7 +113,6 @@ Requires:       git-core                                        \
 Recommends:     obs-service-download_files                      \
 Recommends:     %{use_python}-keyring                           \
 Recommends:     %{use_python}-keyrings.alt                      \
-Suggests:       bzr                                             \
 Suggests:       mercurial                                       \
 Suggests:       subversion                                      \
 %endif                                                          \
@@ -183,7 +182,7 @@ Requires:       %{python_path}
 %description
 This is a source service for openSUSE Build Service.
 
-It supports downloading from svn, git, hg and bzr repositories.
+It supports downloading from svn, git, and hg repositories.
 
 %package -n     obs-service-obs_scm-common
 Summary:        Common parts of SCM handling services
@@ -198,7 +197,7 @@ Requires:       %{use_python}-argparse
 %description -n obs-service-obs_scm-common
 This is a source service for openSUSE Build Service.
 
-It supports downloading from svn, git, hg and bzr repositories.
+It supports downloading from svn, git, and hg repositories.
 
 This package holds the shared files for different services.
 
