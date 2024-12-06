@@ -65,7 +65,7 @@ class Tasks():
         job from cli arguments.
         '''
         args = self.args
-        scms = ['git', 'tar', 'svn', 'bzr', 'hg']
+        scms = ['git', 'tar', 'svn', 'hg']
 
         if args.appimage:
             # we read the SCM config from appimage.yml
@@ -194,7 +194,6 @@ class Tasks():
 
         scm2class = {
             'git': 'Git',
-            'bzr': 'Bzr',
             'hg':  'Hg',
             'svn': 'Svn',
             'tar': 'Tar',

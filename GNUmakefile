@@ -10,7 +10,6 @@ SYSCFG   = /etc
 
 CLEAN_PYFILES = \
   ./tar_scm.py \
-  ./TarSCM/scm/bzr.py \
   ./TarSCM/scm/svn.py \
   ./TarSCM/exceptions.py \
 
@@ -23,13 +22,11 @@ CLEAN_TEST_PYFILES = \
   ./tests/archiveobscpiotestcases.py \
   ./tests/gittests.py \
   ./tests/fixtures.py \
-  ./tests/bzrfixtures.py \
   ./tests/gitfixtures.py \
   ./tests/hgfixtures.py \
   ./tests/svnfixtures.py \
   ./tests/tarfixtures.py \
   ./tests/commontests.py \
-  ./tests/bzrtests.py \
   ./tests/svntests.py \
 
 PYLINT_READY_TEST_MODULES = \

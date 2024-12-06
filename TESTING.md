@@ -29,12 +29,12 @@ development, you can provide command-line arguments:
 Currently this filtering only applies to the git tests, but you can
 easily tweak `test.py` to change that.
 
-Note that for each test, a fresh `svn`/`git`/`hg`/`bzr` repository is
-created, and `tar_scm` is invoked one *or more* times in a faked-up
-OBS source service environment.  Whenever `tar_scm` invokes the VCS
-for which its functionality is being tested, through modification of
-`$PATH` it actually invokes `scm-wrapper`, which logs the VCS
-invocation before continuing.
+Note that for each test, a fresh `svn`/`git`/`hg` repository is created,
+and `tar_scm` is invoked one *or more* times in a faked-up OBS source
+service environment.  Whenever `tar_scm` invokes the VCS for which its
+functionality is being tested, through modification of `$PATH` it
+actually invokes `scm-wrapper`, which logs the VCS invocation before
+continuing.
 
 ### Persistence between test runs
 
