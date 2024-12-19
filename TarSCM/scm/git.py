@@ -136,6 +136,7 @@ class Git(Scm):
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for git."""
         self.auth_url()
+        argsd = self.args.__dict__
 
         # clone if no .git dir exists
         command = self._get_scm_cmd() + ['clone',
@@ -161,7 +162,6 @@ class Git(Scm):
                 config_command, cwd=self.clone_dir,
                 interactive=sys.stdout.isatty())
 
-            argsd = self.args.__dict__
             if 'submodules' not in argsd:
                 cfg_cmd = self._get_scm_cmd() + ['config', '--local',
                                                  'fetch.recurseSubmodules',
@@ -180,10 +180,18 @@ class Git(Scm):
         self.fetch_specific_revision()
 
         if self.revision and not self.repocachedir:
-            self.helpers.safe_run(
-                self._get_scm_cmd() + ['checkout', self.revision],
-                cwd=self.clone_dir
-            )
+            if 'lfs' in argsd and argsd['lfs'] == 'enable':
+                self.helpers.safe_run(
+                    self._get_scm_cmd() + ['checkout', self.revision],
+                    cwd=self.clone_dir,
+                    env={'GIT_LFS_SKIP_SMUDGE': '1'}
+                )
+                self.fetch_lfs()
+            else:
+                self.helpers.safe_run(
+                    self._get_scm_cmd() + ['checkout', self.revision],
+                    cwd=self.clone_dir
+                )
 
     def fetch_specific_revision(self):
         if self.revision and not self._ref_exists(self.revision):

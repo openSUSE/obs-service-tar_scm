@@ -25,7 +25,7 @@ def file_write_legacy(fname, string, *args):
 
 
 class Helpers():
-    def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False):
+    def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False, env={}):
         """
         Execute the command cmd in the working directory cwd and check return
         value. If the command returns non-zero and raisesysexit is True raise a
@@ -34,11 +34,15 @@ class Helpers():
         """
         logging.debug("COMMAND: %s" % cmd)
 
+        if env:
+            env.update(dict(os.environ))
+
         proc = subprocess.Popen(cmd,
                                 shell=False,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
-                                cwd=cwd)
+                                cwd=cwd,
+                                env=env)
         output = ''
         if interactive:
             stdout_lines = []
@@ -64,12 +68,12 @@ class Helpers():
 
         return (proc.returncode, output)
 
-    def safe_run(self, cmd, cwd, interactive=False):
+    def safe_run(self, cmd, cwd, interactive=False, env={}):
         """Execute the command cmd in the working directory cwd and check
         return value. If the command returns non-zero raise a SystemExit
         exception.
         """
-        result = self.run_cmd(cmd, cwd, interactive, raisesysexit=True)
+        result = self.run_cmd(cmd, cwd, interactive, raisesysexit=True, env=env)
         return result
 
     def get_timestamp(self, scm_object, args, clone_dir):
