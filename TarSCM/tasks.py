@@ -250,6 +250,9 @@ class Tasks():
         arch.extract_from_archive(extract_src, args.extract,
                                   args.outdir)
 
+        arch.extract_rename_from_archive(extract_src, args.extract_rename,
+                                         args.outdir)
+
         arch.create_archive(
             scm_object,
             basename  = basename,
