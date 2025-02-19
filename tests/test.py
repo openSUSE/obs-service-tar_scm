@@ -34,17 +34,22 @@ def prepare_testclasses():
         # If you are only interested in a particular VCS, you can
         # temporarily comment out any of these or use the env variable
         # TAR_SCM_TC=<comma_separated_list> test.py
-        # export TAR_SCM_TC=UnitTestCases,TasksTestCases,SCMBaseTestCases,GitTests,SvnTests,HgTests,TarTestCases # noqa # pylint: disable=line-too-long
+        # export TAR_SCM_TC=UnitTestCases,TasksTestCases,SCMBaseTestCases,GitTests,SvnTests,TarTestCases # noqa # pylint: disable=line-too-long
+        HgTests,  # disabled because of a lack of performance
+        BzrTests, # disabled as bzr is no longer part of Factory
         UnitTestCases,
         TasksTestCases,
         ArchiveOBSCpioTestCases,
         SCMBaseTestCases,
         GitTests,
         SvnTests,
-        HgTests,
-        TarTestCases,
-        BzrTests
+        TarTestCases
     ]
+
+    # quite ugly to remove them here
+    # but this way no linter complains about unused import
+    tclasses.pop(1)
+    tclasses.pop(1)
 
     if os.getenv('TAR_SCM_TC'):
         tclasses = []
