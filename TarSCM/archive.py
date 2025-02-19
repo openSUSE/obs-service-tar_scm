@@ -17,7 +17,7 @@ try:
 except:
     from StringIO import StringIO
 
-METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn)(\/.*|$)')
+METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn)(/.*|$)')
 
 
 class BaseArchive():
@@ -85,14 +85,14 @@ class ObsCpio(BaseArchive):
         # transform glob patterns to regular expressions
         includes  = ''
         excludes  = r'$.'
-        topdir_re = '(' + re.escape(topdir) + '/)('
+        re_topdir = '(%s)/(%s)'
+
         if args.include:
             incl_arr = [fnmatch.translate(x + '*') for x in args.include]
-            match_list = r'|'.join(incl_arr)
-            includes = topdir_re + match_list + ')'
+            includes = re_topdir % (re.escape(topdir), r'|'.join(incl_arr))
         if args.exclude:
-            excl_arr = [fnmatch.translate(x) for x in args.exclude]
-            excludes = topdir_re + r'|'.join(excl_arr) + ')'
+            excl_arr = [x for x in args.exclude]
+            excludes = re_topdir % (re.escape(topdir), r'|'.join(excl_arr))
 
         # add topdir without filtering for now
         cpiolist = []
