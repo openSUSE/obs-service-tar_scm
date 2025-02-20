@@ -165,7 +165,7 @@
 which get maintained in the SCM. Can be used multiple times.</description>
   </parameter>
   <parameter name="package-meta">
-    <description>Package the metadata of SCM to allow the user or OBS to update after un-tar.</description>
+    <description>Package the metadata of SCM to allow the user or OBS to update after un-tar. Please be aware that this parameter has precedence over the "exclude" paramter.</description>
     <allowedvalue>yes</allowedvalue>
   </parameter>
   <parameter name="history-depth">
