@@ -1,7 +1,7 @@
 #
 # spec file for package obs-service-tar_scm
 #
-# Copyright (c) 2021 SUSE LLC
+# Copyright (c) 2025 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -55,7 +55,11 @@ ExclusiveArch:  skip-build
 %endif
 
 %if %{with python3}
+%if 0%{?suse_version} > 1500
+%define use_python %{primary_python}
+%else
 %define use_python python3
+%endif
 %define use_test   test3
 %else
 %define use_python python
@@ -92,7 +96,7 @@ ExclusiveArch:  skip-build
 
 # Mageia 8 has package names python-*
 # but requires python3 in shebang
-%if 0%{?mageia} >= 8 || 0%{?rhel} >= 8
+%if 0%{?mageia} >= 8 || 0%{?rhel} >= 8 || 0%{?suse_version} >= 1600
 %define python_path %{_bindir}/python3
 %else
 %define python_path %{_bindir}/%{use_python}
@@ -106,12 +110,12 @@ Requires:       obs-service-obs_scm-common = %version-%release  \
 %define scm_dependencies                                        \
 Requires:       git-core                                        \
 %if 0%{?suse_version} >= 1315                                   \
-Recommends:     bzr                                             \
-Recommends:     mercurial                                       \
-Recommends:     subversion                                      \
 Recommends:     obs-service-download_files                      \
 Recommends:     %{use_python}-keyring                           \
 Recommends:     %{use_python}-keyrings.alt                      \
+Suggests:       bzr                                             \
+Suggests:       mercurial                                       \
+Suggests:       subversion                                      \
 %endif                                                          \
 %{nil}
 
@@ -119,8 +123,8 @@ Recommends:     %{use_python}-keyrings.alt                      \
 
 %define pkg_name obs-service-tar_scm
 Name:           %{pkg_name}%{nsuffix}
-%define version_unconverted 0.10.18.1600256320.569e5be
-Version:        0.10.35
+%define version_unconverted 0.10.46
+Version:        0.10.46
 Release:        0
 Summary:        An OBS source service: create tar ball from svn/git/hg
 License:        GPL-2.0-or-later
@@ -139,8 +143,8 @@ BuildRequires:  %{use_python}-keyring
 BuildRequires:  %{use_python}-keyrings.alt
 BuildRequires:  %{use_python}-six
 BuildRequires:  bzr
-BuildRequires:  gpg
 BuildRequires:  git-core
+BuildRequires:  gpg
 BuildRequires:  mercurial
 BuildRequires:  subversion
 %if !%{with python3}
