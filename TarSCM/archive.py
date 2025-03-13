@@ -46,6 +46,45 @@ class BaseArchive():
 
                 shutil.copy2(src, outdir)
 
+    def filter_files(self, filelist, topdir, args):
+        """
+        Filter filelist by exclude/include parameters
+        """
+        package_metadata = args.package_meta
+
+        # transform glob patterns to regular expressions
+        includes  = ''
+        excludes  = r'$.'
+        re_topdir = '(%s)/(%s)'
+
+        if args.include:
+            incl_arr = [fnmatch.translate(x + '*') for x in args.include]
+            includes = re_topdir % (re.escape(topdir), r'|'.join(incl_arr))
+        if args.exclude:
+            excl_arr = [x for x in args.exclude]
+            excludes = re_topdir % (re.escape(topdir), r'|'.join(excl_arr))
+
+        # add topdir without filtering for now
+        cpiolist = []
+        for root, dirs, files in filelist:
+            # excludes
+            dirs[:] = [os.path.join(root, d) for d in dirs]
+            dirs[:] = [d for d in dirs if not re.match(excludes, d)]
+            dirs[:] = [d for d in dirs if re.match(includes, d)]
+
+            # exclude/include files
+            files = [os.path.join(root, f) for f in files]
+            files = [f for f in files if not re.match(excludes, f)]
+            files = [f for f in files if re.match(includes, f)]
+
+            for name in dirs:
+                if not METADATA_PATTERN.match(name) or package_metadata:
+                    cpiolist.append(name)
+
+            for name in files:
+                if not METADATA_PATTERN.match(name) or package_metadata:
+                    cpiolist.append(name)
+        return sorted(cpiolist)
 
 class ObsCpio(BaseArchive):
     def create_archive(self, scm_object, **kwargs):
@@ -56,7 +95,6 @@ class ObsCpio(BaseArchive):
         version          = kwargs['version']
         args             = kwargs['cli']
         commit           = scm_object.get_current_commit()
-        package_metadata = args.package_meta
 
         (workdir, topdir) = os.path.split(scm_object.arch_dir)
         extension = 'obscpio'
@@ -81,42 +119,9 @@ class ObsCpio(BaseArchive):
             stdout = archivefile,
             stderr = subprocess.STDOUT
         )
-
-        # transform glob patterns to regular expressions
-        includes  = ''
-        excludes  = r'$.'
-        re_topdir = '(%s)/(%s)'
-
-        if args.include:
-            incl_arr = [fnmatch.translate(x + '*') for x in args.include]
-            includes = re_topdir % (re.escape(topdir), r'|'.join(incl_arr))
-        if args.exclude:
-            excl_arr = [x for x in args.exclude]
-            excludes = re_topdir % (re.escape(topdir), r'|'.join(excl_arr))
-
-        # add topdir without filtering for now
-        cpiolist = []
-        for root, dirs, files in os.walk(topdir, topdown=False):
-            # excludes
-            dirs[:] = [os.path.join(root, d) for d in dirs]
-            dirs[:] = [d for d in dirs if not re.match(excludes, d)]
-            dirs[:] = [d for d in dirs if re.match(includes, d)]
-
-            # exclude/include files
-            files = [os.path.join(root, f) for f in files]
-            files = [f for f in files if not re.match(excludes, f)]
-            files = [f for f in files if re.match(includes, f)]
-
-            for name in dirs:
-                if not METADATA_PATTERN.match(name) or package_metadata:
-                    cpiolist.append(name)
-
-            for name in files:
-                if not METADATA_PATTERN.match(name) or package_metadata:
-                    cpiolist.append(name)
-
+        filelist = os.walk(topdir, topdown=False)
         tstamp = self.helpers.get_timestamp(scm_object, args, topdir)
-        for name in sorted(cpiolist):
+        for name in self.filter_files(filelist, topdir, args):
             try:
                 os.utime(name, (tstamp, tstamp), follow_symlinks=False)
             except OSError:
@@ -186,24 +191,6 @@ class Tar(BaseArchive):
             pat = fnmatch.translate(os.path.join(topdir, exc))
             excl_patterns.append(re.compile(pat))
 
-        def tar_exclude(filename):
-            """
-            Exclude (return True) or add (return False) file to tar achive.
-            """
-            if not package_metadata and METADATA_PATTERN.match(filename):
-                return True
-
-            if incl_patterns:
-                for pat in incl_patterns:
-                    if pat.match(filename):
-                        return False
-                return True
-
-            for pat in excl_patterns:
-                if pat.match(filename):
-                    return True
-            return False
-
         def reset(tarinfo):
             """Python 2.7 only: reset uid/gid to 0/0 (root)."""
             tarinfo.uid = tarinfo.gid = 0
@@ -212,17 +199,14 @@ class Tar(BaseArchive):
                 tarinfo.mtime = timestamp
             return tarinfo
 
-        def tar_filter(tarinfo):
-            if tar_exclude(tarinfo.name):
-                return None
-
-            return reset(tarinfo)
-
         cwd = os.getcwd()
         os.chdir(workdir)
         enc = locale.getpreferredencoding()
 
         out_file = os.path.join(outdir, dstname + '.' + extension)
+        filelist = os.walk(topdir, topdown=False)
+
+        files_added = dict()
 
         with tarfile.open(out_file, "w", encoding=enc) as tar:
             try:
@@ -230,13 +214,17 @@ class Tar(BaseArchive):
             except TypeError:
                 # Python 2.6 compatibility
                 tar.add(topdir, recursive=False)
-            for entry in map(lambda x: os.path.join(topdir, x),
-                             sorted(os.listdir(topdir))):
-                try:
-                    tar.add(entry, filter=tar_filter)
-                except TypeError:
-                    # Python 2.6 compatibility
-                    tar.add(entry, exclude=tar_exclude)
+            for entry in self.filter_files(filelist, topdir, args):
+                logging.debug("Filtered file: %s", entry)
+                if not files_added.get(entry, False):
+                    logging.debug("Adding filtered file: %s", entry)
+                    try:
+                        tar.add(entry, recursive=False, filter=reset)
+                    except TypeError:
+                        # Python 2.6 compatibility
+                        tar.add(entry, exclude=tar_exclude)
+                    files_added[entry] = True
+                    logging.debug("Added filtered file: %s", entry)
 
         self.archivefile    = tar.name
 
