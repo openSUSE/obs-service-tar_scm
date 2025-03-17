@@ -216,4 +216,7 @@ which get maintained in the SCM. Can be used multiple times.</description>
   <parameter name="without-version">
     <description>Do not add version to output file.</description>
   </parameter>
+  <parameter name="ignore-branch-request">
+    <description>Ignore branch request file.</description>
+  </parameter>
 </service>
