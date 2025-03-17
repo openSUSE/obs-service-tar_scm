@@ -183,8 +183,8 @@ class Tasks():
         '''
         do the work for a single task
         '''
-
-        self.args = self.check_for_branch_request()
+        if not self.args.ignore_branch_request:
+            self.args = self.check_for_branch_request()
 
         logging.basicConfig(format="%(message)s", stream=sys.stderr,
                             level=logging.INFO)

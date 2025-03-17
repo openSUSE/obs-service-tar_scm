@@ -58,6 +58,7 @@ class Cli():
         self.user = None
         self.keyring_passphrase = None
         self.changesgenerate = False
+        self.ignore_branch_request = False
 
     def parse_args(self, options):
         parser = argparse.ArgumentParser(description='Git Tarballs')
@@ -195,6 +196,8 @@ class Cli():
                                  '(only used with \'--latest-signed-*\')')
         parser.add_argument('--without-version', default = False,
                             help='Do not add version to output file.')
+        parser.add_argument('--ignore-branch-request', default = False,
+                            help='Ignore branch request file.')
 
         self.verify_args(parser.parse_args(options))
 
