@@ -55,6 +55,8 @@ class Scm():
         self.task           = task
         self.url            = args.url
 
+        self.in_osc = bool(os.getenv('OSC_VERSION'))
+
         # optional arguments
         self.revision       = args.revision
         if args.user and args.keyring_passphrase:
@@ -270,9 +272,8 @@ class Scm():
         # of the git repo and fetch local changes
         is_snap = sys.argv[0].endswith("snapcraft")
         is_obs_scm = self.args.use_obs_scm
-        in_osc = bool(os.getenv('OSC_VERSION'))
         in_git = os.path.isdir('.git')
-        if is_snap or (is_obs_scm and in_osc and in_git):
+        if is_snap or (is_obs_scm and self.in_osc and in_git):
             self.repodir = os.getcwd()
 
         # construct repodir (the parent directory of the checkout)
@@ -299,7 +300,7 @@ class Scm():
         osc_version = 0
 
         logging.debug(" - SUBDIR: %s", self.args.subdir)
-        if not self.args.subdir and self.scm == 'git':
+        if not self.args.subdir and self.scm == 'git' and not self.in_osc:
             self.partial_clone = True
             logging.debug("NO SUBDIR FOUND - USING PARTIAL CLONE")
             if self.repocachedir:
