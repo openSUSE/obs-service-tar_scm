@@ -113,9 +113,9 @@ flake8:
 		echo "Skipping flake8 - python2 in CI" \
 	;else \
 		if [ "x$(FLAKE83)" != "x" ]; then \
-			echo "Running flake83";\
-			$(FLAKE83);\
-			echo "Finished flake83";\
+			echo "Running flake83"\
+			$(FLAKE83)\
+			echo "Finished flake83"\
 		else \
 			echo "flake8 for python3 not found or python major version == 2 ($(python_version_major))";\
 		fi \
