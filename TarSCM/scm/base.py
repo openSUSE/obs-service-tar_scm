@@ -39,7 +39,7 @@ class Scm():
         self.repocachedir      = None
         self.clone_dir         = None
         self.lock_file         = None
-        self.basename          = None
+        self.basename          = args.basename
         self.repodir           = None
         self.user              = None
         self.password          = None
@@ -294,8 +294,9 @@ class Scm():
         # special handling for cloning bare repositories (../repo/.git/)
         url_path = url_path.rstrip('/')
 
-        self.basename = os.path.basename(os.path.normpath(url_path))
-        self.basename = prefix + self.basename
+        if not self.basename:
+            self.basename = os.path.basename(os.path.normpath(url_path))
+            self.basename = prefix + self.basename
 
         osc_version = 0
 
