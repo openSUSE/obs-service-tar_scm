@@ -292,7 +292,15 @@ class Tasks():
             changesversion = self.get_version()
 
         logging.debug("Searching for '*.changes' in %s", os.getcwd())
-        for filename in glob.glob('*.changes'):
+        changesfiles = glob.glob('*.changes')
+        if not changesfiles:
+            if args.filename:
+                basename = args.filename
+            else:
+                basename = os.path.basename(self.scm_object.clone_dir)
+            changesfiles = [basename + ".changes"]
+            open(changesfiles[0], 'a').close()
+        for filename in changesfiles:
             new_changes_file = os.path.join(args.outdir, filename)
             shutil.copy(filename, new_changes_file)
             self.changes.write_changes(new_changes_file,
