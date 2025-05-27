@@ -160,7 +160,7 @@ class Tasks():
         # the source supposed to be merged is more important then the code
         # referenced in the _service file.
         args = self.args
-        if not os.path.exists('_branch_request'):
+        if args.ignore_for_workflow or not os.path.exists('_branch_request'):
             return args
 
         # is it a branch request?
