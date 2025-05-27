@@ -10,12 +10,6 @@ class Tar(Scm):
 
     def fetch_upstream(self):
         """SCM specific version of fetch_upstream for tar."""
-        if self.args.obsinfo is None:
-            files = glob.glob('*.obsinfo')
-            if files:
-                # or we refactor and loop about all on future
-                self.args.obsinfo = files[0]
-
         version = None
         if self.args.obsinfo:
             self.basename = self.clone_dir = self.read_from_obsinfo(
