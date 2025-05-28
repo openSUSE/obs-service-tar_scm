@@ -61,7 +61,7 @@ class BaseArchive():
             incl_arr = [fnmatch.translate(x + '*') for x in args.include]
             includes = re_topdir % (re.escape(topdir), r'|'.join(incl_arr))
         if args.exclude:
-            excl_arr = [x for x in args.exclude]
+            excl_arr = [fnmatch.translate(x) for x in args.exclude]
             excludes = re_topdir % (re.escape(topdir), r'|'.join(excl_arr))
 
         # add topdir without filtering for now
