@@ -84,7 +84,7 @@ class GitTests(GitHgTests, GitSvnTests):
         return self.sha1s('tag%d' % rev)
 
     def changesregex(self, rev):  # pylint: disable=R0201
-        return '\d{10}.%s' % rev  # noqa: W605, pylint: disable=W1401
+        return r'\d{10}.%s' % rev  # noqa: W605, pylint: disable=W1401
 
     def tar_scm_args(self):  # pylint: disable=R0201
         scm_args = [
@@ -245,7 +245,7 @@ class GitTests(GitHgTests, GitSvnTests):
         fix = self.fixtures
         fix.create_commits(2)
         self.tar_scm_std("--revision", 'tag2',
-                         "--versionrewrite-pattern", 'tag(\d+)',  # noqa: W605,E501 pylint: disable=W1401
+                         "--versionrewrite-pattern", r'tag(\d+)',  # noqa: W605,E501 pylint: disable=W1401
                          "--versionrewrite-replacement", '\\1-test',
                          "--versionformat", "@PARENT_TAG@")
         self.assertTarOnly(self.basename(version="2-test"))
