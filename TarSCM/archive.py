@@ -57,9 +57,16 @@ class BaseArchive():
         excludes  = r'$.'
         re_topdir = '(%s)/(%s)'
 
+        if args.include_re:
+            includes = re_topdir % (re.escape(topdir), args.include_re)
+
+        if args.exclude_re:
+            excludes = re_topdir % (re.escape(topdir), args.exclude_re)
+
         if args.include:
             incl_arr = [fnmatch.translate(x + '*') for x in args.include]
             includes = re_topdir % (re.escape(topdir), r'|'.join(incl_arr))
+
         if args.exclude:
             excl_arr = [fnmatch.translate(x) for x in args.exclude]
             excludes = re_topdir % (re.escape(topdir), r'|'.join(excl_arr))
