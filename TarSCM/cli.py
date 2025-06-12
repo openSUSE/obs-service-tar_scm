@@ -19,6 +19,34 @@ def contains_dotdot(files):
     return 0
 
 
+def validate_extract_rename(extract_rename):
+    if not extract_rename:
+        return True
+
+    if contains_dotdot(extract_rename):
+        print('--extract-rename is not allowed to contain ".."')
+        return False
+
+    for tuple in extract_rename:
+        if '*' in tuple:
+            print('--extract-rename is not allowed to contain wildcards')
+            return False
+
+        if tuple.count(':') != 1:
+            print('--extract-rename must contain a single ":"')
+            return False
+
+        if len(tuple.split(':')[0]) == 0:
+            print('--extract-rename source file must not be empty')
+            return False
+
+        if len(tuple.split(':')[1]) == 0:
+            print('--extract-rename destination file must not be empty')
+            return False
+
+    return True
+
+
 def check_locale(loc):
     try:
         aloc_tmp = subprocess.check_output(['locale', '-a'])
@@ -107,6 +135,13 @@ class Cli():
         parser.add_argument('--extract', action='append',
                             help='Extract a file directly. Useful for build'
                                  'descriptions')
+        parser.add_argument('--extract-rename', action='append',
+                            help='Extract a file directly and rename it.'
+                                 'Useful for build descriptions with'
+                                 'multibuild.'
+                                 'Format: <source>:<dest>'
+                                 'Does not support wildcards, must not'
+                                 'contain colons in the filenames.')
         parser.add_argument('--filename',
                             help='Name of package - used together with version'
                                  ' to determine tarball name')
@@ -228,6 +263,9 @@ class Cli():
 
         if contains_dotdot(args.extract):
             sys.exit('--extract is not allowed to contain ".."')
+
+        if not validate_extract_rename(args.extract_rename):
+            sys.exit('--extract-rename is not valid. Format: <source>:<dest>')
 
         if args.filename and "/" in args.filename:
             sys.exit('--filename must not specify a path')

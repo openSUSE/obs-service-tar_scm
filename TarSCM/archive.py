@@ -46,6 +46,24 @@ class BaseArchive():
 
                 shutil.copy2(src, outdir)
 
+    def extract_rename_from_archive(self, repodir, tuples, outdir):
+        """Extract and rename all files directly outside of the archive.
+        """
+        if tuples is None:
+            return
+
+        for tuple in tuples:
+            path = os.path.join(repodir, tuple.split(':')[0])
+
+            if not os.path.exists(path):
+                sys.exit("%s: No such file or directory" % path)
+
+            r_src = os.path.realpath(path)
+            if not r_src.startswith(repodir):
+                sys.exit("%s: tries to escape the repository" % path)
+
+            shutil.copy2(path, os.path.join(outdir, tuple.split(':')[1]))
+
     def filter_files(self, filelist, topdir, args):
         """
         Filter filelist by exclude/include parameters
