@@ -222,4 +222,7 @@ which get maintained in the SCM. Can be used multiple times.</description>
   <parameter name="without-version">
     <description>Do not add version to output file.</description>
   </parameter>
+  <parameter name="ignore-for-workflow">
+    <description>Do not override the sources when running OBS SCM branch_package workflow. Useful for auxiliary files such as recipes.</description>
+  </parameter>
 </service>
