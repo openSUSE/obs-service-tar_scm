@@ -63,7 +63,7 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.assertTrue(tarents == expected)
 
     def test_tar_exclude_re(self):
-        self.tar_scm_std('--exclude', '(a|c)')
+        self.tar_scm_std('--exclude-re', '(a|c)')
         tar_file = os.path.join(self.outdir, self.basename()+'.tar')
         tar      = tarfile.open(tar_file)
         tarents  = tar.getnames()
@@ -80,6 +80,16 @@ class CommonTests(TestEnvironment, TestAssertions):
         expected = [self.basename(),
                     self.basename() + '/subdir',
                     self.basename() + '/subdir/b']
+        self.assertTrue(tarents == expected)
+
+    def test_tar_include_re(self):
+        self.tar_scm_std('--include-re', '(a|c)')
+        tar_file = os.path.join(self.outdir, self.basename()+'.tar')
+        tar      = tarfile.open(tar_file)
+        tarents = tar.getnames()
+        expected = [self.basename(),
+                    self.basename() + '/a',
+                    self.basename() + '/c']
         self.assertTrue(tarents == expected)
 
     def test_obs_scm_exclude(self):

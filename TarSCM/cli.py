@@ -149,10 +149,18 @@ class Cli():
                            default=[], metavar='REGEXP',
                            help='Specifies subset of files/subdirectories to '
                                 'pack in the tarball (can be repeated)')
+        group.add_argument('--include-re',
+                           metavar='REGEXP',
+                           help='Specifies a regex pattern to match '
+                                'files/subdirectories to pack in the archive')
         group.add_argument('--exclude', action='append',
                            default=[], metavar='REGEXP',
                            help='Specifies excludes when creating the '
                                 'tarball (can be repeated)')
+        group.add_argument('--exclude-re',
+                           metavar='REGEXP',
+                           help='Specifies a regex pattern to exclude matching'
+                                ' files from the archive')
         parser.add_argument('--package-meta',
                             choices=['yes', 'no'], default='no',
                             help='Package the meta data of SCM to allow the '

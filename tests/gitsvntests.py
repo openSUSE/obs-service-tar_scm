@@ -91,12 +91,13 @@ class GitSvnTests(CommonTests):
         self._check_servicedata(revision=3)
 
     def _new_change_entry_regexp(self, author, changes):  # pylint: disable=R0201
-        return textwrap.dedent("""\
-          ^-------------------------------------------------------------------
-          \w{3} \w{3} [ \d]\d \d\d:\d\d:\d\d [A-Z]{3} 20\d\d - %s
-
-          %s
-          """) % (author, changes)
+        regex = \
+          r"^-+\n" \
+          r"\w{3} \w{3} [ \d]\d \d\d:\d\d:\d\d [A-Z]{3} 20\d\d - %s\n" \
+          r"\n" \
+          r"%s\n" % (author, changes)
+        print(regex)
+        return regex
 
     def _check_changes(self, orig_changes, expected_changes_regexp):
         new_changes_file = os.path.join(self.outdir, 'pkg.changes')
@@ -160,12 +161,11 @@ class GitSvnTests(CommonTests):
         print("XXXX 4")
         expected_changes_regexp = self._new_change_entry_regexp(
             expected_author,
-            textwrap.dedent("""\
-              - Update to version 0.6.%s:
-                \* 5
-                \* 4
-                \* 3
-              """) % rev
+            r"- Update to version 0.6.%s:\n"
+            r"  \* 5\n"
+            r"  \* 4\n"
+            r"  \* 3\n"
+             % rev
         )
         self._check_changes(orig_changes, expected_changes_regexp)
 
@@ -190,12 +190,11 @@ class GitSvnTests(CommonTests):
         expected_author = self.fixtures.user_email
         expected_changes_regexp = self._new_change_entry_regexp(
             expected_author,
-            textwrap.dedent("""\
-              - Update to version %s:
-                \* 5
-                \* 4
-                \* 3
-              """) % ver_regex
+            r"- Update to version %s:\n"
+            r"  \* 5\n"
+            r"  \* 4\n"
+            r"  \* 3\n"
+            % ver_regex
         )
         self._check_changes(orig_changes, expected_changes_regexp)
 
@@ -220,12 +219,11 @@ class GitSvnTests(CommonTests):
         expected_author = self.fixtures.user_email
         expected_changes_regexp = self._new_change_entry_regexp(
             expected_author,
-            textwrap.dedent("""\
-              - Update to version 0.6.%s:
-                \* 8
-                \* 7
-                \* 6
-              """) % self.changesrevision(rev, abbrev=True)
+            r"- Update to version 0.6.%s:\n"
+            r"  \* 8\n"
+            r"  \* 7\n"
+            r"  \* 6\n"
+            % self.changesrevision(rev, abbrev=True)
         )
         self._check_changes(orig_changes, expected_changes_regexp)
 
@@ -254,11 +252,10 @@ class GitSvnTests(CommonTests):
         expected_author = self.fixtures.user_email
         expected_changes_regexp = self._new_change_entry_regexp(
             expected_author,
-            textwrap.dedent("""\
-              - Update to version 0.6.%s:
-                \* 5
-                \* 4
-                \* 3
-              """) % self.changesrevision(rev, abbrev=True)
+            r"- Update to version 0.6.%s:\n"
+            r"  \* 5\n"
+            r"  \* 4\n"
+            r"  \* 3\n"
+            % self.changesrevision(rev, abbrev=True)
         )
         self._check_changes(orig_changes, expected_changes_regexp)
