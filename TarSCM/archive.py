@@ -19,6 +19,12 @@ except:
 
 METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn)(/.*|$)')
 
+def conv_glob(string):
+    string = re.sub(r'[*]', '.*', string)
+    string = re.sub(r'[?]', '.', string)
+    string = re.sub(r'\[\!', '[^', string)
+    return string
+
 
 class BaseArchive():
     def __init__(self):
@@ -64,12 +70,16 @@ class BaseArchive():
             excludes = re_topdir % (re.escape(topdir), args.exclude_re)
 
         if args.include:
-            incl_arr = [fnmatch.translate(x + '*') for x in args.include]
+            incl_arr = [(conv_glob(x) + '.*') for x in args.include]
             includes = re_topdir % (re.escape(topdir), r'|'.join(incl_arr))
 
         if args.exclude:
-            excl_arr = [fnmatch.translate(x) for x in args.exclude]
+            excl_arr = [conv_glob(x) for x in args.exclude]
             excludes = re_topdir % (re.escape(topdir), r'|'.join(excl_arr))
+
+
+        if excludes:
+            logging.debug("Using exclude filter regex: %r", excludes)
 
         # add topdir without filtering for now
         cpiolist = []
