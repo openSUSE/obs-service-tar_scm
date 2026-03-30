@@ -133,9 +133,7 @@ test3:
 	TAR_SCM_TESTMODE=1 PYTHONPATH=. python3 tests/test.py 2>&1 | tee ./test3.log
 
 .PHONY: test
-test:
-	: Running the test suite.  Please be patient - this takes a few minutes ...
-	TAR_SCM_TESTMODE=1 PYTHONPATH=. python tests/test.py 2>&1 | tee ./test3.log
+test: test3
 
 .PHONY: pylint
 pylint:
