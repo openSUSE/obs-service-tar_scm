@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 from __future__ import print_function
+from typing import Any
 
 import os
 import glob
 
-from utils import file_write_legacy
+from tests.utils import file_write_legacy
 
 from tests.tarfixtures    import TarFixtures
 from tests.testenv        import TestEnvironment
@@ -21,10 +22,10 @@ class TarTestCases(TestEnvironment, TestAssertions):
     included via the class inheritance hierarchy.
     """
 
-    scm            = 'tar'
+    scm: str       = 'tar'
     fixtures_class = TarFixtures
 
-    def test_tar_scm_finalize(self):
+    def test_tar_scm_finalize(self) -> Any:
         wdir       = self.pkgdir
         info = os.path.join(wdir, "test.obsinfo")
         print("INFOFILE: '%s'" % info)
@@ -40,14 +41,14 @@ class TarTestCases(TestEnvironment, TestAssertions):
         self.tar_scm_std()
         self.assertTrue(os.path.isdir(src_dir))
 
-    def test_tar_scm_no_finalize(self):  # pylint: disable=no-self-use
+    def test_tar_scm_no_finalize(self) -> Any:  # pylint: disable=no-self-use
         cli                 = FakeCli()
         tasks               = FakeTasks()
         tar_obj             = Tar(cli, tasks)
         tar_obj.finalize()
 
 
-    def test_tar_scm_multiple_obsinfo(self):
+    def test_tar_scm_multiple_obsinfo(self) -> Any:
         wdir       = self.pkgdir
         info = os.path.join(wdir, "test1.obsinfo")
         print("INFOFILE: '%s'" % info)

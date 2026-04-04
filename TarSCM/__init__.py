@@ -10,9 +10,10 @@ from TarSCM.archive    import Tar
 from TarSCM.archive    import ObsCpio
 from TarSCM.archive    import Gbp
 from TarSCM.exceptions import OptionsError
+import TarSCM.scm
 
 
-def run():
+def run() -> None:
     _cli = Cli()
     _cli.parse_args(sys.argv[1:])
 

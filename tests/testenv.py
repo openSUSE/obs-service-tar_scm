@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=C0103
+from typing import Any, cast
 import os
 import shutil
 import sys
 import trace
-from utils import mkfreshdir
-from scmlogs import ScmInvocationLogs
+import unittest
+from tests.utils import mkfreshdir
+from tests.scmlogs import ScmInvocationLogs
 import TarSCM
-
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
+from io import StringIO
 
 
 class TestEnvironment:
@@ -26,9 +24,12 @@ class TestEnvironment:
     tests_dir = os.path.abspath(os.path.dirname(__file__))  # os.getcwd()
     tmp_dir   = os.path.join(tests_dir, 'tmp')
     is_setup  = False
+    scm = ''  # type: str
+    fixtures_class = None  # type: Any
+    _testMethodName = ''  # type: str
 
     @classmethod
-    def tar_scm_bin(cls):
+    def tar_scm_bin(cls) -> str:
         tar_scm = os.path.join(cls.tests_dir, '..', 'tar_scm.py')
         if not os.path.isfile(tar_scm):
             msg = "Failed to find tar_scm executable at " + tar_scm
@@ -36,7 +37,7 @@ class TestEnvironment:
         return tar_scm
 
     @classmethod
-    def setupClass(cls):
+    def setupClass(cls) -> None:
         # deliberately not setUpClass - we emulate the behaviour
         # to support Python < 2.7
         if cls.is_setup:
@@ -49,7 +50,7 @@ class TestEnvironment:
         print("--^-^-- end   setupClass for %s --^-^--" % cls.__name__)
         print()
 
-    def calcPaths(self):
+    def calcPaths(self) -> None:
         if not self._testMethodName.startswith('test_'):
             msg = "unexpected test method name: " + self._testMethodName
             raise RuntimeError(msg)
@@ -60,7 +61,7 @@ class TestEnvironment:
         self.outdir    = os.path.join(self.test_dir, 'out')
         self.cachedir  = os.path.join(self.test_dir, 'cache')
 
-    def setUp(self):
+    def setUp(self) -> None:
         print()
         print("=" * 70)
         print(self._testMethodName)
@@ -90,7 +91,7 @@ class TestEnvironment:
         os.environ['CACHEDIRECTORY'] = self.cachedir
         print("--^-^-- end   setUp for %s --^-^--" % self.test_name)
 
-    def initDirs(self):
+    def initDirs(self) -> None:
         # pkgdir persists between tests to simulate real world use
         # (although a test can choose to invoke mkfreshdir)
         persistent_dirs = [self.pkgdir, self.homedir]
@@ -105,23 +106,23 @@ class TestEnvironment:
         for subdir in ('repo', 'repourl', 'incoming'):
             mkfreshdir(os.path.join(self.cachedir, subdir))
 
-    def disableCache(self):
+    def disableCache(self) -> None:
         os.unsetenv('CACHEDIRECTORY')
         os.environ['CACHEDIRECTORY'] = ""
 
-    def tar_scm_std(self, *args, **kwargs):
+    def tar_scm_std(self, *args: str, **kwargs: Any) -> Any:
         return self.tar_scm(self.stdargs(*args), **kwargs)
 
-    def tar_scm_std_fail(self, *args):
+    def tar_scm_std_fail(self, *args: str) -> Any:
         return self.tar_scm(self.stdargs(*args), should_succeed=False)
 
-    def stdargs(self, *args):
+    def stdargs(self, *args: str) -> Any:
         return [
             '--url', self.fixtures.repo_url,
             '--scm', self.scm
         ] + list(args)
 
-    def tar_scm(self, args, should_succeed=True):
+    def tar_scm(self, args: Any, should_succeed: bool=True) -> Any:
         # simulate new temporary outdir for each tar_scm invocation
         mkfreshdir(self.outdir)
 
@@ -159,20 +160,16 @@ class TestEnvironment:
                 succeeded = True
             else:
                 print("exp.code is not 0")
-                sys.stderr.write(exp.code)
+                sys.stderr.write(cast(str, str(exp.code)))
                 ret = 1
                 succeeded = False
         except (NameError, AttributeError) as exp:
-            sys.stderr.write(exp)
+            sys.stderr.write(cast(str, str(exp)))
             ret = 1
             succeeded = False
         except Exception as exp:
             print("Raised Exception %r" % exp)
-            if hasattr(exp, 'message'):
-                msg = exp.message
-            else:
-                msg = exp
-            sys.stderr.write(str(msg))
+            sys.stderr.write(cast(str, str(exp)))
             ret = 1
             succeeded = False
         finally:
@@ -195,13 +192,13 @@ class TestEnvironment:
         print("succeeded: %r - should_succeed %r" %
               (succeeded, should_succeed))
         result = ("succeed" if should_succeed else "fail")
-        self.assertEqual(succeeded, should_succeed,
-                         "expected tar_scm to " + result)
+        if succeeded != should_succeed:
+            raise AssertionError("expected tar_scm to " + result)
 
         return (stdout, stderr, ret)
 
-    def rev(self, rev):
+    def rev(self, rev: Any) -> Any:
         return self.fixtures.revs[rev]
 
-    def timestamps(self, rev):
+    def timestamps(self, rev: Any) -> Any:
         return self.fixtures.timestamps[rev]

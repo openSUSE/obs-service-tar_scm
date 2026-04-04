@@ -2,6 +2,7 @@ import sys
 import re
 import os
 import dateutil.parser
+from typing import Any, Dict, List
 from TarSCM.scm.base import Scm
 from TarSCM.exceptions import OptionsError
 
@@ -9,15 +10,16 @@ from TarSCM.exceptions import OptionsError
 class Bzr(Scm):
     scm = 'bzr'
 
-    def _get_scm_cmd(self):
+    def _get_scm_cmd(self) -> List[str]:
         """Compose a BZR-specific command line using http proxies."""
         # Bazaar honors the http[s]_proxy variables, no action needed
         return [self.scm]
 
-    def fetch_upstream_scm(self):
+    def fetch_upstream_scm(self) -> None:
         """SCM specific version of fetch_uptream for bzr."""
 
         self.auth_url()
+        assert self.clone_dir is not None
         command = self._get_scm_cmd() + ['checkout', self.url, self.clone_dir]
         if self.revision:
             command.insert(3, '-r')
@@ -27,7 +29,7 @@ class Bzr(Scm):
         wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
         self.run_and_hide(command, wdir)
 
-    def update_cache(self):
+    def update_cache(self) -> None:
         """Update sources via bzr."""
         # pylint: disable=duplicate-code
         command = self._get_scm_cmd() + ['update']
@@ -41,7 +43,7 @@ class Bzr(Scm):
             interactive=sys.stdout.isatty()
         )
 
-    def detect_version(self, args):
+    def detect_version(self, args: Dict[str, Any]) -> str:
         """
         Automatic detection of version number for checked-out BZR repository.
         """
@@ -53,7 +55,7 @@ class Bzr(Scm):
                                         self.clone_dir)[1]
         return re.sub('%r', version.strip(), versionformat)
 
-    def get_timestamp(self):
+    def get_timestamp(self) -> int:
         log = self.helpers.safe_run(
             self._get_scm_cmd() + ['log', '--limit=1', '--log-format=long'],
             self.clone_dir
@@ -66,10 +68,10 @@ class Bzr(Scm):
         return int(timestamp)
 
     # no cleanup is necessary for bzr
-    def cleanup(self):
+    def cleanup(self) -> None:
         pass
 
-    def check_url(self):
+    def check_url(self) -> bool:
         """check if url is a remote url"""
         if not re.match("^((a?ftp|bzr|https?)://|lp:)", self.url):
             raise OptionsError(f"URL does not match allowed scheme: {self.url}")
