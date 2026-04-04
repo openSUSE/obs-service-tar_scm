@@ -1,10 +1,11 @@
 import os
 import logging
 import re
+from typing import Any, List, Optional
 
 # python3 renaming of StringIO
 try:
-    from StringIO import StringIO
+    from StringIO import StringIO  # type: ignore
 except:
     from io import StringIO
 
@@ -12,15 +13,15 @@ except:
 try:
     import configparser
 except:
-    import ConfigParser as configparser
+    import ConfigParser as configparser  # type: ignore
 
 
 class Config():
     # pylint: disable=too-few-public-methods
     def __init__(
             self,
-            files=[['/etc/obs/services/tar_scm', True]]
-    ):
+            files: List[List[Any]]=[['/etc/obs/services/tar_scm', True]]
+    ) -> None:
         try:
             rc_file = [
                 os.path.join(os.environ['HOME'], '.obs', 'tar_scm'),
@@ -60,9 +61,9 @@ class Config():
                         )
                     )
 
-    def _init_config(self, fname):
+    def _init_config(self, fname: str) -> Any:
         config = configparser.RawConfigParser()
-        config.optionxform = str
+        config.optionxform = str  # type: ignore
 
         if self.fakeheader:
             logging.debug("Using fakeheader for file '%s'", fname)
@@ -82,7 +83,7 @@ class Config():
 
         return config
 
-    def get(self, section, option):
+    def get(self, section: Optional[str], option: str) -> Optional[str]:
         value = None
         # We're in test-mode, so don't let any local site-wide
         # or per-user config impact the test suite.

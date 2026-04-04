@@ -1,3 +1,4 @@
+from typing import Any
 import os
 import shutil
 import socket
@@ -11,7 +12,7 @@ import TarSCM
 
 
 class SCMBaseTestCases(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> Any:
         self.basedir        = os.path.abspath(os.path.dirname(__file__))
         # os.getcwd()
         self.tests_dir      = os.path.abspath(os.path.dirname(__file__))
@@ -20,18 +21,18 @@ class SCMBaseTestCases(unittest.TestCase):
                                            self.__class__.__name__, 'out')
         self._prepare_cli()
 
-    def tearDown(self):
+    def tearDown(self) -> Any:
         if os.path.exists(self.outdir):
             shutil.rmtree(self.outdir)
 
-    def _prepare_cli(self):
+    def _prepare_cli(self) -> Any:
         self.cli = TarSCM.Cli()
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
         self.cli.parse_args(['--outdir', self.outdir, '--scm', 'git'])
         self.cli.snapcraft  = True
 
-    def test_prep_tree_for_archive(self):
+    def test_prep_tree_for_archive(self) -> Any:
         tasks = TarSCM.Tasks(self.cli)
         scm_base = Scm(self.cli, tasks)
         basedir = tempfile.mkdtemp(dir=self.outdir)
@@ -47,22 +48,17 @@ class SCMBaseTestCases(unittest.TestCase):
                 "test1"
             )
 
-        if hasattr(ctx.exception, 'message'):
-            msg = ctx.exception.message
-        else:
-            msg = ctx.exception
-
-        self.assertRegex(str(msg), 'No such file or directory')
+        self.assertRegex(str(ctx.exception), 'No such file or directory')
 
         scm_base.prep_tree_for_archive("test1", basedir, "test2")
 
         self.assertEqual(scm_base.arch_dir, os.path.join(basedir, "test2"))
 
-        with self.assertRaises(SystemExit) as ctx:
+        with self.assertRaises(SystemExit) as ctx2:
             scm_base.prep_tree_for_archive("test3", basedir, "test2")
 
     @patch.dict(os.environ, {"CACHEDIRECTORY": ""})
-    def test_prep_tree_for_archive_ignores_sockets(self):
+    def test_prep_tree_for_archive_ignores_sockets(self) -> Any:
         scm_base = Scm(self.cli, TarSCM.Tasks(self.cli))
         with tempfile.TemporaryDirectory() as tmpdir:
             src_dir = os.path.join(tmpdir, "repo")
@@ -102,7 +98,7 @@ class SCMBaseTestCases(unittest.TestCase):
                 os.path.exists(os.path.join(gitdir, "fsmonitor--daemon.ipc"))
             )
 
-    def test_version_iso_cleanup(self):
+    def test_version_iso_cleanup(self) -> Any:
         # Avoid get_repocache_hash failure in Scm.__init__
         self.cli.url = ""
         scm_base = Scm(self.cli, None)

@@ -1,6 +1,7 @@
 import glob
 import os
 import sys
+from typing import Any, Dict, Optional
 
 from TarSCM.scm.base import Scm
 
@@ -8,9 +9,9 @@ from TarSCM.scm.base import Scm
 class Tar(Scm):
     scm = 'tar'
 
-    def fetch_upstream(self):
+    def fetch_upstream(self) -> None:
         """SCM specific version of fetch_upstream for tar."""
-        version = None
+        version = None  # type: Optional[str]
         if self.args.obsinfo:
             self.basename = self.clone_dir = self.read_from_obsinfo(
                 self.args.obsinfo, "name"
@@ -27,6 +28,8 @@ class Tar(Scm):
             raise SystemExit("ERROR: no .obsinfo file found in directory\n"
                              "       and no manual configuration: "
                              "'%s'" % os.getcwd())
+        if version is None:
+            version = ''
         if "/" in self.clone_dir:
             sys.exit("name in obsinfo contains '/'.")
 
@@ -49,22 +52,24 @@ class Tar(Scm):
                     (self.basename, self.clone_dir, os.getcwd())
                 )
 
-    def update_cache(self):
+    def update_cache(self) -> None:
         """Update sources via tar."""
         pass
 
-    def detect_version(self, args):
+    def detect_version(self, args: Dict[str, Any]) -> Optional[str]:
         """Read former stored version."""
         if self.args.obsinfo:
             return self.read_from_obsinfo(self.args.obsinfo, "version")
+        return None
 
-    def get_timestamp(self):
+    def get_timestamp(self) -> int:
         if self.args.obsinfo:
             return int(self.read_from_obsinfo(self.args.obsinfo, "mtime"))
         if self.args.filename:
             return int(os.path.getmtime(self.args.filename))
+        return 0
 
-    def read_from_obsinfo(self, filename, key):
+    def read_from_obsinfo(self, filename: str, key: str) -> str:
         infofile = open(filename, "r")
         line = infofile.readline()
         while line:
@@ -74,11 +79,13 @@ class Tar(Scm):
             line = infofile.readline()
         return ""
 
-    def finalize(self):
+    def finalize(self) -> None:
         """Execute final cleanup of workspace"""
         if self._final_rename_needed:
+            assert self.clone_dir is not None
+            assert self.basename is not None
             os.rename(self.clone_dir, self.basename)
 
     # no cleanup is necessary for tar
-    def cleanup(self):
+    def cleanup(self) -> None:
         pass
