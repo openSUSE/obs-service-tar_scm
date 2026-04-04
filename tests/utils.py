@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Simple utility functions to help executing processes.
-from typing import Any, Dict, Iterable, Optional, Tuple
+from typing import Any, Iterable, Optional, Tuple
 
 import os
 import re
@@ -25,7 +25,7 @@ def mkfreshdir(path: str) -> None:
 
 def check_locale(loc: Iterable[str]) -> str:
     aloc_tmp = subprocess.check_output(['locale', '-a'])
-    aloc = {}  # type: Dict[bytes, int]
+    aloc = {}
 
     for available_loc in aloc_tmp.split(b'\n'):
         aloc[available_loc] = 1
