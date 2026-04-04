@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import argparse
 import os
 import sys
@@ -62,13 +60,8 @@ def validate_versionrewrite(patterns, replacements):
     return True
 
 
-def check_locale(loc):
-    try:
-        aloc_tmp = subprocess.check_output(['locale', '-a'])
-    except AttributeError:
-        aloc_tmp, _ = subprocess.Popen(['locale', '-a'],
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT).communicate()
+def check_locale(loc: Iterable[str]) -> str:
+    aloc_tmp = subprocess.check_output(['locale', '-a'])
     aloc = {}  # type: Dict[bytes, int]
 
     for available_loc in aloc_tmp.split(b'\n'):
