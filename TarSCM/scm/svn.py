@@ -5,6 +5,8 @@ import os
 import logging
 import tempfile
 import shutil
+import io
+from typing import Any, Dict, List, Match, Optional
 
 import dateutil.parser
 
@@ -26,7 +28,7 @@ class Svn(Scm):
 
     svntmpdir = tempfile.mkdtemp()
 
-    def _get_scm_cmd(self):
+    def _get_scm_cmd(self) -> List[str]:
         """Compose a SVN-specific command line using http proxies."""
         # Subversion requires declaring proxies in a file, as it does not
         # support the http[s]_proxy variables. This creates the temporary
@@ -34,46 +36,41 @@ class Svn(Scm):
         scmcmd = ['svn']
         if self.httpproxy:
             logging.debug("using svntmpdir %s", self.svntmpdir)
-            cfg = open(self.svntmpdir + "/servers", "wb")
-            cfg.write('[global]\n')
+            with io.open(self.svntmpdir + "/servers", "w", encoding="UTF-8") as cfg:
+                cfg.write('[global]\n')
 
-            re_proxy = re.match('http://(.*):(.*)',
-                                self.httpproxy,
-                                re.M | re.I)
+                re_proxy = re.match('http://(.*):(.*)',
+                                    self.httpproxy,
+                                    re.M | re.I)
 
-            proxy_host = re_proxy.group(1)
-            proxy_port = re_proxy.group(2)
+                proxy_host = None  # type: Optional[str]
+                proxy_port = None  # type: Optional[str]
+                if re_proxy is not None:
+                    proxy_host = re_proxy.group(1)
+                    proxy_port = re_proxy.group(2)
 
-            if proxy_host is not None:
-                logging.debug('using proxy host: %s', proxy_host)
-                cfg.write('http-proxy-host=' + proxy_host + '\n')
+                if proxy_host is not None:
+                    logging.debug('using proxy host: %s', proxy_host)
+                    cfg.write('http-proxy-host=' + proxy_host + '\n')
 
-            if proxy_port is not None:
-                logging.debug('using proxy port: %s', proxy_port)
-                cfg.write('http-proxy-port=' + proxy_port + '\n')
+                if proxy_port is not None:
+                    logging.debug('using proxy port: %s', proxy_port)
+                    cfg.write('http-proxy-port=' + proxy_port + '\n')
 
-            if self.noproxy is not None:
-                logging.debug('using proxy exceptions: %s', self.noproxy)
-                no_proxy_domains = []
-                no_proxy_domains.append(tuple(self.noproxy.split(",")))
-                no_proxy_string = ""
+                if self.noproxy is not None:
+                    logging.debug('using proxy exceptions: %s', self.noproxy)
+                    no_proxy_domains = tuple(self.noproxy.split(","))
+                    no_proxy_parts = []
+                    for domain in no_proxy_domains:
+                        tmpstr = str(domain).strip()
+                        if tmpstr.startswith('.'):
+                            no_proxy_parts.append('*' + tmpstr)
+                        else:
+                            no_proxy_parts.append(tmpstr)
 
-            # for some odd reason subversion expects the domains
-            # to have an asterisk
-            for i in range(len(no_proxy_domains[0])):
-                tmpstr = str(no_proxy_domains[0][i]).strip()
-                if tmpstr.startswith('.'):
-                    no_proxy_string += '*' + tmpstr
-                else:
-                    no_proxy_string += tmpstr
-
-                if i < len(no_proxy_domains[0]) - 1:
-                    no_proxy_string += ','
-
-            no_proxy_string += '\n'
-            logging.debug('no_proxy string = %s', no_proxy_string)
-            cfg.write('http-proxy-exceptions=' + no_proxy_string)
-            cfg.close()
+                    no_proxy_string = ','.join(no_proxy_parts) + '\n'
+                    logging.debug('no_proxy string = %s', no_proxy_string)
+                    cfg.write('http-proxy-exceptions=' + no_proxy_string)
             scmcmd += ['--config-dir', self.svntmpdir]
 
         if self.user and self.password:
@@ -82,8 +79,9 @@ class Svn(Scm):
 
         return scmcmd
 
-    def fetch_upstream_scm(self):
+    def fetch_upstream_scm(self) -> None:
         """SCM specific version of fetch_uptream for svn."""
+        assert self.clone_dir is not None
         command = self._get_scm_cmd() + ['checkout', '--non-interactive',
                                          self.url, self.clone_dir]
         if self.revision:
@@ -97,12 +95,15 @@ class Svn(Scm):
             self.helpers.safe_run(command, wdir,
                                   interactive=sys.stdout.isatty())
         except SystemExit as exc:
-            if re.search(ENCODING_RE, exc.code):
+            exc_text = str(exc.code)
+            if re.search(ENCODING_RE, exc_text):
                 raise SystemExit(ENCODING_MSG)  # pylint: disable=E0012,W0707
             raise exc
 
-    def update_cache(self):
+    def update_cache(self) -> None:
         """Update sources via svn."""
+        assert self.clone_dir is not None
+        clone_dir = self.clone_dir
         command = self._get_scm_cmd() + ['update']
         if self.revision:
             command.insert(3, "-r%s" % self.revision)
@@ -111,18 +112,19 @@ class Svn(Scm):
             self.helpers.safe_run(command, cwd=self.clone_dir,
                                   interactive=sys.stdout.isatty())
         except SystemExit as exc:
-            logging.warning("Could not update cache: >>>%s<<<!", exc.code)
+            exc_text = str(exc.code)
+            logging.warning("Could not update cache: >>>%s<<<!", exc_text)
             osd = os.getenv('OBS_SERVICE_DAEMON')
-            if re.match(r".*run 'cleanup'.*", exc.code) and osd:
-                logging.warning("Removing old cache dir '%s'!", self.clone_dir)
-                shutil.rmtree(self.clone_dir)
+            if re.match(r".*run 'cleanup'.*", exc_text) and osd:
+                logging.warning("Removing old cache dir '%s'!", clone_dir)
+                shutil.rmtree(clone_dir)
                 self.fetch_upstream_scm()
-            elif re.search(ENCODING_RE, exc.code):
+            elif re.search(ENCODING_RE, exc_text):
                 raise SystemExit(ENCODING_MSG)  # pylint: disable=E0012,W0707
             else:
                 raise exc
 
-    def detect_version(self, args):
+    def detect_version(self, args: Dict[str, Any]) -> str:
         """
         Automatic detection of version number for checked-out SVN repository.
         """
@@ -142,7 +144,7 @@ class Svn(Scm):
             version = match.group(1).strip()
         return re.sub('%r', version, versionformat)
 
-    def get_timestamp(self):
+    def get_timestamp(self) -> int:
         svn_info = self.helpers.safe_run(self._get_scm_cmd() + ['info',
                                                                 '-rHEAD'],
                                          self.clone_dir)[1]
@@ -160,11 +162,12 @@ class Svn(Scm):
         timestamp = dateutil.parser.parse(timestamp).strftime("%s")
         return int(timestamp)
 
-    def detect_changes_scm(self, chgs):
+    def detect_changes_scm(self, chgs: Dict[str, Any]) -> Any:
         """Detect changes between SVN revisions."""
         last_rev = chgs['revision']
         first_run = False
         subdir = self.args.subdir
+        assert self.clone_dir is not None
         if subdir:
             clone_dir = os.path.join(self.clone_dir, subdir)
         else:
@@ -193,13 +196,13 @@ class Svn(Scm):
         chgs['lines'] = lines
         return chgs
 
-    def get_repocache_hash(self):
+    def get_repocache_hash(self) -> str:
         """Calculate hash fingerprint for repository cache."""
         string = self.url + '/' + self.args.subdir
         return hashlib.sha256(string.encode('UTF-8')).hexdigest()
 
-    def _get_log(self, clone_dir, revision1, revision2):
-        new_lines = []
+    def _get_log(self, clone_dir: str, revision1: Any, revision2: Any) -> List[str]:
+        new_lines = []  # type: List[str]
 
         xml_lines = self.helpers.safe_run(
             self._get_scm_cmd() + ['log', '-r%s:%s' % (revision2, revision1),
@@ -215,7 +218,7 @@ class Svn(Scm):
 
         return new_lines
 
-    def _get_rev(self, clone_dir, num_commits):
+    def _get_rev(self, clone_dir: str, num_commits: int) -> str:
         cmd = self._get_scm_cmd()
         cmd.extend(['log', '-l%d' % num_commits, '-q', '--incremental'])
         raw = self.helpers.safe_run(cmd, cwd=clone_dir)
@@ -225,18 +228,19 @@ class Svn(Scm):
         # return last entry
         revision = revisions[-1]
         # retrieve the revision number and remove r
-        revision = re.search(r'^r[0-9]*', revision, re.M)
-        revision = revision.group().replace("r", "")
-        return revision
+        revision_match = re.search(r'^r[0-9]*', revision, re.M)
+        if revision_match is None:
+            raise RuntimeError("Failed to parse SVN revision from log output")
+        return revision_match.group().replace("r", "")
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         try:
             shutil.rmtree(self.svntmpdir, ignore_errors=True)
         except:
             logging.debug("error on cleanup: %s", sys.exc_info()[0])
             raise
 
-    def check_url(self):
+    def check_url(self) -> bool:
         """check if url is a remote url"""
         if not re.match("^(https?|svn)://", self.url):
             return False

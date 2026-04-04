@@ -65,19 +65,17 @@ $(or \
 endef
 
 ALL_PYTHON3 = python3.9 python3.8 python3.7 python-3.7 python3.6 python-3.6 python3.5 python-3.5 python3.4 python-3.4 python3.3 python-3.3 python3.2 python-3.2 python3
-ALL_PYTHON2 = python2.7 python-2.7 python2.6 python-2.6 python2
 
 # Ensure that correct python version is used in travis
 y = $(subst ., ,$(TRAVIS_PYTHON_VERSION))
 PYTHON_MAJOR := $(word 1, $(y))
 ifeq ($(PYTHON_MAJOR), 2)
-ALL_PYTHONS = $(ALL_PYTHON2) python
+ALL_PYTHONS = $(ALL_PYTHON3) python
 else
-	ALL_PYTHONS = $(ALL_PYTHON3) $(ALL_PYTHON2) python
+ 	ALL_PYTHONS = $(ALL_PYTHON3) python
 endif
 
 PYTHON = $(call first_in_path,$(ALL_PYTHONS))
-PYTHON2 = $(call first_in_path,$(ALL_PYTHON2))
 
 mylibdir = $(PREFIX)/lib/obs/service
 mycfgdir = $(SYSCFG)/obs/services
@@ -98,7 +96,7 @@ python_version_major := $(word 1,${python_version_full})
 all: check
 
 .PHONY: check
-check: check3 test2
+check: check3
 
 .PHONY: check3
 check3: flake8 pylint pylinttest test3
@@ -122,20 +120,13 @@ flake8:
 	fi
 
 
-.PHONY: test2
-test2:
-	: Running the test suite.  Please be patient - this takes a few minutes ...
-	TAR_SCM_TESTMODE=1 PYTHONPATH=. $(PYTHON2) tests/test.py 2>&1 | tee ./test.log
-
 .PHONY: test3
 test3:
 	: Running the test suite.  Please be patient - this takes a few minutes ...
-	TAR_SCM_TESTMODE=1 PYTHONPATH=. python3 tests/test.py 2>&1 | tee ./test3.log
+	TAR_SCM_TESTMODE=1 PYTHONPATH=. $(PYTHON) tests/test.py 2>&1 | tee ./test3.log
 
 .PHONY: test
-test:
-	: Running the test suite.  Please be patient - this takes a few minutes ...
-	TAR_SCM_TESTMODE=1 PYTHONPATH=. python tests/test.py 2>&1 | tee ./test3.log
+test: test3
 
 .PHONY: pylint
 pylint:

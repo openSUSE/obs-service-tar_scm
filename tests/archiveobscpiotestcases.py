@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function
+from typing import Any
 
 import os
 import re
@@ -19,7 +19,7 @@ from tests.scmlogs import ScmInvocationLogs
 
 
 class ArchiveOBSCpioTestCases(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> Any:
         self.cli            = TarSCM.Cli()
         self.tasks          = TarSCM.Tasks(self.cli)
         self.tests_dir      = os.path.abspath(os.path.dirname(__file__))
@@ -30,7 +30,7 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
         self.cli.parse_args(['--outdir', '.'])
         os.environ['CACHEDIRECTORY'] = ''
 
-    def test_obscpio_create_archive(self):
+    def test_obscpio_create_archive(self) -> Any:
         tc_name              = inspect.stack()[0][3]
         cl_name              = self.__class__.__name__
         c_dir                = os.path.join(self.tmp_dir, tc_name)
@@ -71,7 +71,7 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
                 'mtime': 1234567890,
                 'commit': data['commit']})
 
-    def test_obscpio_extract_of(self):
+    def test_obscpio_extract_of(self) -> Any:
         '''
         Test obscpio to extract one file from archive
         '''
@@ -88,7 +88,7 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
             self.assertTrue(os.path.exists(
                 os.path.join(outdir, fname)))
 
-    def test_obscpio_extract_mf(self):
+    def test_obscpio_extract_mf(self) -> Any:
         '''
         Test obscpio to extract multiple files from archive
         '''
@@ -105,7 +105,7 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
             self.assertTrue(os.path.exists(
                 os.path.join(outdir, fname)))
 
-    def test_obscpio_extract_nef(self):
+    def test_obscpio_extract_nef(self) -> Any:
         '''
         Test obscpio to extract non existant file from archive
         '''
@@ -126,7 +126,7 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
             outdir
         )
 
-    def test_obscpio_extract_d(self):
+    def test_obscpio_extract_d(self) -> Any:
         '''
         Test obscpio to extract directory from archive
         '''
@@ -147,7 +147,7 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
             outdir
         )
 
-    def test_obscpio_broken_link(self):
+    def test_obscpio_broken_link(self) -> Any:
         tc_name              = inspect.stack()[0][3]
         cl_name              = self.__class__.__name__
         c_dir                = os.path.join(self.tmp_dir, tc_name)
@@ -179,7 +179,7 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
             version  = '0.1.1'
         )
 
-    def test_extract_link_outside_repo(self):
+    def test_extract_link_outside_repo(self) -> Any:
         '''
         Test if a link outside the repo gets detected
         '''
@@ -206,7 +206,7 @@ class ArchiveOBSCpioTestCases(unittest.TestCase):
             outdir
         )
 
-    def test_obscpio_extract_glob(self):
+    def test_obscpio_extract_glob(self) -> Any:
         '''
         Test obscpio to extract file glob from archive
         '''

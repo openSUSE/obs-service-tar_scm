@@ -1,7 +1,6 @@
 '''
 This module contains the class tasks
 '''
-from __future__ import print_function
 
 import glob
 import copy
@@ -15,6 +14,7 @@ import locale
 import json
 import io
 import yaml
+from typing import Any, Dict, List, Optional, Tuple
 
 import TarSCM.scm
 import TarSCM.archive
@@ -29,16 +29,16 @@ class Tasks():
     Class to create a task list for formats which can contain more then one scm
     job like snapcraft or appimage
     '''
-    def __init__(self, args):
-        self.task_list      = []
-        self.cleanup_dirs   = []
+    def __init__(self, args: Any) -> None:
+        self.task_list      = []  # type: List[Any]
+        self.cleanup_dirs   = []  # type: List[str]
         self.helpers        = Helpers()
         self.changes        = Changes()
-        self.scm_object     = None
-        self.data_map       = None
+        self.scm_object     = None  # type: Any
+        self.data_map       = None  # type: Optional[Dict[str, Any]]
         self.args           = args
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Cleaning temporary directories."""
         if self.args.skip_cleanup:
             logging.debug("Skipping cleanup")
@@ -59,7 +59,7 @@ class Tasks():
             # calls the corresponding cleanup routine
             self.scm_object.cleanup()
 
-    def generate_list(self):
+    def generate_list(self) -> None:
         '''
         Generate list of scm jobs from appimage.yml, snapcraft.yaml or a single
         job from cli arguments.
@@ -124,14 +124,14 @@ class Tasks():
         else:
             self.task_list.append(args)
 
-    def process_list(self):
+    def process_list(self) -> None:
         '''
         process tasks from the task_list
         '''
         for task in self.task_list:
             self.process_single_task(task)
 
-    def finalize(self):
+    def finalize(self) -> None:
         '''
         final steps after processing task list
         '''
@@ -154,7 +154,7 @@ class Tasks():
                 if rcode != 0:
                     raise RuntimeError("download_files has failed:%s" % output)
 
-    def check_for_branch_request(self):
+    def check_for_branch_request(self) -> Any:
         # we may have a _branch_request file. In that case we life in a
         # branch create by a webhook from github or gitlab pull/merge request
         # the source supposed to be merged is more important then the code
@@ -179,7 +179,7 @@ class Tasks():
 
         return args
 
-    def process_single_task(self, args):
+    def process_single_task(self, args: Any) -> None:
         '''
         do the work for a single task
         '''
@@ -239,6 +239,7 @@ class Tasks():
         # For the GBP service there is no copy in arch_dir, so use clone_dir
         # which has the same content
         extract_src = scm_object.arch_dir
+        arch = None  # type: Any
         if args.use_obs_scm:
             arch = TarSCM.archive.ObsCpio()
         elif args.use_obs_gbp:
@@ -269,7 +270,7 @@ class Tasks():
 
         scm_object.finalize()
 
-    def _dstname(self, scm_object, version):
+    def _dstname(self, scm_object: Any, version: Any) -> Tuple[Any, Any, Any]:
         args = self.args
         if args.filename:
             basename = dstname = args.filename
@@ -285,7 +286,12 @@ class Tasks():
                 dstname += '-' + version
         return (dstname, version, basename)
 
-    def _process_changes(self, args, ver, changesversion, detected_changes):
+    def _process_changes(
+            self,
+            args: Any,
+            ver: Any,
+            changesversion: Any,
+            detected_changes: Dict[str, Any]) -> None:
         changesauthor = self.changes.get_changesauthor(args)
 
         logging.debug("AUTHOR: %s", changesauthor)
@@ -304,7 +310,7 @@ class Tasks():
         self.changes.write_changes_revision(args.url, args.outdir,
                                             detected_changes['revision'])
 
-    def get_version(self):
+    def get_version(self) -> str:
         '''
         Generate final version number by detecting version from scm if not
         given as cli option and applying versionrewrite_pattern and
@@ -328,7 +334,7 @@ class Tasks():
         logging.debug("VERSION(auto): %s", version)
         return version
 
-    def detect_version(self):
+    def detect_version(self) -> str:
         """Automatic detection of version number for checked-out repository."""
 
         version = self.scm_object.detect_version(self.args.__dict__).strip()

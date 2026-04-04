@@ -1,14 +1,13 @@
-from __future__ import print_function
-
 import argparse
 import os
 import sys
 import locale
 import subprocess
 import logging
+from typing import Any, Dict, Iterable, List, Optional
 
 
-def contains_dotdot(files):
+def contains_dotdot(files: Optional[List[str]]) -> int:
     if files:
         for index, fname in enumerate(files):
             fname = os.path.normpath(fname)
@@ -19,7 +18,7 @@ def contains_dotdot(files):
     return 0
 
 
-def validate_extract_rename(extract_rename):
+def validate_extract_rename(extract_rename: Optional[List[str]]) -> bool:
     if not extract_rename:
         return True
 
@@ -43,25 +42,17 @@ def validate_extract_rename(extract_rename):
     return True
 
 
-def check_locale(loc):
-    try:
-        aloc_tmp = subprocess.check_output(['locale', '-a'])
-    except AttributeError:
-        aloc_tmp, _ = subprocess.Popen(['locale', '-a'],
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT).communicate()
-    aloc = {}
+def check_locale(loc: Iterable[str]) -> str:
+    aloc_tmp = subprocess.check_output(['locale', '-a'])
+    aloc = {}  # type: Dict[bytes, int]
 
-    for tloc in aloc_tmp.split(b'\n'):
-        aloc[tloc] = 1
+    for available_loc in aloc_tmp.split(b'\n'):
+        aloc[available_loc] = 1
 
-    for tloc in loc:
-        logging.debug("Checking .... %s", tloc)
-        try:
-            if aloc[tloc.encode()]:
-                return tloc
-        except KeyError:
-            pass
+    for requested_loc in loc:
+        logging.debug("Checking .... %s", requested_loc)
+        if requested_loc.encode() in aloc:
+            return requested_loc
 
     return 'C'
 
@@ -70,20 +61,29 @@ class Cli():
     # pylint: disable=too-few-public-methods
     # pylint: disable=too-many-instance-attributes
     DEFAULT_AUTHOR = 'obs-service-tar-scm@invalid'
-    outdir = None
+    outdir = None  # type: Optional[str]
+    scm = None  # type: Optional[str]
+    url = None  # type: Optional[str]
+    revision = None  # type: Optional[str]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.use_obs_scm = False
+        self.use_obs_gbp = False
         self.snapcraft   = False
         self.appimage    = False
         self.maintainers_asc = None
-        self.url = None
-        self.revision = None
-        self.user = None
-        self.keyring_passphrase = None
+        self.scm = None  # type: Optional[str]
+        self.url = None  # type: Optional[str]
+        self.revision = None  # type: Optional[str]
+        self.user = None  # type: Optional[str]
+        self.keyring_passphrase = None  # type: Optional[str]
+        self.changesauthor = None  # type: Optional[str]
+        self.versionprefix = None  # type: Optional[str]
+        self.versionrewrite_pattern = None  # type: Optional[str]
+        self.versionrewrite_replacement = r'\1'
         self.changesgenerate = False
 
-    def parse_args(self, options):
+    def parse_args(self, options: List[str]) -> None:
         parser = argparse.ArgumentParser(description='Git Tarballs')
         parser.add_argument('-v', '--verbose', action='store_true',
                             default=False,
@@ -241,7 +241,7 @@ class Cli():
 
         self.verify_args(parser.parse_args(options))
 
-    def verify_args(self, args):
+    def verify_args(self, args: Any) -> Any:
         # basic argument validation
         # pylint: disable=too-many-branches
         if not os.path.isdir(args.outdir):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+from typing import Any, List, Optional, Tuple
 import datetime
 import os
 import re
@@ -9,12 +10,9 @@ import shutil
 import io
 import inspect
 
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+from unittest import mock
 
-from utils import file_write_legacy
+from tests.utils import file_write_legacy
 
 from tests.githgtests   import GitHgTests
 from tests.gitsvntests  import GitSvnTests
@@ -33,7 +31,7 @@ class GitTests(GitHgTests, GitSvnTests):
     included via the class inheritance hierarchy.
     """
 
-    scm = 'git'
+    scm: str = 'git'
     initial_clone_command = 'git clone'
     update_cache_command  = 'git fetch'
     sslverify_false_args  = '--config http.sslverify=false'
@@ -44,49 +42,49 @@ class GitTests(GitHgTests, GitSvnTests):
     yyyymmdd_format    = '%cd'
     yyyymmddhhmmss_format = '%ci'
 
-    def default_version(self):
+    def default_version(self) -> Any:
         return "%s.%s" % (self.timestamps(self.rev(2)),
                           self.abbrev_sha1s(self.rev(2)))
 
-    def version(self, rev):
+    def version(self, rev: Any) -> Any:
         # Hyphens aren't allowed in version number.  This substitution
         # mirrors the use of sed "s@-@@g" in tar_scm.
         return self.timestamps(self.rev(rev)).replace('-', '')
 
     # This comment line helps align lines with hgtests.py.
-    def dateYYYYMMDD(self, rev):  # pylint: disable=C0103
+    def dateYYYYMMDD(self, rev: Any) -> Any:  # pylint: disable=C0103
         dateobj = datetime.date.fromtimestamp(float(self.timestamps(rev)))
         return dateobj.strftime("%4Y%02m%02d")
 
     # This comment line helps align lines with hgtests.py.
-    def dateYYYYMMDDHHMMSS(self, rev):  # pylint: disable=C0103
+    def dateYYYYMMDDHHMMSS(self, rev: Any) -> Any:  # pylint: disable=C0103
         dateobj = datetime.datetime.fromtimestamp(float(self.timestamps(rev)))
         return dateobj.strftime("%4Y%02m%02dT%02H%02M%02S")
 
-    def rev(self, rev):
+    def rev(self, rev: Any) -> Any:
         fix = self.fixtures
         return fix.revs[fix.repo_path][rev]
 
-    def timestamps(self, rev):
+    def timestamps(self, rev: Any) -> Any:
         fix = self.fixtures
         return fix.timestamps[fix.repo_path][rev]
 
-    def sha1s(self, rev):
+    def sha1s(self, rev: Any) -> Any:
         fix = self.fixtures
         return fix.sha1s[fix.repo_path][rev]
 
-    def abbrev_sha1s(self, rev):
+    def abbrev_sha1s(self, rev: Any) -> Any:
         return self.sha1s(rev)[0:7]
 
-    def changesrevision(self, rev, abbrev=False):
+    def changesrevision(self, rev: Any, abbrev: Any=False) -> Any:
         if abbrev:
             return self.abbrev_sha1s('tag%d' % rev)
         return self.sha1s('tag%d' % rev)
 
-    def changesregex(self, rev):  # pylint: disable=R0201
+    def changesregex(self, rev: Any) -> Any:  # pylint: disable=R0201
         return r'\d{10}.%s' % rev  # noqa: W605, pylint: disable=W1401
 
-    def tar_scm_args(self):  # pylint: disable=R0201
+    def tar_scm_args(self) -> Any:  # pylint: disable=R0201
         scm_args = [
             '--changesgenerate', 'enable',
             '--versionformat', '0.6.%h',
@@ -95,7 +93,7 @@ class GitTests(GitHgTests, GitSvnTests):
 
     # N.B. --versionformat gets tested thoroughly in githgtests.py
 
-    def test_parent_tag(self):
+    def test_parent_tag(self) -> Any:
         fix = self.fixtures
         fix.create_commits(1)
         base = fix.get_metadata("%H")
@@ -104,16 +102,16 @@ class GitTests(GitHgTests, GitSvnTests):
                          "--versionformat", "@TAG_OFFSET@")
         self.assertTarOnly(self.basename(version="3"))
 
-    def test_versionformat_parenttag(self):
+    def test_versionformat_parenttag(self) -> Any:
         # the .1 to catch newlines at the end of PARENT_TAG
         self.tar_scm_std('--versionformat', "@PARENT_TAG@.1")
         self.assertTarOnly(self.basename(version=self.rev(2)) + '.1')
 
-    def test_versionformat_tagoffset(self):
+    def test_versionformat_tagoffset(self) -> Any:
         self.tar_scm_std('--versionformat', "@PARENT_TAG@.@TAG_OFFSET@")
         self.assertTarOnly(self.basename(version=self.rev(2) + ".0"))
 
-    def _submodule_fixture(self, submod_name):
+    def _submodule_fixture(self, submod_name: Any) -> Any:
         fix = self.fixtures
         repo_path = fix.repo_path
         submod_path = fix.submodule_path(submod_name)
@@ -137,7 +135,7 @@ class GitTests(GitHgTests, GitSvnTests):
         fix.do_commit(repo_path, new_rev, ['.gitmodules', submod_name])
         fix.record_rev(new_rev, repo_path)
 
-    def _submodule_fixture_prep_branch(self, branch):
+    def _submodule_fixture_prep_branch(self, branch: Any) -> Any:
         fix = self.fixtures
         repo_path = fix.repo_path
         self.scmlogs.nextlog('prepare-branch')
@@ -145,7 +143,7 @@ class GitTests(GitHgTests, GitSvnTests):
         fix.safe_run('checkout -b %s' % branch)
         fix.create_commits(3)
 
-    def test_submodule_update(self):
+    def test_submodule_update(self) -> Any:
         submod_name = 'submod1'
 
         self._submodule_fixture(submod_name)
@@ -160,7 +158,7 @@ class GitTests(GitHgTests, GitSvnTests):
                 self.basename(version='tag3'), submod_name, 'a')
             self.assertTarMemberContains(tar, submod_path, '5')
 
-    def test_submodule_disabled_update(self):
+    def test_submodule_disabled_update(self) -> Any:
         submod_name = 'submod1'
 
         self._submodule_fixture(submod_name)
@@ -173,7 +171,7 @@ class GitTests(GitHgTests, GitSvnTests):
             self.assertRaises(KeyError, tar.getmember, os.path.join(
                 self.basename(version='tag3'), submod_name, 'a'))
 
-    def test_submodule_in_other_branch(self):
+    def test_submodule_in_other_branch(self) -> Any:
         submod_name = 'submod1'
 
         rev = 'build'
@@ -190,7 +188,7 @@ class GitTests(GitHgTests, GitSvnTests):
                                        submod_name, 'a')
             self.assertTarMemberContains(tar, submod_path, '3')
 
-    def test_latest_submodule_in_other_branch(self):  # pylint: disable=C0103
+    def test_latest_submodule_in_other_branch(self) -> Any:  # pylint: disable=C0103
         submod_name = 'submod1'
 
         rev = 'build'
@@ -207,7 +205,7 @@ class GitTests(GitHgTests, GitSvnTests):
                 self.basename(version=rev), submod_name, 'a')
             self.assertTarMemberContains(tar, submod_path, '5')
 
-    def _check_servicedata(self, expected_dirents=2, revision=2):
+    def _check_servicedata(self, expected_dirents: Any=2, revision: Any=2) -> Any:
         expected_sha1 = self.sha1s('tag%d' % revision)
         dirents = self.assertNumDirents(self.outdir, expected_dirents)
         self.assertTrue('_servicedata' in dirents,
@@ -224,10 +222,11 @@ class GitTests(GitHgTests, GitSvnTests):
             r"\s*</servicedata>" % self.fixtures.repo_url)
         reg = re.match(expected, sdat)
         self.assertTrue(reg, "\n'%s'\n!~ /%s/" % (sdat, expected))
+        assert reg is not None
         sha1 = reg.group(1)
         self.assertEqual(sha1, expected_sha1)
 
-    def test_updatecache_has_tag(self):
+    def test_updatecache_has_tag(self) -> Any:
         fix = self.fixtures
         fix.create_commits(2)
         self.tar_scm_std("--revision", 'tag2',
@@ -241,7 +240,7 @@ class GitTests(GitHgTests, GitSvnTests):
         fix.create_commits(3)
         fix.safe_run('tag -a -m some_message detached_tag')
 
-    def test_versionrewrite(self):
+    def test_versionrewrite(self) -> Any:
         fix = self.fixtures
         fix.create_commits(2)
         self.tar_scm_std("--revision", 'tag2',
@@ -250,7 +249,7 @@ class GitTests(GitHgTests, GitSvnTests):
                          "--versionformat", "@PARENT_TAG@")
         self.assertTarOnly(self.basename(version="2-test"))
 
-    def test_match_tag(self):
+    def test_match_tag(self) -> Any:
         fix = self.fixtures
         fix.create_commits(2)
         fix.safe_run('tag latest')
@@ -262,7 +261,7 @@ class GitTests(GitHgTests, GitSvnTests):
         self.tar_scm_std("--versionformat", "@PARENT_TAG@")
         self.assertTarOnly(self.basename(version="latest"))
 
-    def test_obs_scm_cli(self):
+    def test_obs_scm_cli(self) -> Any:
         fix = self.fixtures
         fix.create_commits(2)
         fix.safe_run('tag latest')
@@ -272,7 +271,7 @@ class GitTests(GitHgTests, GitSvnTests):
                          "--versionformat", "@PARENT_TAG@",
                          "--use-obs-scm", '1')
 
-    def test_gitlab_github_files(self):
+    def test_gitlab_github_files(self) -> Any:
         fix = self.fixtures
         fix.create_commits(2)
         fix.safe_run('tag latest')
@@ -296,7 +295,7 @@ class GitTests(GitHgTests, GitSvnTests):
             self.assertTarMemberContains(tar, hub_path, '')
             self.assertTarMemberContains(tar, lab_path, '')
 
-    def test_no_parent_tag(self):
+    def test_no_parent_tag(self) -> Any:
         fix = self.fixtures
         r_dir = os.path.join(self.test_dir, 'repo')
         os.chdir(r_dir)
@@ -317,7 +316,7 @@ class GitTests(GitHgTests, GitSvnTests):
         p_tag = git._detect_parent_tag(f_args)
         self.assertEqual(p_tag, '')
 
-    def test_changesgenerate_unicode(self):
+    def test_changesgenerate_unicode(self) -> Any:
         self._write_servicedata(2)
         self._write_changes_file()
         self.fixtures.create_commit_unicode()
@@ -335,18 +334,17 @@ class GitTests(GitHgTests, GitSvnTests):
 
     @mock.patch.dict(os.environ, {'http_proxy': 'http://myproxy',
                                   'CACHEDIRECTORY': '/foo'})
-    def test_git_mirror_arg_insert(self):
+    def test_git_mirror_arg_insert(self) -> Any:
         f_args  = FakeCli()
         f_tasks = FakeTasks()
         git = Git(f_args, f_tasks)
-        git.fetch_specific_revision = mock.MagicMock()
         git.repodir = '/tmp'
-        git.pardir = '/foo'
         clone_url = 'https://clone_url'
         clone_dir = '/tmp/clone_dir'
         git.url = clone_url
         git.clone_dir = clone_dir
-        with mock.patch.object(Helpers, 'safe_run') as mock_save_run:
+        with mock.patch.object(Helpers, 'safe_run') as mock_save_run, \
+                mock.patch.object(Git, 'fetch_specific_revision'):
             git.fetch_upstream_scm()
             ((command,), kwargs) = mock_save_run.call_args  # noqa: E501 pylint: disable=W0612
             expected_command = [
@@ -354,7 +352,7 @@ class GitTests(GitHgTests, GitSvnTests):
                 clone_url, clone_dir]
             self.assertEqual(expected_command, command)
 
-    def test_revision_latest_tag(self):
+    def test_revision_latest_tag(self) -> Any:
         fix = self.fixtures
         fix.create_commit(fix.wdir)
         fix.create_commit(fix.wdir)
@@ -362,7 +360,7 @@ class GitTests(GitHgTests, GitSvnTests):
         sha1 = fix.sha1s[fix.wdir]["tag2"][:7]
         self.assertTarOnly(self.basename(version="1234567890." + sha1))
 
-    def test_without_version(self):
+    def test_without_version(self) -> Any:
         fix = self.fixtures
         fix.create_commits(2)
         repo_path = fix.repo_path
@@ -371,7 +369,7 @@ class GitTests(GitHgTests, GitSvnTests):
         tar_path = os.path.join(self.outdir, 'repo.tar')
         self.assertTrue(os.path.isfile(tar_path))
 
-    def test_file_conflicts_revision(self):
+    def test_file_conflicts_revision(self) -> Any:
         fix = self.fixtures
         fix.create_commits(2)
         repo_path = fix.repo_path
@@ -383,7 +381,7 @@ class GitTests(GitHgTests, GitSvnTests):
         fix.safe_run('tag test')
         self.tar_scm_std("--revision", 'test')
 
-    def test_osc_reset_hard(self):
+    def test_osc_reset_hard(self) -> Any:
         fix = self.fixtures
 
         fix.commit_file_with_tag('0.0.1', 'file.1')
@@ -432,7 +430,7 @@ class GitTests(GitHgTests, GitSvnTests):
         os.chdir(cwd)
         self.assertTrue(status[0] == b' M file.4\n?? test.txt\n')
 
-    def test_find_valid_commit(self):
+    def test_find_valid_commit(self) -> Any:
         cln = self.__class__.__name__
         fnn = inspect.stack()[0][3]
         basedir = os.path.abspath(os.path.dirname(__file__))
@@ -551,7 +549,7 @@ class GitTests(GitHgTests, GitSvnTests):
                 '6640eafee928cb9bb44065953ffcfb8355e3c88e',
                 None
             ],
-        ]
+        ]  # type: List[List[Optional[str]]]
 
         for case in expected:
             rev = git.find_latest_signed_commit(case[0])

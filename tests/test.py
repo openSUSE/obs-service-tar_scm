@@ -4,7 +4,7 @@
 This CLI tool is responsible for running the tests.
 See TESTING.md for more information.
 '''
-from __future__ import print_function
+from typing import List, Type, cast
 
 import os
 import re
@@ -24,19 +24,19 @@ from tests.tartests import TarTestCases
 from tests.archiveobscpiotestcases import ArchiveOBSCpioTestCases
 
 
-def str_to_class(string):
+def str_to_class(string: str) -> Type[unittest.TestCase]:
     '''Convert string into class'''
-    return getattr(sys.modules[__name__], string)
+    return cast(Type[unittest.TestCase], getattr(sys.modules[__name__], string))
 
 
-def prepare_testclasses():
+def prepare_testclasses() -> List[Type[unittest.TestCase]]:
     tclasses = [
         # If you are only interested in a particular VCS, you can
         # temporarily comment out any of these or use the env variable
         # TAR_SCM_TC=<comma_separated_list> test.py
         # export TAR_SCM_TC=UnitTestCases,TasksTestCases,SCMBaseTestCases,GitTests,SvnTests,TarTestCases # noqa # pylint: disable=line-too-long
-        HgTests,  # disabled because of a lack of performance
-        BzrTests, # disabled as bzr is no longer part of Factory
+        HgTests,    # disabled because of a lack of performance
+        BzrTests,   # disabled as bzr is no longer part of Factory
         UnitTestCases,
         TasksTestCases,
         ArchiveOBSCpioTestCases,
@@ -59,7 +59,7 @@ def prepare_testclasses():
     return tclasses
 
 
-def prepare_testsuite(tclasses):
+def prepare_testsuite(tclasses: List[Type[unittest.TestCase]]) -> unittest.TestSuite:
     testsuite = unittest.TestSuite()
 
     if len(sys.argv) == 1:
@@ -93,17 +93,11 @@ def prepare_testsuite(tclasses):
     return testsuite
 
 
-def main():
+def main() -> None:
     test_classes = prepare_testclasses()
     suite = prepare_testsuite(test_classes)
 
-    runner_args = {
-        # 'verbosity': 2,
-        # 'failfast': True,
-        'buffer': True
-    }
-
-    runner = unittest.TextTestRunner(**runner_args)
+    runner = unittest.TextTestRunner(buffer=True)
     result = runner.run(suite)
 
     # Cleanup:

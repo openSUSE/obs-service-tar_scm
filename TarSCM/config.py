@@ -1,26 +1,17 @@
 import os
 import logging
 import re
-
-# python3 renaming of StringIO
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
-
-# python3 renaming of ConfigParser
-try:
-    import configparser
-except:
-    import ConfigParser as configparser
+import configparser
+from io import StringIO
+from typing import Any, List, Optional
 
 
 class Config():
     # pylint: disable=too-few-public-methods
     def __init__(
             self,
-            files=[['/etc/obs/services/tar_scm', True]]
-    ):
+            files: List[List[Any]]=[['/etc/obs/services/tar_scm', True]]
+    ) -> None:
         try:
             rc_file = [
                 os.path.join(os.environ['HOME'], '.obs', 'tar_scm'),
@@ -60,29 +51,23 @@ class Config():
                         )
                     )
 
-    def _init_config(self, fname):
+    def _init_config(self, fname: str) -> Any:
         config = configparser.RawConfigParser()
-        config.optionxform = str
+        config.optionxform = str  # type: ignore
 
         if self.fakeheader:
             logging.debug("Using fakeheader for file '%s'", fname)
-            try:
-                fake_header = '[' + self.default_section + ']\n'
-                config.read_string(fake_header + open(fname, 'r').read(),
-                                   source=fname)
-            except AttributeError:
-                tmp_fp = StringIO()
-                tmp_fp.write('[' + self.default_section + ']\n')
-                tmp_fp.write(open(fname, 'r').read())
-                tmp_fp.seek(0, os.SEEK_SET)
-                config.read_file(tmp_fp)
+            fake_header = '[' + self.default_section + ']\n'
+            with open(fname, 'r', encoding='utf-8') as config_file:
+                tmp_fp = StringIO(fake_header + config_file.read())
+            config.read_file(tmp_fp, source=fname)
 
         else:
             config.read(fname)
 
         return config
 
-    def get(self, section, option):
+    def get(self, section: Optional[str], option: str) -> Optional[str]:
         value = None
         # We're in test-mode, so don't let any local site-wide
         # or per-user config impact the test suite.

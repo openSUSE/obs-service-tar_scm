@@ -22,7 +22,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))  # noqa
 import TarSCM        # pylint: disable=wrong-import-position; # noqa: E402
 
 
-def main():
+def main() -> None:
     TarSCM.run()
 
 
