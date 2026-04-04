@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-from commontests import CommonTests
-from bzrfixtures import BzrFixtures
+from typing import Any
+from tests.commontests import CommonTests
+from tests.bzrfixtures import BzrFixtures
 
 
 class BzrTests(CommonTests):
@@ -12,31 +13,31 @@ class BzrTests(CommonTests):
     included via the class inheritance hierarchy.
     """
 
-    scm = 'bzr'
+    scm: str = 'bzr'
     initial_clone_command = 'bzr checkout'
     update_cache_command  = 'bzr update'
     sslverify_false_args  = '-Ossl.cert_reqs=None'
     fixtures_class = BzrFixtures
 
-    def default_version(self):
+    def default_version(self) -> Any:
         return self.rev(2)
 
-    def test_versionformat_rev(self):
+    def test_versionformat_rev(self) -> Any:
         self.tar_scm_std('--versionformat', 'myrev%r.svn')
         self.assertTarOnly(self.basename(version='myrev2.svn'))
 
-    def test_version_versionformat(self):
+    def test_version_versionformat(self) -> Any:
         self.tar_scm_std('--version', '3.0', '--versionformat', 'myrev%r.svn')
         self.assertTarOnly(self.basename(version='myrev2.svn'))
 
-    def test_versionformat_revision(self):
+    def test_versionformat_revision(self) -> Any:
         self.fixtures.create_commits(4)
         self.tar_scm_std('--versionformat', 'foo%r', '--revision', self.rev(2))
         basename = self.basename(version='foo2')
         tar = self.assertTarOnly(basename)
         self.assertTarMemberContains(tar, basename + '/a', '2')
 
-    def assertDirentsMtime(self, entries):
+    def assertDirentsMtime(self, entries: Any) -> Any:
         '''Skip this test with bazaar because there seem to be no way to create
         commits with a given timestamp.'''
         return True

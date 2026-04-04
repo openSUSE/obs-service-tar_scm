@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
+from typing import Any
 import os
 import re
 import io
 
-from gitsvntests import GitSvnTests
-from svnfixtures import SvnFixtures
+from tests.gitsvntests import GitSvnTests
+from tests.svnfixtures import SvnFixtures
 
 
 class SvnTests(GitSvnTests):
@@ -16,44 +17,44 @@ class SvnTests(GitSvnTests):
     included via the class inheritance hierarchy.
     """
 
-    scm = 'svn'
+    scm: str = 'svn'
     initial_clone_command = 'svn (co|checkout) '
     update_cache_command  = 'svn up(date)?'
     sslverify_false_args  = '--trust-server-cert'
     fixtures_class = SvnFixtures
 
-    def default_version(self):
+    def default_version(self) -> Any:
         return self.rev(2)
 
-    def changesrevision(self, rev, abbrev=False):  # noqa: E501 pylint: disable=W0613,R0201
+    def changesrevision(self, rev: Any, abbrev: Any=False) -> Any:  # noqa: E501 pylint: disable=W0613,R0201
         return rev
 
-    def changesregex(self, rev):  # pylint: disable=R0201
+    def changesregex(self, rev: Any) -> Any:  # pylint: disable=R0201
         return rev
 
-    def tar_scm_args(self):   # pylint: disable=R0201
+    def tar_scm_args(self) -> Any:   # pylint: disable=R0201
         scm_args = [
             '--changesgenerate', 'enable',
             '--versionformat', '0.6.%r',
         ]
         return scm_args
 
-    def test_versionformat_rev(self):
+    def test_versionformat_rev(self) -> Any:
         self.tar_scm_std('--versionformat', 'myrev%r.svn')
         self.assertTarOnly(self.basename(version='myrev2.svn'))
 
-    def test_version_versionformat(self):
+    def test_version_versionformat(self) -> Any:
         self.tar_scm_std('--version', '3.0', '--versionformat', 'myrev%r.svn')
         self.assertTarOnly(self.basename(version='myrev2.svn'))
 
-    def test_versionformat_revision(self):
+    def test_versionformat_revision(self) -> Any:
         self.fixtures.create_commits(4)
         self.tar_scm_std('--versionformat', 'foo%r', '--revision', self.rev(2))
         basename = self.basename(version='foo2')
         tar = self.assertTarOnly(basename)
         self.assertTarMemberContains(tar, basename + '/a', '2')
 
-    def _check_servicedata(self, expected_dirents=2, revision=2):  # noqa: E501 pylint: disable=W0613
+    def _check_servicedata(self, expected_dirents: Any=2, revision: Any=2) -> Any:  # noqa: E501 pylint: disable=W0613
         dirents = self.assertNumDirents(self.outdir, expected_dirents)
         self.assertTrue('_servicedata' in dirents,
                         '_servicedata in %s' % repr(dirents))

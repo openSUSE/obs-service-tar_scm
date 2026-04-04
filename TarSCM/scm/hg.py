@@ -4,6 +4,8 @@ import os
 import tempfile
 import shutil
 import logging
+import io
+from typing import Any, Dict, List, Optional
 from TarSCM.scm.base import Scm
 
 
@@ -12,39 +14,41 @@ class Hg(Scm):
 
     hgtmpdir = tempfile.mkdtemp()
 
-    def _get_scm_cmd(self):
+    def _get_scm_cmd(self) -> List[str]:
         """Compose a HG-specific command line using http proxies."""
         # Mercurial requires declaring proxies via a --config parameter
         scmcmd = ['hg']
         if self.httpproxy:
             logging.debug("using tempdir: %s", self.hgtmpdir)
-            cfg = open(self.hgtmpdir + "/tempsettings.rc", "wb")
-            cfg.write('[http_proxy]\n')
+            with io.open(self.hgtmpdir + "/tempsettings.rc", "w", encoding="UTF-8") as cfg:
+                cfg.write('[http_proxy]\n')
 
-            regexp_proxy = re.match('http://(.*):(.*)',
-                                    self.httpproxy,
-                                    re.M | re.I)
+                regexp_proxy = re.match('http://(.*):(.*)',
+                                        self.httpproxy,
+                                        re.M | re.I)
 
-            proxy_host = regexp_proxy.group(1)
-            proxy_port = regexp_proxy.group(2)
+                proxy_host = None  # type: Optional[str]
+                proxy_port = None  # type: Optional[str]
+                if regexp_proxy is not None:
+                    proxy_host = regexp_proxy.group(1)
+                    proxy_port = regexp_proxy.group(2)
 
-            if proxy_host is not None:
-                logging.debug('using proxy host: %s', proxy_host)
-                cfg.write('host=' + proxy_host)
-            if proxy_port is not None:
-                logging.debug('using proxy port: %s', proxy_port)
-                cfg.write('port=' + proxy_port)
-            if self.noproxy is not None:
-                logging.debug('using proxy exceptions: %s', self.noproxy)
-                cfg.write('no=' + self.noproxy)
-            cfg.close()
+                if proxy_host is not None:
+                    logging.debug('using proxy host: %s', proxy_host)
+                    cfg.write('host=' + proxy_host + '\n')
+                if proxy_port is not None:
+                    logging.debug('using proxy port: %s', proxy_port)
+                    cfg.write('port=' + proxy_port + '\n')
+                if self.noproxy is not None:
+                    logging.debug('using proxy exceptions: %s', self.noproxy)
+                    cfg.write('no=' + self.noproxy + '\n')
 
             # we just point Mercurial to where the config file is
             os.environ['HGRCPATH'] = self.hgtmpdir
 
         return scmcmd
 
-    def switch_revision(self):
+    def switch_revision(self) -> None:
         """Switch sources to revision."""
         if self.revision is None:
             self.revision = 'tip'
@@ -56,9 +60,10 @@ class Hg(Scm):
         if rcode:
             sys.exit('%s: No such revision' % self.revision)
 
-    def fetch_upstream_scm(self):
+    def fetch_upstream_scm(self) -> None:
         """SCM specific version of fetch_uptream for hg."""
         self.auth_url()
+        assert self.clone_dir is not None
         command = self._get_scm_cmd() + ['clone', self.url, self.clone_dir]
         if not self.is_sslverify_enabled():
             command += ['--insecure']
@@ -66,7 +71,7 @@ class Hg(Scm):
         self.helpers.safe_run(command, wdir,
                               interactive=sys.stdout.isatty())
 
-    def update_cache(self):
+    def update_cache(self) -> None:
         """Update sources via hg."""
         try:
             self.helpers.safe_run(self._get_scm_cmd() + ['pull'],
@@ -79,7 +84,7 @@ class Hg(Scm):
             if re.match('.*no changes found.*', str(exc)) is None:
                 raise
 
-    def detect_version(self, args):
+    def detect_version(self, args: Dict[str, Any]) -> str:
         """
         Automatic detection of version number for checked-out HG repository.
         """
@@ -127,20 +132,20 @@ class Hg(Scm):
 
         return self.helpers.safe_run(cmd, self.clone_dir)[1]
 
-    def get_timestamp(self):
+    def get_timestamp(self) -> int:
         data = {"parent_tag": None, "versionformat": "{date}"}
         timestamp = self.detect_version(data)
         timestamp = re.sub(r'([0-9]+)\..*', r'\1', timestamp)
         return int(timestamp)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         try:
             shutil.rmtree(self.hgtmpdir, ignore_errors=True)
         except:
             logging.debug("error on cleanup: %s", sys.exc_info()[0])
             raise
 
-    def check_url(self):
+    def check_url(self) -> bool:
         """check if url is a remote url"""
         if not re.match("^https?://", self.url):
             return False

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
+from typing import Any, Dict, List
 
 import os
 import re
@@ -7,14 +8,12 @@ import inspect
 import copy
 import unittest
 
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
+from unittest.mock import patch
 
-from utils import file_write_legacy
+from tests.utils import file_write_legacy
 
 import TarSCM
+import TarSCM.scm as tar_scm_module
 
 from TarSCM.helpers import Helpers
 from TarSCM.config  import Config
@@ -27,7 +26,7 @@ from TarSCM.scm.bzr import Bzr
 
 # pylint: disable=duplicate-code
 class UnitTestCases(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> Any:
         self.cli            = TarSCM.Cli()
         self.tasks          = TarSCM.Tasks(self.cli)
         self.tests_dir      = os.path.abspath(os.path.dirname(__file__))
@@ -38,7 +37,7 @@ class UnitTestCases(unittest.TestCase):
         self.cli.parse_args(['--outdir', '.'])
         os.environ['CACHEDIRECTORY'] = ''
 
-    def test_calc_dir_to_clone_to(self):
+    def test_calc_dir_to_clone_to(self) -> Any:
 
         clone_dirs = [
             '/local/repo.git',
@@ -53,32 +52,33 @@ class UnitTestCases(unittest.TestCase):
         for cdir in clone_dirs:
             scm.url = cdir
             scm._calc_dir_to_clone_to("")  # pylint: disable=protected-access
+            assert scm.clone_dir is not None
             self.assertTrue(scm.clone_dir.endswith('/repo'))
             self.tasks.cleanup()
 
     @patch('TarSCM.Helpers.safe_run')
-    def test__git_log_cmd_with_args(self, safe_run_mock):
+    def test__git_log_cmd_with_args(self, safe_run_mock: Any) -> Any:
         scm     = Git(self.cli, self.tasks)
         # pylint: disable=unused-variable,protected-access
         new_cmd = scm._log_cmd(['-n1'], '')  # noqa
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1'], cwd=None)
 
     @patch('TarSCM.Helpers.safe_run')
-    def test__git_log_cmd_without_args(self, safe_run_mock):
+    def test__git_log_cmd_without_args(self, safe_run_mock: Any) -> Any:
         scm     = Git(self.cli, self.tasks)
         # pylint: disable=unused-variable,protected-access
         new_cmd = scm._log_cmd([], '')  # noqa
         safe_run_mock.assert_called_once_with(['git', 'log'], cwd=None)
 
     @patch('TarSCM.Helpers.safe_run')
-    def test__git_log_cmd_with_subdir(self, safe_run_mock):
+    def test__git_log_cmd_with_subdir(self, safe_run_mock: Any) -> Any:
         scm     = Git(self.cli, self.tasks)
         # pylint: disable=unused-variable,protected-access
         new_cmd = scm._log_cmd(['-n1'], 'subdir')  # noqa
         safe_run_mock.assert_called_once_with(['git', 'log', '-n1',
                                                '--', 'subdir'], cwd=None)
 
-    def test_safe_run_exception(self):
+    def test_safe_run_exception(self) -> Any:
         helpers = Helpers()
         self.assertRaisesRegex(
             SystemExit,
@@ -88,7 +88,7 @@ class UnitTestCases(unittest.TestCase):
             cwd=None,
         )
 
-    def test_config_files_ordering(self):
+    def test_config_files_ordering(self) -> Any:
         tc_name = inspect.stack()[0][3]
         files = [
             [os.path.join(self.fixtures_dir, tc_name, 'a.cfg'), True],
@@ -97,7 +97,7 @@ class UnitTestCases(unittest.TestCase):
         var = Config(files).get(None, 'var')
         self.assertEqual(var, 'b')
 
-    def test_config_no_faked_header(self):
+    def test_config_no_faked_header(self) -> Any:
         tc_name = inspect.stack()[0][3]
         files   = [
             [os.path.join(self.fixtures_dir, tc_name, 'test.ini'), False]
@@ -107,7 +107,7 @@ class UnitTestCases(unittest.TestCase):
         var     = Config(files).get(var, 'email')
         self.assertEqual(var, 'devel@example.com')
 
-    def test_config_debug_tar_scm(self):
+    def test_config_debug_tar_scm(self) -> Any:
         tc_name = inspect.stack()[0][3]
 
         try:
@@ -127,7 +127,7 @@ class UnitTestCases(unittest.TestCase):
             os.environ['TAR_SCM_CLEAN_ENV'] = ''
             os.unsetenv('TAR_SCM_CLEAN_ENV')
 
-    def test_changes_get_chga_args(self):
+    def test_changes_get_chga_args(self) -> Any:
         '''Test if getting changesauthor from cli args works'''
         chg                 = Changes()
         cli                 = copy.copy(self.cli)
@@ -135,7 +135,7 @@ class UnitTestCases(unittest.TestCase):
         author              = chg.get_changesauthor(cli)
         self.assertEqual(author, 'args@example.com')
 
-    def test_changes_get_chga_oscrc(self):
+    def test_changes_get_chga_oscrc(self) -> Any:
         '''Test if getting changesauthor from .oscrc works'''
         os.environ["VC_MAILADDR"] = 'devel@example.com'
         chg                 = Changes()
@@ -143,7 +143,7 @@ class UnitTestCases(unittest.TestCase):
         self.assertEqual(author, 'devel@example.com')
         os.environ["VC_MAILADDR"] = ''
 
-    def test_changes_get_chga_default(self):
+    def test_changes_get_chga_default(self) -> Any:
         '''Test if getting default changesauthor if running inside OBS'''
         os.environ['OBS_SERVICE_DAEMON'] = "1"
         home                = os.environ['HOME']
@@ -154,7 +154,7 @@ class UnitTestCases(unittest.TestCase):
         self.assertEqual(author, 'obs-service-tar-scm@invalid')
         os.environ['OBS_SERVICE_DAEMON'] = "0"
 
-    def test_git_repoc_hash_wo_subdir(self):
+    def test_git_repoc_hash_wo_subdir(self) -> Any:
         '''Test to get git repocache dir without subdir'''
         scm_object = Git(self.cli, self.tasks)
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
@@ -164,7 +164,7 @@ class UnitTestCases(unittest.TestCase):
             repohash,
             'c0f3245498ad916e9ee404acfd7aa59e29d53b7a063a8609735c1284c67b2161')
 
-    def test_git_repoc_hash_w_subdir(self):
+    def test_git_repoc_hash_w_subdir(self) -> Any:
         '''
         This test case proves that subdir is ignored in
         TarSCM.base.scm.get_repocache_hash
@@ -177,7 +177,7 @@ class UnitTestCases(unittest.TestCase):
             repohash,
             'c0f3245498ad916e9ee404acfd7aa59e29d53b7a063a8609735c1284c67b2161')
 
-    def test_svn_repoc_hash_wo_subdir(self):
+    def test_svn_repoc_hash_wo_subdir(self) -> Any:
         '''Test to get svn repocache dir without subdir'''
         scm_object = Svn(self.cli, self.tasks)
         scm_object.url = 'https://github.com/openSUSE/obs-service-tar_scm.git'
@@ -187,7 +187,7 @@ class UnitTestCases(unittest.TestCase):
             repohash,
             'd5a57bc8ad6a3ecbca514a1a6fb48e2c9ee183ceb5f7d42e9fd5836918bd540c')
 
-    def test_svn_repoc_hash_w_subdir(self):
+    def test_svn_repoc_hash_w_subdir(self) -> Any:
         '''
         This test case proves that subdir is ignored in
         TarSCM.base.scm.get_repocache_hash
@@ -200,7 +200,7 @@ class UnitTestCases(unittest.TestCase):
             repohash,
             'b9761648b96f105d82a97b8a81f1ca060b015a3f882ef9a55ae6b5bf7be0d48a')
 
-    def test_check_url_valid(self):
+    def test_check_url_valid(self) -> Any:
         tc_arr = [
             {
                 'obj'  : Git(self.cli, self.tasks),
@@ -243,14 +243,14 @@ class UnitTestCases(unittest.TestCase):
                     'svn://example.com',
                 ]
             },
-        ]
+        ]  # type: List[Dict[str, Any]]
 
         for tca in tc_arr:
             for url in tca['urls']:
                 tca['obj'].url = url
                 self.assertTrue(tca['obj'].check_url())
 
-    def test_check_url_invalid(self):
+    def test_check_url_invalid(self) -> Any:
         invalid = [
             'Xhttp://example.com',
             'Xhttps://example.com',
@@ -280,10 +280,10 @@ class UnitTestCases(unittest.TestCase):
                 scm.url = url
                 self.assertFalse(scm.check_url())
 
-    def test_scm_tar_invalid_params(self):
+    def test_scm_tar_invalid_params(self) -> Any:
         tc_name    = inspect.stack()[0][3]
         cl_name    = self.__class__.__name__
-        scm_object = TarSCM.scm.Tar(self.cli, self.tasks)
+        scm_object = tar_scm_module.Tar(self.cli, self.tasks)
         wdir       = os.path.join(self.tmp_dir, cl_name, tc_name)
         os.makedirs(os.path.join(wdir, 'test'))
         info = os.path.join(wdir, "test.obsinfo")
@@ -329,16 +329,16 @@ class UnitTestCases(unittest.TestCase):
             scm_object.fetch_upstream
         )
 
-    def test_unicode_in_filename(self):
+    def test_unicode_in_filename(self) -> Any:
         tc_name    = inspect.stack()[0][3]
         cl_name    = self.__class__.__name__
-        scm_object = TarSCM.scm.Tar(self.cli, self.tasks)
+        scm_object = tar_scm_module.Tar(self.cli, self.tasks)
         scm_object.clone_dir = os.path.join(self.fixtures_dir, tc_name)
         wdir       = os.path.join(self.tmp_dir, cl_name, tc_name)
         os.makedirs(wdir)
         scm_object.prep_tree_for_archive('test', wdir, 'test')
 
-    def test_method__dstname(self):
+    def test_method__dstname(self) -> Any:
         '''
             basename != dstname
             basename is the package name or given by '--filename'
@@ -354,10 +354,11 @@ class UnitTestCases(unittest.TestCase):
         self.assertEqual('%s-%s' % (tc_name, version), dst)
         self.assertEqual(chgv, version)
 
-    def test_cache_locking(self):
+    def test_cache_locking(self) -> Any:
         scm     = Git(self.cli, self.tasks)
         scm.clone_dir = '.'
         scm.lock_cache()
+        assert scm.lock_file is not None
         fname = scm.lock_file.name
         scm.unlock_cache()
         assert os.path.exists(fname) == 0

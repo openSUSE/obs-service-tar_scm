@@ -5,15 +5,10 @@ import os
 import logging
 import subprocess
 import io
-
-# python3 renaming of StringIO
-try:
-    import StringIO
-except:
-    from io import StringIO
+from typing import Any, List, Optional, Tuple
 
 
-def file_write_legacy(fname, string, *args):
+def file_write_legacy(fname: str, string: Any, *args: str) -> None:
     '''function to write string to file python 2/3 compatible'''
     mode = 'w'
     if args:
@@ -25,7 +20,7 @@ def file_write_legacy(fname, string, *args):
 
 
 class Helpers():
-    def run_cmd(self, cmd, cwd, interactive=False, raisesysexit=False):
+    def run_cmd(self, cmd: List[str], cwd: Optional[str], interactive: bool=False, raisesysexit: bool=False) -> Tuple[int, str]:
         """
         Execute the command cmd in the working directory cwd and check return
         value. If the command returns non-zero and raisesysexit is True raise a
@@ -42,17 +37,22 @@ class Helpers():
         output = ''
         if interactive:
             stdout_lines = []
+            stdout = proc.stdout
             while proc.poll() is None:
-                for line in proc.stdout:
+                if stdout is None:
+                    break
+                for line in stdout:
                     line_str = line.rstrip().decode('UTF-8')
                     print(line_str)
                     stdout_lines.append(line_str)
             output = '\n'.join(stdout_lines)
             output = output
         else:
-            output = proc.communicate()[0]
-            if isinstance(output, bytes):
-                output = output.decode('UTF-8')
+            raw_output = proc.communicate()[0]
+            if isinstance(raw_output, bytes):
+                output = raw_output.decode('UTF-8')
+            else:
+                output = raw_output
 
         if proc.returncode and raisesysexit:
             logging.info("ERROR(%d): %s", proc.returncode, repr(output))
@@ -64,7 +64,7 @@ class Helpers():
 
         return (proc.returncode, output)
 
-    def safe_run(self, cmd, cwd, interactive=False):
+    def safe_run(self, cmd: List[str], cwd: Optional[str], interactive: bool=False) -> Tuple[int, str]:
         """Execute the command cmd in the working directory cwd and check
         return value. If the command returns non-zero raise a SystemExit
         exception.
@@ -72,7 +72,7 @@ class Helpers():
         result = self.run_cmd(cmd, cwd, interactive, raisesysexit=True)
         return result
 
-    def get_timestamp(self, scm_object, args, clone_dir):
+    def get_timestamp(self, scm_object: Any, args: Any, clone_dir: str) -> int:
         """Returns the commit timestamp for checked-out repository."""
 
         timestamp = scm_object.get_timestamp()

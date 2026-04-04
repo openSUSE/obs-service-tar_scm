@@ -8,52 +8,53 @@ import shutil
 import time
 import subprocess
 import glob
+from typing import Any, Dict, Optional
 
 from TarSCM.helpers import Helpers
 from TarSCM.changes import Changes
 from TarSCM.config import Config
 
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
+from urllib.parse import urlparse
 
 KEYRING_IMPORT_ERROR = 0
+keyrings_alt_file = None  # type: Any
 
 try:
-    import keyrings.alt.file
+    import importlib
+    keyrings_alt_file = importlib.import_module('keyrings.alt.file')
 except ImportError:
     KEYRING_IMPORT_ERROR = 1
+    keyrings_alt_file = None
 
 
 class Scm():
 
-    scm = None
+    scm = ''
     partial_clone = False
 
-    def __init__(self, args, task):
+    def __init__(self, args: Any, task: Any) -> None:
         # default settings
         # arch_dir - Directory which is used for the archive
         # e.g. myproject-2.0
-        self.arch_dir          = None
-        self.repocachedir      = None
-        self.clone_dir         = None
-        self.lock_file         = None
-        self.basename          = None
-        self.repodir           = None
-        self.user              = None
-        self.password          = None
-        self._parent_tag       = None
-        self._backup_gnupghome = None
+        self.arch_dir          = None  # type: Optional[str]
+        self.repocachedir      = None  # type: Optional[str]
+        self.clone_dir         = None  # type: Optional[str]
+        self.lock_file         = None  # type: Any
+        self.basename          = None  # type: Optional[str]
+        self.repodir           = None  # type: Optional[str]
+        self.user              = None  # type: Optional[str]
+        self.password          = None  # type: Optional[str]
+        self._parent_tag       = None  # type: Optional[str]
+        self._backup_gnupghome = None  # type: Optional[str]
         # proxy support
-        self.httpproxy         = None
-        self.httpsproxy        = None
-        self.noproxy           = None
+        self.httpproxy         = None  # type: Optional[str]
+        self.httpsproxy        = None  # type: Optional[str]
+        self.noproxy           = None  # type: Optional[str]
 
         # mandatory arguments
         self.args           = args
         self.task           = task
-        self.url            = args.url
+        self.url            = args.url or ''
 
         self.in_osc = bool(os.getenv('OSC_VERSION'))
 
@@ -65,7 +66,9 @@ class Scm():
                                  '"--user" and "--keyring_passphrase" are set.'
                                  ' Please install keyrings.alt.file!')
             os.environ['XDG_DATA_HOME'] = '/etc/obs/services/tar_scm.d'
-            _kr = keyrings.alt.file.EncryptedKeyring()
+            if keyrings_alt_file is None:
+                raise SystemExit('keyrings.alt.file is unavailable')
+            _kr = keyrings_alt_file.EncryptedKeyring()
             _kr.keyring_key = args.keyring_passphrase
             try:
                 self.password = _kr.get_password(self.url, args.user)
@@ -94,14 +97,14 @@ class Scm():
         if self.args.maintainers_asc:
             self._prepare_gpg_settings()
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self.args.maintainers_asc:
             self._revert_gpg_settings()
 
-    def auth_url(self):
+    def auth_url(self) -> None:
         if self.scm not in ('bzr', 'git', 'hg'):
             return
-        auth_patterns = {}
+        auth_patterns = {}  # type: Dict[str, Dict[str, str]]
         auth_patterns['bzr'] = {}
         auth_patterns['bzr']['proto']   = r'^(ftp|bzr|https?)://.*'
         auth_patterns['bzr']['already'] = r'^(ftp|bzr|https?)://.*:.*@.*'
@@ -129,20 +132,20 @@ class Scm():
                                       pwd=self.password),
                                   self.url)
 
-    def check_scm(self):
+    def check_scm(self) -> None:
         '''check version of scm to proof, it is installed and executable'''
         subprocess.Popen(
             [self.scm, '--version'],
             stdout=subprocess.PIPE
         ).communicate()
 
-    def switch_revision(self):
+    def switch_revision(self) -> None:
         '''Switch sources to revision. Dummy implementation for version control
         systems that change revision during fetch/update.
         '''
         return
 
-    def fetch_upstream(self):
+    def fetch_upstream(self) -> None:
         """Fetch sources from repository and checkout given revision."""
         logging.debug("CACHEDIR: '%s'", self.repocachedir)
         logging.debug("SCM: '%s'", self.scm)
@@ -152,6 +155,7 @@ class Scm():
 
         self._calc_dir_to_clone_to(clone_prefix)
         self.prepare_clone_dir()
+        assert self.clone_dir is not None
 
         self.lock_cache()
 
@@ -185,13 +189,22 @@ class Scm():
 
         self.unlock_cache()
 
-    def fetch_submodules(self):
+    def fetch_submodules(self) -> None:
         """NOOP in other scm's than git"""
 
-    def fetch_lfs(self):
+    def fetch_lfs(self) -> None:
         """NOOP in other scm's than git"""
 
-    def detect_changes(self):
+    def fetch_upstream_scm(self) -> None:
+        raise NotImplementedError
+
+    def update_cache(self) -> None:
+        raise NotImplementedError
+
+    def cleanup(self) -> None:
+        pass
+
+    def detect_changes(self) -> Any:
         """Detect changes between revisions."""
         if not self.args.changesgenerate:
             return None
@@ -212,18 +225,18 @@ class Scm():
         logging.debug("Detected changes:\n%s", repr(chgs))
         return chgs
 
-    def detect_changes_scm(self, chgs):  # pylint: disable=W0613
+    def detect_changes_scm(self, chgs: Any) -> Any:  # pylint: disable=W0613
         sys.exit("changesgenerate not supported with %s SCM" % self.scm)
 
-    def get_repocache_hash(self):
+    def get_repocache_hash(self) -> str:
         """Calculate hash fingerprint for repository cache."""
         u_url = self.url.encode()
         return hashlib.sha256(u_url).hexdigest()
 
-    def get_current_commit(self):
+    def get_current_commit(self) -> Optional[str]:
         return None
 
-    def _calc_repocachedir(self):
+    def _calc_repocachedir(self) -> None:
         # check for enabled caches in this order (first wins):
         #   1. local .cache
         #   2. environment
@@ -245,7 +258,7 @@ class Scm():
             self.repohash = self.get_repocache_hash()
             self.repocachedir = os.path.join(repocachedir, self.repohash)
 
-    def _calc_proxies(self):
+    def _calc_proxies(self) -> None:
         # check for standard http/https proxy variables
         #   - http_proxy
         #   - https_proxy
@@ -266,7 +279,7 @@ class Scm():
             logging.debug("HTTP no proxy found: %s", noproxy)
             self.noproxy = noproxy
 
-    def prepare_clone_dir(self):
+    def prepare_clone_dir(self) -> None:
         # special case when using osc and creating an obscpio, use
         # current work directory to allow the developer to work inside
         # of the git repo and fetch local changes
@@ -282,7 +295,7 @@ class Scm():
             if not os.path.isdir(self.repocachedir):
                 os.makedirs(self.repocachedir)
 
-    def _calc_dir_to_clone_to(self, prefix):
+    def _calc_dir_to_clone_to(self, prefix: str) -> None:
         # separate path from parameters etc.
         url_path = urlparse(self.url)[2].rstrip('/')
 
@@ -297,7 +310,7 @@ class Scm():
         self.basename = os.path.basename(os.path.normpath(url_path))
         self.basename = prefix + self.basename
 
-        osc_version = 0
+        osc_version = None  # type: Optional[str]
 
         logging.debug(" - SUBDIR: %s", self.args.subdir)
         if not self.args.subdir and self.scm == 'git' and not self.in_osc:
@@ -308,10 +321,10 @@ class Scm():
 
         try:
             osc_version = os.environ['OSC_VERSION']
-        except:
+        except Exception:
             pass
 
-        if osc_version == 0:
+        if osc_version is None:
             tempdir = tempfile.mkdtemp(dir=self.args.outdir)
             self.task.cleanup_dirs.append(tempdir)
         else:
@@ -331,14 +344,14 @@ class Scm():
 
         logging.debug("[_calc_dir_to_clone_to] CLONE_DIR: %s", self.clone_dir)
 
-    def is_sslverify_enabled(self):
+    def is_sslverify_enabled(self) -> bool:
         """Returns ``True`` if the ``sslverify`` option has been enabled or
         not been set (default enabled) ``False`` otherwise."""
         return \
             'sslverify' not in self.args.__dict__ or \
             self.args.__dict__['sslverify']
 
-    def version_iso_cleanup(self, version, debian=False):
+    def version_iso_cleanup(self, version: str, debian: bool=False) -> str:
         """Reformat timestamp value."""
         version = re.sub(r'([0-9]{4})-([0-9]{2})-([0-9]{2}) +'
                          r'([0-9]{2})([:]([0-9]{2})([:]([0-9]{2}))?)?'
@@ -352,13 +365,14 @@ class Scm():
             version = re.sub(r'[-:]', '', version)
         return version
 
-    def prepare_working_copy(self):
+    def prepare_working_copy(self) -> None:
         pass
 
-    def prep_tree_for_archive(self, subdir, outdir, dstname):
+    def prep_tree_for_archive(self, subdir: str, outdir: str, dstname: str) -> None:
         """Prepare directory tree for creation of the archive by copying the
         requested sub-directory to the top-level destination directory.
         """
+        assert self.clone_dir is not None
         src = os.path.join(self.clone_dir, subdir)
         if not os.path.exists(src):
             raise Exception("%s: No such file or directory" % src)
@@ -379,7 +393,8 @@ class Scm():
 
         shutil.copytree(src, dst, symlinks=True)
 
-    def lock_cache(self):
+    def lock_cache(self) -> None:
+        assert self.clone_dir is not None
         pdir = os.path.join(self.clone_dir, os.pardir, '.lock')
         if os.path.isfile(pdir):
             mtime = os.path.getmtime(pdir)
@@ -398,7 +413,7 @@ class Scm():
                 self.lock_file = open(os.path.abspath(pdir), 'w')
                 break
 
-    def unlock_cache(self):
+    def unlock_cache(self) -> None:
         if self.lock_file and os.path.isfile(self.lock_file.name):
             logging.debug("Unlocking cache: %s", self.lock_file.name)
             try:
@@ -409,13 +424,13 @@ class Scm():
 
             self.lock_file = None
 
-    def finalize(self):
+    def finalize(self) -> None:
         self.cleanup()
 
-    def check_url(self):
+    def check_url(self) -> bool:
         return True
 
-    def _prepare_gpg_settings(self):
+    def _prepare_gpg_settings(self) -> None:
         logging.debug("preparing gpg settings")
         self._backup_gnupghome = os.getenv('GNUPGHOME')
         gpgdir = tempfile.mkdtemp()
@@ -427,6 +442,6 @@ class Scm():
             ['gpg', '--import', self.args.maintainers_asc],
             cwd=self.clone_dir, interactive=sys.stdout.isatty())
 
-    def _revert_gpg_settings(self):
+    def _revert_gpg_settings(self) -> None:
         if self._backup_gnupghome:
             os.putenv('GNUPGHOME', self._backup_gnupghome)
