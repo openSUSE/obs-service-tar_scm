@@ -1,19 +1,9 @@
 import os
 import logging
 import re
+import configparser
+from io import StringIO
 from typing import Any, List, Optional
-
-# python3 renaming of StringIO
-try:
-    from StringIO import StringIO  # type: ignore
-except:
-    from io import StringIO
-
-# python3 renaming of ConfigParser
-try:
-    import configparser
-except:
-    import ConfigParser as configparser  # type: ignore
 
 
 class Config():
@@ -67,16 +57,10 @@ class Config():
 
         if self.fakeheader:
             logging.debug("Using fakeheader for file '%s'", fname)
-            try:
-                fake_header = '[' + self.default_section + ']\n'
-                config.read_string(fake_header + open(fname, 'r').read(),
-                                   source=fname)
-            except AttributeError:
-                tmp_fp = StringIO()
-                tmp_fp.write('[' + self.default_section + ']\n')
-                tmp_fp.write(open(fname, 'r').read())
-                tmp_fp.seek(0, os.SEEK_SET)
-                config.read_file(tmp_fp)
+            fake_header = '[' + self.default_section + ']\n'
+            with open(fname, 'r', encoding='utf-8') as config_file:
+                tmp_fp = StringIO(fake_header + config_file.read())
+            config.read_file(tmp_fp, source=fname)
 
         else:
             config.read(fname)

@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import datetime
 import os
 import logging
@@ -9,14 +7,13 @@ from typing import Any, List, Optional, Tuple
 
 
 def file_write_legacy(fname: str, string: Any, *args: str) -> None:
-    '''function to write string to file python 2/3 compatible'''
+    '''Write string data to a file.'''
     mode = 'w'
     if args:
         mode = args[0]
 
     with io.open(fname, mode, encoding='utf-8') as outfile:
-        # 'str().encode().decode()' is required for pyhton 2/3 compatibility
-        outfile.write(str(string).encode('UTF-8').decode('UTF-8'))
+        outfile.write(str(string))
 
 
 class Helpers():

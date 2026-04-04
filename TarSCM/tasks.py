@@ -1,7 +1,6 @@
 '''
 This module contains the class tasks
 '''
-from __future__ import print_function
 
 import glob
 import copy

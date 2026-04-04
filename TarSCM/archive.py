@@ -165,8 +165,6 @@ class ObsCpio(BaseArchive):
                 os.utime(name, (tstamp, tstamp), follow_symlinks=False)
             except OSError:
                 pass
-            # bytes() break in python2 with a TypeError as it expects only 1
-            # arg
             stdin.write(name.encode('UTF-8', 'surrogateescape'))
             stdin.write(b"\n")
         stdin.close()
@@ -227,7 +225,7 @@ class Tar(BaseArchive):
             excl_patterns.append(re.compile(pat))
 
         def reset(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo:
-            """Python 2.7 only: reset uid/gid to 0/0 (root)."""
+            """Reset uid/gid to 0/0 (root)."""
             tarinfo.uid = tarinfo.gid = 0
             tarinfo.uname = tarinfo.gname = "root"
             if timestamp != 0:
@@ -244,20 +242,12 @@ class Tar(BaseArchive):
         files_added = {}  # type: Dict[str, bool]
 
         with tarfile.open(out_file, "w", encoding=enc) as tar:
-            try:
-                tar.add(topdir, recursive=False, filter=reset)
-            except TypeError:
-                # Python 2.6 compatibility
-                tar.add(topdir, recursive=False)
+            tar.add(topdir, recursive=False, filter=reset)
             for entry in self.filter_files(filelist, topdir, args):
                 logging.debug("Filtered file: %s", entry)
                 if not files_added.get(entry, False):
                     logging.debug("Adding filtered file: %s", entry)
-                    try:
-                        tar.add(entry, recursive=False, filter=reset)
-                    except TypeError:
-                        # Python 2.6 compatibility
-                        tar.add(entry, recursive=False)
+                    tar.add(entry, recursive=False, filter=reset)
                     files_added[entry] = True
                     logging.debug("Added filtered file: %s", entry)
 
