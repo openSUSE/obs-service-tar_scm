@@ -262,6 +262,31 @@ class GitTests(GitHgTests, GitSvnTests):
         self.tar_scm_std("--versionformat", "@PARENT_TAG@")
         self.assertTarOnly(self.basename(version="latest"))
 
+    def test_exclude_tag(self):
+        fix = self.fixtures
+        fix.create_commits(2)
+        fix.safe_run('tag latest')
+        repo_path = fix.repo_path
+        os.chdir(repo_path)
+        self.tar_scm_std("--exclude-tag", 'latest',
+                         "--versionformat", "@PARENT_TAG@")
+        self.assertTarOnly(self.basename(version="tag4"))
+        self.tar_scm_std("--match-tag", 'tag*',
+                         "--exclude-tag", 'tag4',
+                         "--versionformat", "@PARENT_TAG@")
+        self.assertTarOnly(self.basename(version="tag2"))
+
+    def test_exclude_tag_multiple(self):
+        fix = self.fixtures
+        fix.create_commits(4)
+        repo_path = fix.repo_path
+        os.chdir(repo_path)
+        self.tar_scm_std("--match-tag", 'tag*',
+                         "--exclude-tag", 'tag6',
+                         "--exclude-tag", 'tag4',
+                         "--versionformat", "@PARENT_TAG@")
+        self.assertTarOnly(self.basename(version="tag2"))
+
     def test_obs_scm_cli(self):
         fix = self.fixtures
         fix.create_commits(2)
@@ -314,7 +339,7 @@ class GitTests(GitHgTests, GitSvnTests):
         f_tasks = FakeTasks()
         git = Git(f_args, f_tasks)
 
-        p_tag = git._detect_parent_tag(f_args)
+        p_tag = git._detect_parent_tag(f_args.__dict__)
         self.assertEqual(p_tag, '')
 
     def test_changesgenerate_unicode(self):
