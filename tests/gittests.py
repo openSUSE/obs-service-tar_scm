@@ -314,7 +314,7 @@ class GitTests(GitHgTests, GitSvnTests):
         f_tasks = FakeTasks()
         git = Git(f_args, f_tasks)
 
-        p_tag = git._detect_parent_tag(f_args)
+        p_tag = git._detect_parent_tag()
         self.assertEqual(p_tag, '')
 
     def test_changesgenerate_unicode(self):

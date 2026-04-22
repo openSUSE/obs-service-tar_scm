@@ -283,7 +283,7 @@ class Git(Scm):
             versionformat = '%ct.%h'
 
         if not self._parent_tag:
-            self._parent_tag = self._detect_parent_tag(args)
+            self._parent_tag = self._detect_parent_tag()
 
         if re.match('.*@PARENT_TAG@.*', versionformat):
             versionformat = self._detect_version_parent_tag(
@@ -307,14 +307,12 @@ class Git(Scm):
         version = self.helpers.safe_run(log_cmd, self.clone_dir)[1]
         return version
 
-    def _detect_parent_tag(self, args=None):
+    def _detect_parent_tag(self):
         parent_tag = ''
         cmd = self._get_scm_cmd() + ['describe', '--tags', '--abbrev=0']
-        try:
-            if args and args['match_tag']:
-                cmd.append("--match=%s" % args['match_tag'])
-        except KeyError:
-            pass
+        if self.args.match_tag:
+            cmd.append("--match=%s" % self.args.match_tag)
+
         rcode, output = self.helpers.run_cmd(cmd, self.clone_dir)
 
         if rcode == 0:
