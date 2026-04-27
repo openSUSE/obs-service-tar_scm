@@ -24,7 +24,7 @@ class Bzr(Scm):
         if not self.is_sslverify_enabled():
             command.insert(2, '-Ossl.cert_reqs=None')
         wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
-        self.helpers.safe_run(command, wdir, interactive=sys.stdout.isatty())
+        self.run_and_hide(command, wdir)
 
     def update_cache(self):
         """Update sources via bzr."""

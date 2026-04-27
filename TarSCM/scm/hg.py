@@ -63,8 +63,7 @@ class Hg(Scm):
         if not self.is_sslverify_enabled():
             command += ['--insecure']
         wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
-        self.helpers.safe_run(command, wdir,
-                              interactive=sys.stdout.isatty())
+        self.run_and_hide(command, wdir)
 
     def update_cache(self):
         """Update sources via hg."""
