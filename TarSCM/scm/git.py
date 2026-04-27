@@ -146,13 +146,10 @@ class Git(Scm):
             command += ['--config', 'http.sslverify=false']
         if self.repocachedir and not self.partial_clone:
             command.insert(command.index('clone') + 1, '--mirror')
+
         wdir = os.path.abspath(os.path.join(self.repodir, os.pardir))
-        try:
-            self.helpers.safe_run(
-                command, cwd=wdir, interactive=sys.stdout.isatty())
-        except SystemExit as exc:
-            os.removedirs(os.path.join(wdir, self.clone_dir))
-            raise exc
+        self.run_and_hide(command, wdir, [os.path.join(wdir, self.clone_dir)])
+
         if self.partial_clone:
             config_command = self._get_scm_cmd() + ['config', '--local',
                                                     'extensions.partialClone',
@@ -192,10 +189,7 @@ class Git(Scm):
             if self.partial_clone:
                 command.insert(-2, '--filter=tree:0')
             # fetch reference from url and create locally
-            self.helpers.safe_run(
-                command,
-                cwd=self.clone_dir, interactive=sys.stdout.isatty()
-            )
+            self.run_and_hide(command, self.clone_dir)
 
     def fetch_submodules(self):
         """Recursively initialize git submodules."""
@@ -255,11 +249,7 @@ class Git(Scm):
             if self.partial_clone:
                 command.append('--filter=tree:0')
 
-            self.helpers.safe_run(
-                command,
-                cwd=self.clone_dir,
-                interactive=sys.stdout.isatty()
-            )
+            self.run_and_hide(command, self.clone_dir)
 
         except SystemExit as exc:
             logging.error("Corrupt clone_dir '%s' detected.", self.clone_dir)
@@ -439,8 +429,9 @@ class Git(Scm):
             command.append(org_clone_dir)
         command.append(self.clone_dir)
         wdir = os.path.abspath(os.path.join(self.clone_dir, os.pardir))
-        self.helpers.safe_run(
-            command, cwd=wdir, interactive=sys.stdout.isatty())
+
+        self.run_and_hide(command, wdir)
+
         if self.partial_clone:
             config_command = self._get_scm_cmd() + ['config', '--local',
                                                     'extensions.partialClone',
@@ -467,8 +458,6 @@ class Git(Scm):
 
         if self.revision and not self._ref_exists(self.revision):
             refspec = self.revision + ":" + self.revision
-            if self.partial_clone:
-                command.insert(-3, '--filter=tree:0')
             cmd = self._get_scm_cmd() + ['fetch', 'origin',
                                          refspec]
             self.helpers.safe_run(

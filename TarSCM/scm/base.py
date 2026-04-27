@@ -54,6 +54,8 @@ class Scm():
         self.args           = args
         self.task           = task
         self.url            = args.url
+        self.org_url        = None
+        self.credentials_re = None
 
         self.in_osc = bool(os.getenv('OSC_VERSION'))
 
@@ -99,35 +101,22 @@ class Scm():
             self._revert_gpg_settings()
 
     def auth_url(self):
-        if self.scm not in ('bzr', 'git', 'hg'):
+        auth_patterns = {
+            'bzr' : r'^((?:ftp|bzr|https?)://)(.*)',
+            'git' : r'^((?:ftps?|https?)://)(.*)',
+            'hg'  : r'^(https?://)(.*)',
+        }
+
+        if self.org_url:
             return
-        auth_patterns = {}
-        auth_patterns['bzr'] = {}
-        auth_patterns['bzr']['proto']   = r'^(ftp|bzr|https?)://.*'
-        auth_patterns['bzr']['already'] = r'^(ftp|bzr|https?)://.*:.*@.*'
-        auth_patterns['bzr']['sub']     = r'^((ftp|bzr|https?)://)(.*)'
-        auth_patterns['bzr']['format']  = r'\g<1>{user}:{pwd}@\g<3>'
-        auth_patterns['git'] = {}
-        auth_patterns['git']['proto']   = r'^(ftps?|https?)://.*'
-        auth_patterns['git']['already'] = r'^(ftps?|https?)://.*:.*@.*'
-        auth_patterns['git']['sub']     = r'^((ftps?|https?)://)(.*)'
-        auth_patterns['git']['format']  = r'\g<1>{user}:{pwd}@\g<3>'
-        auth_patterns['hg'] = {}
-        auth_patterns['hg']['proto']   = r'^https?://.*'
-        auth_patterns['hg']['already'] = r'^https?://.*:.*@.*'
-        auth_patterns['hg']['sub']     = r'^(https?://)(.*)'
-        auth_patterns['hg']['format']  = r'\g<1>{user}:{pwd}@\g<2>'
+
+        if not auth_patterns.get(self.scm, None):
+            return
 
         if self.user and self.password:
-            pattern_proto = re.compile(auth_patterns[self.scm]['proto'])
-            pattern = re.compile(auth_patterns[self.scm]['already'])
-            if pattern_proto.match(self.url) and not pattern.match(self.url):
-                logging.debug('[auth_url] settings credentials from keyring')
-                self.url = re.sub(auth_patterns[self.scm]['sub'],
-                                  auth_patterns[self.scm]['format'].format(
-                                      user=self.user,
-                                      pwd=self.password),
-                                  self.url)
+            self.org_url = self.url
+            logging.debug('[auth_url] settings credentials from keyring')
+            self.url = re.sub(auth_patterns[self.scm], f"\\1{self.user}:{self.password}@\\2", self.url)
 
     def check_scm(self):
         '''check version of scm to proof, it is installed and executable'''
@@ -203,7 +192,8 @@ class Scm():
             for filename in glob.glob(old_changes_glob):
                 shutil.copy2(filename, os.getcwd())
 
-        chgs = self.changes.read_changes_revision(self.url, os.getcwd(),
+        url  = (self.org_url or self.url)
+        chgs = self.changes.read_changes_revision(url, os.getcwd(),
                                                   self.args.outdir)
 
         logging.debug("CHANGES: %s", repr(chgs))
@@ -414,6 +404,16 @@ class Scm():
 
     def check_url(self):
         return True
+
+    def run_and_hide(self, command, wdir, cleanup_dirs=[]):
+        try:
+            self.helpers.safe_run(
+                command, cwd=wdir, interactive=sys.stdout.isatty())
+        except SystemExit as exc:
+            for cdir in cleanup_dirs:
+                os.removedirs(cdir)
+            exc = re.sub(self.url, self.org_url, str(exc))
+            raise SystemExit(exc)
 
     def _prepare_gpg_settings(self):
         logging.debug("preparing gpg settings")
