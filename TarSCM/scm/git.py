@@ -460,6 +460,8 @@ class Git(Scm):
             refspec = self.revision + ":" + self.revision
             cmd = self._get_scm_cmd() + ['fetch', 'origin',
                                          refspec]
+            if self.partial_clone:
+                cmd.insert(-3, '--filter=tree:0')
             self.helpers.safe_run(
                 cmd, cwd=self.clone_dir, interactive=sys.stdout.isatty())
 
