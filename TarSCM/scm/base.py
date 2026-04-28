@@ -339,6 +339,9 @@ class Scm():
         # upstream vs downstream version
         # for RPM it has to be stripped instead, as it's an illegal character
         if not debian:
+            # support release candidate (RC) as non-sorting version with tilde
+            version = re.sub(r'-(RC|rc)(\d+)', r'~\1\2', version)
+            # strip any remaining dash '-' character(s)
             version = re.sub(r'[-:]', '', version)
         return version
 
