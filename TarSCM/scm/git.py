@@ -56,7 +56,26 @@ class Git(Scm):
         - wildcard to match latest tag: @PARENT_TAG@
         """
         logging.debug("[switch_revision] Starting ...")
-        self.revision = self.revision or 'master'
+
+        if not self.revision:
+            # Get the default branch. This can change on the remote,
+            # so update the symbolic-ref in case it has gone stale.
+            # Also fetch it explicitly because we might not have it yet.
+            logging.debug("[switch_revision] Updating refs/remotes/origin/HEAD")
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['remote', 'set-head', 'origin', '-a'],
+                cwd=self.clone_dir
+            )
+            logging.debug("[switch_revision] Parsing refs/remotes/origin/HEAD")
+            self.revision = self.helpers.safe_run(
+                self._get_scm_cmd() + ['rev-parse', '--abbrev-ref', 'origin'],
+                cwd=self.clone_dir
+            )[1].strip()
+            logging.debug("[switch_revision] Fetching ref: " + self.revision)
+            self.helpers.safe_run(
+                self._get_scm_cmd() + ['fetch', 'origin', self.revision.split('/', 1)[-1]],
+                cwd=self.clone_dir
+            )
 
         if self.revision == "@PARENT_TAG@":
             self.revision = self._detect_parent_tag()
