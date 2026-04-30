@@ -116,7 +116,8 @@ class Scm():
         if self.user and self.password:
             self.org_url = self.url
             logging.debug('[auth_url] settings credentials from keyring')
-            self.url = re.sub(auth_patterns[self.scm], f"\\1{self.user}:{self.password}@\\2", self.url)
+            repl = "\\1{self.user}:{self.password}@\\2".format()
+            self.url = re.sub(auth_patterns[self.scm], repl, self.url)
 
     def check_scm(self):
         '''check version of scm to proof, it is installed and executable'''
