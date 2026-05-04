@@ -141,7 +141,7 @@ class Git(Scm):
         command = self._get_scm_cmd() + ['clone',
                                          self.url, self.clone_dir]
         if self.partial_clone:
-            command.insert(-2, '--filter=tree:0')
+            command.append(-2, '--filter=tree:0')
         if not self.is_sslverify_enabled():
             command += ['--config', 'http.sslverify=false']
         if self.repocachedir and not self.partial_clone:
