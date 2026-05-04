@@ -141,7 +141,7 @@ class Git(Scm):
         command = self._get_scm_cmd() + ['clone',
                                          self.url, self.clone_dir]
         if self.partial_clone:
-            command.append(-2, '--filter=tree:0')
+            command.append('--filter=tree:0')
         if not self.is_sslverify_enabled():
             command += ['--config', 'http.sslverify=false']
         if self.repocachedir and not self.partial_clone:
@@ -187,7 +187,7 @@ class Git(Scm):
             rev = self.revision + ':' + self.revision
             command = self._get_scm_cmd() + ['fetch', self.url, rev]
             if self.partial_clone:
-                command.insert(-2, '--filter=tree:0')
+                command.append('--filter=tree:0')
             # fetch reference from url and create locally
             self.run_and_hide(command, self.clone_dir)
 
@@ -237,7 +237,7 @@ class Git(Scm):
 
             command = self._get_scm_cmd() + ['fetch', '--tags']
             if self.partial_clone:
-                command.insert(-1, '--filter=tree:0')
+                command.append('--filter=tree:0')
 
             self.helpers.safe_run(
                 command,
@@ -413,7 +413,7 @@ class Git(Scm):
         command = self._get_scm_cmd() + ['clone',
                                          '--no-checkout']
         if self.partial_clone:
-            command.insert(-1, '--filter=tree:0')
+            command.append('--filter=tree:0')
         use_reference = True
 
         try:
@@ -461,7 +461,7 @@ class Git(Scm):
             cmd = self._get_scm_cmd() + ['fetch', 'origin',
                                          refspec]
             if self.partial_clone:
-                cmd.insert(-3, '--filter=tree:0')
+                cmd.append('--filter=tree:0')
             self.helpers.safe_run(
                 cmd, cwd=self.clone_dir, interactive=sys.stdout.isatty())
 
