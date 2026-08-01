@@ -16,7 +16,7 @@
 #
 
 
-%if 0%{?fedora_version}%{?rhel}
+%if 0%{?suse_version} == 0 
 %define _pkg_base %nil
 %else
 %define _pkg_base -base
@@ -40,17 +40,17 @@
 ExclusiveArch:  skip-build
 %endif
 
-%if 0%{?suse_version} >= 1315 || 0%{?fedora_version} >= 29 || 0%{?rhel} >= 8
-%bcond_without python3
-%else
-%bcond_with    python3
-%endif
-
 # This list probably needs to be extended
 # logic seems to be if python < 2.7 ; then needs_external_argparse ; fi
-%if (0%{?centos_version} == 6) || (0%{?suse_version} && 0%{?suse_version} < 1315) || (0%{?fedora_version} && 0%{?fedora_version} < 26)
-%bcond_without needs_external_argparse
+%if (0%{?centos_version} == 6) || (0%{suse_version} && 0%{?suse_version} < 1315) || (0%{?fedora_version} && 0%{?fedora_version} < 29) || (0%{?rhel} && 0%{?rhel} < 8)
+%bcond_with    python3
+%if 0%{?fedora_version} >= 26
+%bcond_with    needs_external_argparse
 %else
+%bcond_without needs_external_argparse
+%endif
+%else
+%bcond_without python3
 %bcond_with    needs_external_argparse
 %endif
 
