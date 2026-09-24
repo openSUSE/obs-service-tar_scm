@@ -148,7 +148,7 @@ The standard `tar` archive format is used as output format by the
 `obscpio` archives are
 [`cpio`](https://www.gnu.org/software/cpio/manual/cpio.html) archives
 in `newc` format.  Using these allows the [OBS Delta
-Store](http://openbuildservice.org/help/manuals/obs-reference-guide/cha.obs.architecture.html#delta_store)
+Store](https://openbuildservice.org/help/manuals/obs-admin-guide/cha-obs-admin.html#cha-obs-admin-components)
 to store changes server-side in a space-efficient incremental way,
 independently of your chosen SCM.  Then at build-time, the `tar`
 source service converts a file from this format into a regular `.tar`
