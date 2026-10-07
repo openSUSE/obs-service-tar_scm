@@ -4,6 +4,9 @@
   <parameter name="obsinfo">
     <description>Specify .obsinfo file to create a tar ball.</description>
   </parameter>
+  <parameter name="subdir">
+    <description>Package just a subdirectory.</description>
+  </parameter>
   <parameter name="version">
     <description>Specify version to be used in tarball. Defaults to automatically detected value formatted by versionformat parameter. Disabling the additional version string can be done by setting it to "_none_" string.</description>
   </parameter>
