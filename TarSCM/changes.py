@@ -7,6 +7,7 @@ import tempfile
 import stat
 import io
 import locale
+import subprocess
 
 from TarSCM.cli    import Cli
 from TarSCM.config import Config
@@ -227,6 +228,25 @@ class Changes():
 
         if mailaddr:
             logging.debug("Found changesauthor in VC_MAILADDR='%s'",
+                          mailaddr)
+            return mailaddr
+
+        try:
+            realname = subprocess.check_output(['git', 'config', 'user.name'], universal_newlines=True).strip()
+        except CalledProcessError:
+            realname = None
+        try:
+            mailaddr = subprocess.check_output(['git', 'config', 'user.email'], universal_newlines=True).strip()
+        except CalledProcessError:
+            mailaddr = None
+
+        if mailaddr and realname:
+            logging.debug("Found user.name '%s' and user.email '%s' in git config.",
+                          realname, mailaddr)
+            return "%s <%s>" % (realname, mailaddr)
+
+        if mailaddr:
+            logging.debug("Found user.email '%s' in git config.",
                           mailaddr)
             return mailaddr
 
