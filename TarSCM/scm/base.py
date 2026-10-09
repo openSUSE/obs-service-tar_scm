@@ -119,7 +119,7 @@ class Scm():
             self.org_url = self.url
             logging.debug('[auth_url] settings credentials from keyring')
             repl = '\\1{u}:{p}@\\2'.format(
-                u=re.escape(self.user), p=re.escape(self.password)
+                u=self.user.replace('\\', '\\\\'), p=self.password.replace('\\', '\\\\')
             )
             self.url = re.sub(auth_patterns[self.scm], repl, self.url)
 
