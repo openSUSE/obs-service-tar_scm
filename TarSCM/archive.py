@@ -263,6 +263,12 @@ class Tar(BaseArchive):
 
         self.archivefile    = tar.name
 
+        if args.delete:
+            obscpio_file = os.path.join(outdir, dstname + '.obscpio')
+            if os.path.exists(obscpio_file):
+                logging.debug("Deleting source archive '%s'", obscpio_file)
+                os.remove(obscpio_file)
+
         os.chdir(cwd)
 
 

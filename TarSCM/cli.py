@@ -218,6 +218,9 @@ class Cli():
                             choices=['yes', 'no'], default='no',
                             help='Package the meta data of SCM to allow the '
                                  'user or OBS to update after un-tar')
+        parser.add_argument('--delete', choices=['yes', 'no'], default='no',
+                            help='Delete the source .obscpio archive after successful '
+                                 'creation of the tarball')
         parser.add_argument('--outdir', required=True,
                             help='osc service parameter for internal use only '
                                  '(determines where generated files go before '
@@ -263,6 +266,24 @@ class Cli():
 
         self.verify_args(parser.parse_args(options))
 
+    def configure_locale(self, args):
+        if args.locale:
+            use_locale = args.locale
+        elif args.encoding:
+            use_locale = check_locale([
+                "en_US.%s" % args.encoding,
+                "C.%s" % args.encoding])
+        else:
+            use_locale = check_locale(["en_US.utf8", 'C.utf8'])
+
+        logging.debug("Using locale: %s", use_locale)
+
+        locale.setlocale(locale.LC_ALL, use_locale)
+
+        os.environ["LC_ALL"] = use_locale
+        os.environ["LANG"] = use_locale
+        os.environ["LANGUAGE"] = use_locale
+
     def verify_args(self, args):
         # basic argument validation
         # pylint: disable=too-many-branches
@@ -305,6 +326,7 @@ class Cli():
         args.use_obs_gbp          = bool(args.use_obs_gbp)
         args.latest_signed_commit = bool(args.latest_signed_commit)
         args.latest_signed_tag    = bool(args.latest_signed_tag)
+        args.delete               = bool(args.delete == 'yes')
         t_gbp_dch_release_u = bool(args.gbp_dch_release_update != 'disable')
         args.gbp_dch_release_update = t_gbp_dch_release_u
 
@@ -329,22 +351,7 @@ class Cli():
         for attr in args.__dict__.keys():
             self.__dict__[attr] = args.__dict__[attr]
 
-        if args.locale:
-            use_locale = args.locale
-        elif args.encoding:
-            use_locale = check_locale([
-                "en_US.%s" % args.encoding,
-                "C.%s" % args.encoding])
-        else:
-            use_locale = check_locale(["en_US.utf8", 'C.utf8'])
-
-        logging.debug("Using locale: %s", use_locale)
-
-        locale.setlocale(locale.LC_ALL, use_locale)
-
-        os.environ["LC_ALL"] = use_locale
-        os.environ["LANG"] = use_locale
-        os.environ["LANGUAGE"] = use_locale
+        self.configure_locale(args)
 
         # Filter for suspicious revision formats
         # Allowed: `v1.1-2`
