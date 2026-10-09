@@ -5,6 +5,7 @@ import logging
 import re
 import hashlib
 import shutil
+import stat
 import time
 import subprocess
 import glob
@@ -372,7 +373,15 @@ class Scm():
 
         logging.debug("copying tree: '%s' to '%s'", src, dst)
 
-        shutil.copytree(src, dst, symlinks=True)
+        def ignore_sockets(directory, names):
+            # Use lstat to preserve symlinks, including dangling ones.
+            return [
+                name
+                for name in names
+                if stat.S_ISSOCK(os.lstat(os.path.join(directory, name)).st_mode)
+            ]
+
+        shutil.copytree(src, dst, symlinks=True, ignore=ignore_sockets)
 
     def lock_cache(self):
         pdir = os.path.join(self.clone_dir, os.pardir, '.lock')
