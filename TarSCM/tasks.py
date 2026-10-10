@@ -168,14 +168,23 @@ class Tasks():
             dat = json.load(ofh)
         if dat.get('object_kind') == 'merge_request':
             # gitlab merge request
-            args.url = dat['project']['http_url']
-            rev = dat['object_attributes']['source']['default_branch']
-            args.revision = rev
+            head_url = dat['project']['http_url']
+            head_revision = \
+                dat['object_attributes']['source']['default_branch']
         elif dat.get('action') == 'opened':
             # github pull request
-            args.url = "https://github.com/"
-            args.url += dat['pull_request']['head']['repo']['full_name']
-            args.revision = dat['pull_request']['head']['sha']
+            head_url = "https://github.com/"
+            head_url += dat['pull_request']['head']['repo']['full_name']
+            head_revision = dat['pull_request']['head']['sha']
+        else:
+            return args
+
+        # keep the upstream repository for fetching its release tags as the
+        # request head fork may be missing them and they are needed for
+        # version detection via @PARENT_TAG@/@TAG_OFFSET@.
+        args.upstream_url = args.url
+        args.url = head_url
+        args.revision = head_revision
 
         return args
 

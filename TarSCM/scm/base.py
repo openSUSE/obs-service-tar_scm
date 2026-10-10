@@ -63,6 +63,8 @@ class Scm():
 
         # optional arguments
         self.revision       = args.revision
+        # used to fetch tags in SCM workflow builds
+        self.upstream_url   = getattr(args, 'upstream_url', None)
         if args.user and args.keyring_passphrase:
             if KEYRING_IMPORT_ERROR == 1:
                 raise SystemExit('Error while importing keyrings.alt.file but '
@@ -166,6 +168,10 @@ class Scm():
         # switch_to_revision
         self.switch_revision()
 
+        # fetch upstream repository tags when building branch request for SCM
+        # workflow
+        self.fetch_upstream_tags()
+
         # git specific: after switching to desired revision its necessary to
         # update
         # submodules since they depend on the actual version of the selected
@@ -180,6 +186,9 @@ class Scm():
         self.unlock_cache()
 
     def fetch_submodules(self):
+        """NOOP in other scm's than git"""
+
+    def fetch_upstream_tags(self):
         """NOOP in other scm's than git"""
 
     def fetch_lfs(self):
