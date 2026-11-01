@@ -146,7 +146,7 @@ class Hg(Scm):
             logging.debug("error on cleanup: %s", sys.exc_info()[0])
             raise
 
-    def check_url(self) -> bool:
+    def check_url(self) -> None:
         """check if url is a remote url"""
         if not re.match("^https?://", self.url):
             raise OptionsError(f"Invalid url scheme (try http/https): {self.url}")

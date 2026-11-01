@@ -310,8 +310,8 @@ class UnitTestCases(unittest.TestCase):
                 scm.url = url
                 self.assertRaisesRegex(
                     OptionsError,
-                    re.compile(r"Invalid url scheme .*"),
-                    scm.check_url()
+                    re.compile(re.escape(url)),
+                    scm.check_url
                 )
 
     def test_scm_tar_invalid_params(self) -> Any:
