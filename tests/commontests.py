@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from typing import Any
 from pprint               import pformat
 import os
 import tarfile
@@ -16,18 +17,21 @@ class CommonTests(TestEnvironment, TestAssertions):
     Unit tests here are not specific to any particular version control
     system, and will be run for all of git / hg / svn / bzr.
     """
-    scm = None
+    scm: str = ''
 
-    def basename(self, name='repo', version=None):
+    def default_version(self) -> Any:
+        raise NotImplementedError
+
+    def basename(self, name: Any='repo', version: Any=None) -> Any:
         if version is None:
             version = self.default_version()  # pylint: disable=E1101
         return '%s-%s' % (name, version)
 
-    def test_plain(self):
+    def test_plain(self) -> Any:
         self.tar_scm_std()
         self.assertTarOnly(self.basename())
 
-    def test_symlink(self):
+    def test_symlink(self) -> Any:
         self.fixtures.create_commits(1)
         self.tar_scm_std('--versionformat', '3',
                          '--revision', self.rev(3))
@@ -41,7 +45,7 @@ class CommonTests(TestEnvironment, TestAssertions):
         linkname = '/'.join([os.path.dirname(member.name), member.linkname])
         self.assertTarMemberContains(tar_handle, linkname, '3')
 
-    def test_broken_symlink(self):
+    def test_broken_symlink(self) -> Any:
         self.fixtures.create_commit_broken_symlink()
         self.tar_scm_std('--versionformat', '3',
                          '--revision', self.rev(3))
@@ -51,7 +55,7 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.assertTrue(member.issym())
         self.assertRegex(member.linkname, '[/.]*/nir/va/na$')
 
-    def test_tar_exclude(self):
+    def test_tar_exclude(self) -> Any:
         self.tar_scm_std('--exclude', 'a', '--exclude', 'c')
         tar_file = os.path.join(self.outdir, self.basename()+'.tar')
         tar      = tarfile.open(tar_file)
@@ -61,7 +65,7 @@ class CommonTests(TestEnvironment, TestAssertions):
                     self.basename() + '/subdir/b']
         self.assertTrue(tarents == expected)
 
-    def test_tar_exclude_re(self):
+    def test_tar_exclude_re(self) -> Any:
         self.tar_scm_std('--exclude-re', '(a|c)')
         tar_file = os.path.join(self.outdir, self.basename()+'.tar')
         tar      = tarfile.open(tar_file)
@@ -71,7 +75,7 @@ class CommonTests(TestEnvironment, TestAssertions):
                     self.basename() + '/subdir/b']
         self.assertTrue(tarents == expected)
 
-    def test_tar_include(self):
+    def test_tar_include(self) -> Any:
         self.tar_scm_std('--include', self.fixtures.subdir)
         tar_file = os.path.join(self.outdir, self.basename()+'.tar')
         tar      = tarfile.open(tar_file)
@@ -81,7 +85,7 @@ class CommonTests(TestEnvironment, TestAssertions):
                     self.basename() + '/subdir/b']
         self.assertTrue(tarents == expected)
 
-    def test_tar_include_re(self):
+    def test_tar_include_re(self) -> Any:
         self.tar_scm_std('--include-re', '(a|c)')
         tar_file = os.path.join(self.outdir, self.basename()+'.tar')
         tar      = tarfile.open(tar_file)
@@ -91,7 +95,7 @@ class CommonTests(TestEnvironment, TestAssertions):
                     self.basename() + '/c']
         self.assertTrue(tarents == expected)
 
-    def test_obs_scm_exclude(self):
+    def test_obs_scm_exclude(self) -> Any:
         self.tar_scm_std('--exclude', 'a', '--exclude', 'c', '--use-obs-scm', 'True')
         cpio    = os.path.join(self.outdir, self.basename()+'.obscpio')
         cmd = "cpio -it < "+cpio
@@ -102,7 +106,7 @@ class CommonTests(TestEnvironment, TestAssertions):
                     self.basename() + '/subdir/b']
         self.assertTrue(got == expected)
 
-    def test_obs_scm_include(self):
+    def test_obs_scm_include(self) -> Any:
         self.tar_scm_std('--include', self.fixtures.subdir, '--use-obs-scm', 'True')
         cpio    = os.path.join(self.outdir, self.basename()+'.obscpio')
         cmd = "cpio -it < "+cpio
@@ -114,84 +118,84 @@ class CommonTests(TestEnvironment, TestAssertions):
         self.assertTrue(got == expected)
 
 
-    def test_absolute_subdir(self):
+    def test_absolute_subdir(self) -> Any:
         (_stdout, stderr, _ret) = self.tar_scm_std_fail('--subdir', '/')
         self.assertRegex(
             stderr, "Absolute path '/' is not allowed for --subdir")
 
-    def test_subdir_parent(self):
+    def test_subdir_parent(self) -> Any:
         for path in ('..', '../', '../foo', 'foo/../../bar'):
             (_stdout, stderr, _ret) = self.tar_scm_std_fail('--subdir', path)
             self.assertRegex(
                 stderr, "--subdir path '%s' must stay within repo" % path)
 
-    def test_extract_parent(self):
+    def test_extract_parent(self) -> Any:
         for path in ('..', '../', '../foo', 'foo/../../bar'):
             (_stdout, stderr, _ret) = self.tar_scm_std_fail('--extract', path)
             self.assertRegex(
                 stderr, '--extract is not allowed to contain ".."')
 
-    def test_filename(self):
+    def test_filename(self) -> Any:
         for path in ('/tmp/somepkg.tar', '../somepkg.tar'):
             (_stdout, stderr, _ret) = self.tar_scm_std_fail('--filename', path)
             self.assertRegex(
                 stderr, '--filename must not specify a path')
 
-    def test_subdir(self):
+    def test_subdir(self) -> Any:
         self.tar_scm_std('--subdir', self.fixtures.subdir)
         self.assertTarOnly(self.basename(), tarchecker=self.assertSubdirTar)
 
-    def test_history_depth_obsolete(self):
+    def test_history_depth_obsolete(self) -> Any:
         (stdout, _stderr, _ret) = self.tar_scm_std('--history-depth', '1')
         self.assertRegex(stdout, 'obsolete')
 
-    def test_myfilename(self):
+    def test_myfilename(self) -> Any:
         name = 'myfilename'
         self.tar_scm_std('--filename', name)
         self.assertTarOnly(self.basename(name=name))
 
-    def test_version(self):
+    def test_version(self) -> Any:
         version = '0.5'
         self.tar_scm_std('--version', version)
         self.assertTarOnly(self.basename(version=version))
 
-    def test_filename_version(self):
+    def test_filename_version(self) -> Any:
         filename = 'myfilename'
         version = '0.6'
         self.tar_scm_std('--filename', filename, '--version', version)
         self.assertTarOnly(self.basename(filename, version))
 
-    def test_filename_without_version(self):
+    def test_filename_without_version(self) -> Any:
         filename = 'myfilename'
         self.fixtures.create_commits(1)
         self.tar_scm_std('--filename', filename, '--version', '_none_')
         self.assertTarOnly(filename)
 
-    def test_revision_nop(self):
+    def test_revision_nop(self) -> Any:
         self.tar_scm_std('--revision', self.rev(2))
         tar_handle = self.assertTarOnly(self.basename())
         self.assertTarMemberContains(tar_handle, self.basename() + '/a', '2')
 
-    def test_revision(self):
+    def test_revision(self) -> Any:
         self._revision()
 
-    def test_revision_lang_de(self):
+    def test_revision_lang_de(self) -> Any:
         os.putenv('LANG', 'de_DE.UTF-8')
         os.environ['LANG'] = 'de_DE.UTF-8'
         self._revision()
         os.unsetenv('LANG')
         os.environ['LANG'] = ''
 
-    def test_revision_no_cache(self):
+    def test_revision_no_cache(self) -> Any:
         self._revision(use_cache=False)
 
-    def test_revision_subdir(self):
+    def test_revision_subdir(self) -> Any:
         self._revision(use_subdir=True)
 
-    def test_revision_subdir_no_cache(self):
+    def test_revision_subdir_no_cache(self) -> Any:
         self._revision(use_cache=False, use_subdir=True)
 
-    def _revision(self, use_cache=True, use_subdir=False):
+    def _revision(self, use_cache: Any=True, use_subdir: Any=False) -> Any:
         """
         Check that the right revision is packaged up, regardless of
         whether new commits have been introduced since previous runs.
@@ -216,19 +220,19 @@ class CommonTests(TestEnvironment, TestAssertions):
             use_cache
         )
 
-    def test_rev_alter(self):
+    def test_rev_alter(self) -> Any:
         self._revision_master_alternating()
 
-    def test_rev_alter_no_cache(self):
+    def test_rev_alter_no_cache(self) -> Any:
         self._revision_master_alternating(use_cache=False)
 
-    def test_rev_alter_subdir(self):
+    def test_rev_alter_subdir(self) -> Any:
         self._revision_master_alternating(use_subdir=True)
 
-    def test_rev_alter_subdir_no_cache(self):
+    def test_rev_alter_subdir_no_cache(self) -> Any:
         self._revision_master_alternating(use_cache=False, use_subdir=True)
 
-    def _revision_master_alternating(self, use_cache=True, use_subdir=False):
+    def _revision_master_alternating(self, use_cache: Any=True, use_subdir: Any=False) -> Any:
         """
         Call tar_scm 7 times, alternating between a specific revision
         and the default branch (master), and checking the results each
@@ -256,7 +260,7 @@ class CommonTests(TestEnvironment, TestAssertions):
             use_cache
         )
 
-    def _sequential_calls_with_revision(self, version, calls, use_cache=True):
+    def _sequential_calls_with_revision(self, version: Any, calls: Any, use_cache: Any=True) -> Any:
         """
         Call tar_scm a number of times, optionally creating some
         commits before each invocation, and checking that the result
@@ -306,13 +310,13 @@ class CommonTests(TestEnvironment, TestAssertions):
 
             self.scmlogs.nextlog()
 
-    def test_switch_revision_and_subdir(self):
+    def test_switch_revision_and_subdir(self) -> Any:
         self._switch_revision_and_subdir()
 
-    def test_switch_rev_and_subdir_nc(self):
+    def test_switch_rev_and_subdir_nc(self) -> Any:
         self._switch_revision_and_subdir(use_cache=False)
 
-    def _switch_revision_and_subdir(self, use_cache=True):
+    def _switch_revision_and_subdir(self, use_cache: Any=True) -> Any:
         version = '5.0'
         args = [
             '--version', version,
@@ -340,14 +344,14 @@ class CommonTests(TestEnvironment, TestAssertions):
             use_cache
         )
 
-    def test_sslverify_disabled(self):
+    def test_sslverify_disabled(self) -> Any:
         self.tar_scm_std('--sslverify', 'disable')
         logpath = self.scmlogs.current_log_path
         loglines = self.scmlogs.read()
         self.assertRanInitialClone(logpath, loglines)
         self.assertSSLVerifyFalse(logpath, loglines)
 
-    def test_sslverify_enabled(self):
+    def test_sslverify_enabled(self) -> Any:
         self.tar_scm_std('--sslverify', 'enable')
         logpath = self.scmlogs.current_log_path
         loglines = self.scmlogs.read()

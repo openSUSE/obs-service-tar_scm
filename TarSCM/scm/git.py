@@ -3,12 +3,13 @@ import os
 import re
 import sys
 import shutil
+from typing import Any, Dict, List, Optional, Tuple
 
 from TarSCM.scm.base import Scm
 from TarSCM.exceptions import GitError, OptionsError
 
 
-def search_tags(comment, limit=None):
+def search_tags(comment: str, limit: Optional[int]=None) -> List[str]:
     splitted = comment.split(" ")
     result = []
     while splitted:
@@ -22,15 +23,15 @@ def search_tags(comment, limit=None):
 
 class Git(Scm):
     scm = 'git'
-    _stash_pop_required = False
+    _stash_pop_required = None  # type: Optional[Tuple[str, str]]
     partial_clone = False
 
-    def __init__(self, args, task):
+    def __init__(self, args: Any, task: Any) -> None:
         super().__init__(args, task)
         if not os.getenv('GIT_CONFIG_GLOBAL', None):
             os.putenv('GIT_CONFIG_GLOBAL', '/dev/null')
 
-    def _get_scm_cmd(self):
+    def _get_scm_cmd(self) -> List[str]:
         """Compose a GIT-specific command line using http proxies"""
         # git should honor the http[s]_proxy variables, but we need to
         # guarantee this, the variables do not work every time
@@ -43,7 +44,7 @@ class Git(Scm):
             scmcmd += ['-c', 'https.proxy=' + self.httpsproxy]
         return scmcmd
 
-    def switch_revision(self):
+    def switch_revision(self) -> None:
         """Switch sources to revision. The git revision may refer to any of the
         following:
 
@@ -57,13 +58,18 @@ class Git(Scm):
         """
         logging.debug("[switch_revision] Starting ...")
         self.revision = self.revision or 'master'
+        assert self.revision is not None
+        assert self.clone_dir is not None
+        revision = self.revision
+        clone_dir = self.clone_dir
 
-        if self.revision == "@PARENT_TAG@":
+        if revision == "@PARENT_TAG@":
             self.revision = self._detect_parent_tag()
             if not self.revision:
                 sys.exit("\033[31mNo parent tag present for the checked out "
                          "revision, thus @PARENT_TAG@ cannot be expanded."
                          "\033[0m")
+            revision = self.revision
 
         if self.args.latest_signed_commit:
             self.revision = self.find_latest_signed_commit('HEAD')
@@ -78,7 +84,7 @@ class Git(Scm):
                          "\033[0m")
 
         if os.getenv('OSC_VERSION') and \
-           len(os.listdir(self.clone_dir)) > 1:
+           len(os.listdir(clone_dir)) > 1:
             # Ensure that the call of "git stash" is done with
             # LANG=C to get a reliable output
             self._stash_and_merge()
@@ -86,18 +92,22 @@ class Git(Scm):
         # is doing the checkout in a hard way
         # may not exist before when using cache
         self.helpers.safe_run(
-            self._get_scm_cmd() + ['reset', '--hard', self.revision],
-            cwd=self.clone_dir
+            self._get_scm_cmd() + ['reset', '--hard', revision],
+            cwd=clone_dir
         )
 
         # only update submodules if they have been enabled
-        if os.path.exists(os.path.join(self.clone_dir, '.git', 'modules')):
+        if os.path.exists(os.path.join(clone_dir, '.git', 'modules')):
             self.helpers.safe_run(
                 self._get_scm_cmd() + ['submodule', 'update', '--recursive'],
-                cwd=self.clone_dir
+                cwd=clone_dir
             )
 
-    def _stash_and_merge(self):
+    def _stash_and_merge(self) -> None:
+        assert self.revision is not None
+        assert self.clone_dir is not None
+        revision = self.revision
+        clone_dir = self.clone_dir
         lang_bak = None
         if 'LANG' in os.environ:
             lang_bak = os.environ['LANG']
@@ -106,36 +116,41 @@ class Git(Scm):
         logging.debug("[switch_revision] GIT STASHING")
         stash_text = self.helpers.safe_run(
             self._get_scm_cmd() + ['stash'],
-            cwd=self.clone_dir)[1]
+            cwd=clone_dir)[1]
 
         # merge may fail when not a remote branch, that is fine
         rcode, output = self.helpers.run_cmd(
-            self._get_scm_cmd() + ['merge', 'origin/' + self.revision],
-            cwd=self.clone_dir,
+            self._get_scm_cmd() + ['merge', 'origin/' + revision],
+            cwd=clone_dir,
             interactive=True)
 
         # we must test also merge a possible local tag/branch
         # because the user may have changed the revision in _service file
         if rcode != 0 and 'not something we can merge' in output:
             self.helpers.run_cmd(
-                self._get_scm_cmd() + ['merge', self.revision],
-                cwd=self.clone_dir,
+                self._get_scm_cmd() + ['merge', revision],
+                cwd=clone_dir,
                 interactive=True)
 
         # validate the existens of the revision
-        if self.revision and not self._ref_exists(self.revision):
-            sys.exit('%s: No such revision' % self.revision)
+        if not self._ref_exists(revision):
+            sys.exit('%s: No such revision' % revision)
 
         if stash_text != "No local changes to save\n":
-            self._stash_pop_required = [self.get_current_branch(),
-                                        self.get_current_commit()]
+            current_commit = self.get_current_commit()
+            if current_commit is None:
+                raise RuntimeError('Unable to determine current commit')
+            self._stash_pop_required = (self.get_current_branch(),
+                                        current_commit)
 
         if lang_bak:
             os.environ['LANG'] = lang_bak
 
-    def fetch_upstream_scm(self):
+    def fetch_upstream_scm(self) -> None:
         """SCM specific version of fetch_uptream for git."""
         self.auth_url()
+        assert self.clone_dir is not None
+        assert self.repodir is not None
 
         # clone if no .git dir exists
         command = self._get_scm_cmd() + ['clone',
@@ -182,7 +197,7 @@ class Git(Scm):
                 cwd=self.clone_dir
             )
 
-    def fetch_specific_revision(self):
+    def fetch_specific_revision(self) -> None:
         if self.revision and not self._ref_exists(self.revision):
             rev = self.revision + ':' + self.revision
             command = self._get_scm_cmd() + ['fetch', self.url, rev]
@@ -191,7 +206,7 @@ class Git(Scm):
             # fetch reference from url and create locally
             self.run_and_hide(command, self.clone_dir)
 
-    def fetch_submodules(self):
+    def fetch_submodules(self) -> None:
         """Recursively initialize git submodules."""
         argsd = self.args.__dict__
         if 'submodules' in argsd and argsd['submodules'] == 'enable':
@@ -208,7 +223,7 @@ class Git(Scm):
                 cwd=self.clone_dir
             )
 
-    def fetch_lfs(self):
+    def fetch_lfs(self) -> None:
         """Initialize git lfs objects."""
         argsd = self.args.__dict__
         if 'lfs' in argsd and argsd['lfs'] == 'enable':
@@ -221,7 +236,7 @@ class Git(Scm):
                 cwd=self.clone_dir
             )
 
-    def update_cache(self):
+    def update_cache(self) -> None:
         """Update sources via git."""
         # Force origin to the wanted URL in case it switched
         self.auth_url()
@@ -257,16 +272,20 @@ class Git(Scm):
             osc_version = os.getenv('OSC_VERSION')
             if obs_service_daemon and not osc_version:
                 logging.info("Removing corrupt cache!")
-                shutil.rmtree(self.clone_dir)
+                assert self.clone_dir is not None
+                clone_dir = self.clone_dir
+                shutil.rmtree(clone_dir)
                 self.fetch_upstream_scm()
             else:
                 logging.info("Please fix corrupt cache directory!")
                 raise exc
 
-    def detect_version(self, args):
+    def detect_version(self, args: Dict[str, Any]) -> str:
         """
         Automatic detection of version number for checked-out GIT repository.
         """
+        assert self.clone_dir is not None
+        clone_dir = self.clone_dir
         self._parent_tag = args['parent_tag'] or self._parent_tag
         versionformat = args['versionformat']
         if versionformat is None:
@@ -288,13 +307,14 @@ class Git(Scm):
                                          '--no-show-signature',
                                          "--pretty=format:%s" % versionformat]
         if self.revision:
+            revision = self.revision
             log_cmd.append('--source')
-            log_cmd.append(self.revision)
-            revpath = os.path.join(self.clone_dir, self.revision)
+            log_cmd.append(revision)
+            revpath = os.path.join(clone_dir, revision)
             if os.path.exists(revpath):
                 log_cmd.append('--')
 
-        version = self.helpers.safe_run(log_cmd, self.clone_dir)[1]
+        version = self.helpers.safe_run(log_cmd, clone_dir)[1]
         return version
 
     def _detect_parent_tag(self):
@@ -311,7 +331,7 @@ class Git(Scm):
 
         return parent_tag
 
-    def _detect_version_parent_tag(self, parent_tag, versionformat):  # noqa pylint: disable=no-self-use
+    def _detect_version_parent_tag(self, parent_tag: str, versionformat: str) -> str:  # noqa pylint: disable=no-self-use
         if not parent_tag:
             sys.exit("\033[31mNo parent tag present for the checked out "
                      "revision, thus @PARENT_TAG@ cannot be expanded."
@@ -321,7 +341,7 @@ class Git(Scm):
                                versionformat)
         return versionformat
 
-    def _detect_version_tag_offset(self, parent_tag, versionformat):
+    def _detect_version_tag_offset(self, parent_tag: str, versionformat: str) -> str:
         if not parent_tag:
             sys.exit("\033[31m@TAG_OFFSET@ cannot be expanded, "
                      "as no parent tag was discovered.\033[0m")
@@ -340,23 +360,23 @@ class Git(Scm):
                                versionformat)
         return versionformat
 
-    def get_timestamp(self):
+    def get_timestamp(self) -> int:
         data = {"parent_tag": None, "versionformat": "%ct"}
         timestamp = self.detect_version(data)
         return int(timestamp)
 
-    def get_current_commit(self):
+    def get_current_commit(self) -> str:
         return self.helpers.safe_run(self._get_scm_cmd() + ['rev-parse',
                                                             'HEAD'],
                                      self.clone_dir)[1].rstrip()
 
-    def get_current_branch(self):
+    def get_current_branch(self) -> str:
         return self.helpers.safe_run(self._get_scm_cmd() + ['rev-parse',
                                                             '--abbrev-ref',
                                                             'HEAD'],
                                      self.clone_dir)[1].rstrip()
 
-    def _ref_exists(self, rev):
+    def _ref_exists(self, rev: str) -> bool:
         rcode, _ = self.helpers.run_cmd(
             self._get_scm_cmd() + ['rev-parse', '--verify', '--quiet', rev],
             cwd=self.clone_dir,
@@ -364,14 +384,14 @@ class Git(Scm):
         )
         return rcode == 0
 
-    def _log_cmd(self, cmd_args, subdir):
+    def _log_cmd(self, cmd_args: List[str], subdir: str) -> str:
         """ Helper function to call 'git log' with args"""
         cmd = self._get_scm_cmd() + ['log'] + cmd_args
         if subdir:
             cmd += ['--', subdir]
         return self.helpers.safe_run(cmd, cwd=self.clone_dir)[1]
 
-    def detect_changes_scm(self, chgs):
+    def detect_changes_scm(self, chgs: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Detect changes between GIT revisions."""
         last_rev = chgs['revision']
         subdir = self.args.subdir
@@ -402,14 +422,18 @@ class Git(Scm):
         chgs['lines'] = lines.split('\n')
         return chgs
 
-    def prepare_working_copy(self):
+    def prepare_working_copy(self) -> None:
         if not self.repocachedir:
             return
 
         # We use a temporary shared clone to avoid race conditions
         # between multiple services
+        assert self.clone_dir is not None
+        assert self.repodir is not None
         org_clone_dir = self.clone_dir
-        self.clone_dir = self.repodir
+        repodir = self.repodir
+        self.clone_dir = repodir
+        clone_dir = self.clone_dir
         command = self._get_scm_cmd() + ['clone',
                                          '--no-checkout']
         if self.partial_clone:
@@ -465,9 +489,10 @@ class Git(Scm):
             self.helpers.safe_run(
                 cmd, cwd=self.clone_dir, interactive=sys.stdout.isatty())
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         logging.debug("Doing cleanup")
         if self._stash_pop_required:
+            assert self.clone_dir is not None
             logging.debug("Stash pop required!")
             branch = self._stash_pop_required[0]
             commit = self._stash_pop_required[1]
@@ -483,10 +508,9 @@ class Git(Scm):
                 self._get_scm_cmd() + ['stash', 'pop'],
                 cwd=self.clone_dir,
                 interactive=True)
-            self._stash_pop_required = False
-        return True
+            self._stash_pop_required = None
 
-    def check_url(self):
+    def check_url(self) -> None:
         """check if url is a remote url"""
 
         if re.findall(r"\s", self.url):
@@ -497,7 +521,7 @@ class Git(Scm):
             raise OptionsError(f"Invalid url scheme ({pat}): {self.url}")
 
 
-    def find_latest_signed_commit(self, commit):
+    def find_latest_signed_commit(self, commit: Optional[str]) -> Optional[str]:
         if not commit:
             commit = 'HEAD'
         cmd = ['git', 'rev-list', '-n1', commit]
@@ -511,17 +535,17 @@ class Git(Scm):
                 return commit
         return None
 
-    def check_commit(self, current_commit, parents):
+    def check_commit(self, current_commit: str, parents: List[str]) -> Tuple[str, int]:
         # pylint: disable=R0911,R0912
-        left_parent = None
+        left_parent = None  # type: Optional[str]
         if parents:
             left_parent = parents[0]
-        right_parent = None
+        right_parent = None  # type: Optional[str]
         if len(parents) > 1:
             right_parent = parents[1]
         # skip octopus merges and proceed with left parent
         if len(parents) > 2:
-            return (left_parent, 0)
+            return (left_parent or '', 0)
         if not current_commit:
             return ('', 0)
 
@@ -535,6 +559,7 @@ class Git(Scm):
                 current_commit,
                 [right_parent])
             if c_ok[1]:
+                assert left_parent is not None
                 parents = self.get_parents(left_parent)
                 if len(parents) > 1:
                     mie = self.merge_is_empty(current_commit)
@@ -561,9 +586,9 @@ class Git(Scm):
                 if not result[0]:
                     return (left_parent, 1)
 
-        return (left_parent, 0)
+        return (left_parent or '', 0)
 
-    def merge_is_empty(self, sha1):
+    def merge_is_empty(self, sha1: str) -> int:
         cmd  = ['git', 'diff-tree', '--cc', sha1]
         result = self.helpers.safe_run(cmd, cwd=self.clone_dir)
         lines = result[1].split("\n")
@@ -571,7 +596,7 @@ class Git(Scm):
             return 0
         return 1
 
-    def get_parents(self, sha1):
+    def get_parents(self, sha1: str) -> List[str]:
         cmd  = ['git', 'rev-list', '--parents', '-n', '1', sha1]
         result = self.helpers.safe_run(cmd, cwd=self.clone_dir)
         parents = result[1].rstrip().split(" ")
@@ -582,7 +607,7 @@ class Git(Scm):
             return parents
         return []
 
-    def find_latest_signed_tag(self):
+    def find_latest_signed_tag(self) -> Optional[str]:
         revision = None
 
         result = self.helpers.safe_run(
