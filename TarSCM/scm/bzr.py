@@ -71,7 +71,7 @@ class Bzr(Scm):
     def cleanup(self) -> None:
         pass
 
-    def check_url(self) -> bool:
+    def check_url(self) -> None:
         """check if url is a remote url"""
         if not re.match("^((a?ftp|bzr|https?)://|lp:)", self.url):
             raise OptionsError(f"URL does not match allowed scheme: {self.url}")

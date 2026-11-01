@@ -431,7 +431,7 @@ class Scm():
     def finalize(self) -> None:
         self.cleanup()
 
-    def check_url(self):
+    def check_url(self) -> None:
         pass
 
     def run_and_hide(self, command, wdir, cleanup_dirs=[]):

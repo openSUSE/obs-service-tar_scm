@@ -150,6 +150,7 @@ class Git(Scm):
         """SCM specific version of fetch_uptream for git."""
         self.auth_url()
         assert self.clone_dir is not None
+        assert self.repodir is not None
 
         # clone if no .git dir exists
         command = self._get_scm_cmd() + ['clone',
@@ -509,7 +510,7 @@ class Git(Scm):
                 interactive=True)
             self._stash_pop_required = None
 
-    def check_url(self) -> bool:
+    def check_url(self) -> None:
         """check if url is a remote url"""
 
         if re.findall(r"\s", self.url):
