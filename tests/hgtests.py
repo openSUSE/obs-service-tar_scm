@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
+from typing import Any
 from datetime import datetime
 import time
 
-from githgtests import GitHgTests
-from hgfixtures import HgFixtures
-from utils      import run_hg
+from tests.githgtests import GitHgTests
+from tests.hgfixtures import HgFixtures
+from tests.utils      import run_hg
 
 
 class HgTests(GitHgTests):
@@ -16,7 +17,7 @@ class HgTests(GitHgTests):
     included via the class inheritance hierarchy.
     """
 
-    scm = 'hg'
+    scm: str = 'hg'
     initial_clone_command = 'hg clone'
     update_cache_command  = 'hg pull'
     sslverify_false_args  = '--insecure'
@@ -27,22 +28,22 @@ class HgTests(GitHgTests):
     yyyymmdd_format    = '{date|localdate|shortdate}'
     yyyymmddhhmmss_format = '{date|localdate|isodatesec}'
 
-    def default_version(self):
+    def default_version(self) -> Any:
         return self.rev(2)
 
-    def sha1s(self, rev):
+    def sha1s(self, rev: Any) -> Any:
         return self.fixtures.sha1s[rev]
 
-    def abbrev_sha1s(self, rev):
+    def abbrev_sha1s(self, rev: Any) -> Any:
         return self.fixtures.short_sha1s[rev]
 
-    def version(self, rev):
+    def version(self, rev: Any) -> Any:
         # Hyphens aren't allowed in version number.  This substitution
         # mirrors the use of sed "s@-@@g" in tar_scm.
         version = "%s%s" % self.timestamps(self.rev(rev))
         return version.replace('-', '')
 
-    def current_utc_offset(self):
+    def current_utc_offset(self) -> Any:
         now = time.time()
         offset = (datetime.fromtimestamp(now) -
                   datetime.utcfromtimestamp(now))
@@ -50,7 +51,7 @@ class HgTests(GitHgTests):
         return ((((offset.days * 24 * 3600) + offset.seconds) * 10 ** 6) +
                 offset.microseconds + 0.0) / 10 ** 6
 
-    def dateYYYYMMDD(self, rev):
+    def dateYYYYMMDD(self, rev: Any) -> Any:
         # mercurial has a bug in the localdate filter that makes it apply
         # the current offset from UTC to historic timestamps for timezones
         # that have daylight savings enabled
@@ -58,12 +59,12 @@ class HgTests(GitHgTests):
                                             self.current_utc_offset())
         return dateobj.strftime("%4Y%02m%02d")
 
-    def dateYYYYMMDDHHMMSS(self, rev):
+    def dateYYYYMMDDHHMMSS(self, rev: Any) -> Any:
         dateobj = datetime.utcfromtimestamp(self.timestamps(rev)[0] +
                                             self.current_utc_offset())
         return dateobj.strftime("%4Y%02m%02dT%02H%02M%02S")
 
-    def test_fetch_upstream(self):
+    def test_fetch_upstream(self) -> Any:
         """Checkout an url that ends with a trailing slash"""
         repo_url = self.fixtures.repo_url + '/'
         args = ['--url', repo_url, '--scm', self.scm]

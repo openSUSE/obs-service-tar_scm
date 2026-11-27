@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # pylint: disable=C0103
 
+from typing import Any, Optional
 import os
 from pprint import pprint, pformat
 import re
@@ -19,7 +20,12 @@ class TestAssertions(unittest.TestCase):
     with operations which the tar_scm unit tests commonly need.
     """
 
-    def assertNumDirents(self, wdir, expected, msg=''):
+    outdir = ''  # type: str
+    initial_clone_command = ''  # type: str
+    update_cache_command = ''  # type: str
+    sslverify_false_args = ''  # type: str
+
+    def assertNumDirents(self, wdir: Any, expected: Any, msg: Any='') -> Any:
         dirents = os.listdir(wdir)
         got = len(dirents)
         if len(msg) > 0:
@@ -29,7 +35,7 @@ class TestAssertions(unittest.TestCase):
         self.assertEqual(expected, got, msg)
         return dirents
 
-    def assertNumTarEnts(self, tar, expected, msg=''):
+    def assertNumTarEnts(self, tar: Any, expected: Any, msg: Any='') -> Any:
         self.assertTrue(tarfile.is_tarfile(tar))
         th = tarfile.open(tar)
         tarents = th.getmembers()
@@ -41,7 +47,7 @@ class TestAssertions(unittest.TestCase):
         self.assertEqual(expected, got, msg)
         return th, tarents
 
-    def assertDirentsMtime(self, entries):
+    def assertDirentsMtime(self, entries: Any) -> Any:
         '''This test is disabled on Python 2.6 because tarfile is not able to
         directly change the mtime for an entry in the tarball.'''
         if sys.hexversion < 0x02070000:
@@ -49,38 +55,38 @@ class TestAssertions(unittest.TestCase):
         for i in range(len(entries)):
             self.assertEqual(entries[i].mtime, 1234567890)
 
-    def assertDirents(self, entries, top):
+    def assertDirents(self, entries: Any, top: Any) -> Any:
         self.assertEqual(entries[0].name, top)
         self.assertEqual(entries[1].name, top + '/a')
         self.assertEqual(entries[2].name, top + '/c')
         self.assertDirentsMtime(entries)
 
-    def assertSubdirDirents(self, entries, top):
+    def assertSubdirDirents(self, entries: Any, top: Any) -> Any:
         self.assertEqual(entries[0].name, top)
         self.assertEqual(entries[1].name, top + '/b')
         self.assertDirentsMtime(entries)
 
-    def assertStandardTar(self, tar, top):
+    def assertStandardTar(self, tar: Any, top: Any) -> Any:
         th, entries = self.assertNumTarEnts(tar, 5)
         entries.sort(key=lambda x: x.name)
         self.assertDirents(entries[:3], top)
         self.assertSubdirDirents(entries[3:], top + '/subdir')
         return th
 
-    def assertSubdirTar(self, tar, top):
+    def assertSubdirTar(self, tar: Any, top: Any) -> Any:
         th, entries = self.assertNumTarEnts(tar, 2)
         entries.sort(key=lambda x: x.name)
         self.assertSubdirDirents(entries, top)
         return th
 
-    def assertIncludeSubdirTar(self, tar, top):
+    def assertIncludeSubdirTar(self, tar: Any, top: Any) -> Any:
         th, entries = self.assertNumTarEnts(tar, 3)
         entries.sort(key=lambda x: x.name)
         self.assertEqual(entries[0].name, top)
         self.assertSubdirDirents(entries[1:], top + '/subdir')
         return th
 
-    def checkTar(self, tar, tarbasename, toptardir=None, tarchecker=None):
+    def checkTar(self, tar: Any, tarbasename: Any, toptardir: Any=None, tarchecker: Any=None) -> Any:
         if not toptardir:
             toptardir = tarbasename
         if not tarchecker:
@@ -90,11 +96,11 @@ class TestAssertions(unittest.TestCase):
         tarpath = os.path.join(self.outdir, tar)
         return tarchecker(tarpath, toptardir)
 
-    def assertTarOnly(self, tarbasename, **kwargs):
+    def assertTarOnly(self, tarbasename: Any, **kwargs: Any) -> Any:
         dirents = self.assertNumDirents(self.outdir, 1)
         return self.checkTar(dirents[0], tarbasename, **kwargs)
 
-    def assertTarAndDir(self, tarbasename, dirname=None, **kwargs):
+    def assertTarAndDir(self, tarbasename: Any, dirname: Any=None, **kwargs: Any) -> Any:
         if not dirname:
             dirname = tarbasename
 
@@ -116,29 +122,29 @@ class TestAssertions(unittest.TestCase):
 
         return self.checkTar(tar, tarbasename, **kwargs)
 
-    def assertTarMemberContains(self, tar, tarmember, contents):
+    def assertTarMemberContains(self, tar: Any, tarmember: Any, contents: Any) -> Any:
         files = tar.extractfile(tarmember)
         self.assertEqual(contents, files.read().decode())
 
-    def assertRanInitialClone(self, logpath, loglines):
+    def assertRanInitialClone(self, logpath: Any, loglines: Any) -> Any:
         self._find(logpath, loglines,
                    self.initial_clone_command, self.update_cache_command)
 
-    def assertSSLVerifyFalse(self, logpath, loglines):
+    def assertSSLVerifyFalse(self, logpath: Any, loglines: Any) -> Any:
         term = self.initial_clone_command + '.*' + self.sslverify_false_args
         self._find(logpath, loglines,
                    term,
                    self.sslverify_false_args + 'true')
 
-    def assertRanUpdate(self, logpath, loglines):
+    def assertRanUpdate(self, logpath: Any, loglines: Any) -> Any:
         # exception for git - works different in cached mode
-        should_not_find = self.initial_clone_command
+        should_not_find = self.initial_clone_command  # type: Optional[str]
         if self.__class__.__name__ == 'GitTests':
             should_not_find = None
         self._find(logpath, loglines,
                    self.update_cache_command, should_not_find)
 
-    def assertTarIsDeeply(self, tar, expected):
+    def assertTarIsDeeply(self, tar: Any, expected: Any) -> Any:
         if not os.path.isfile(tar):
             print("File '%s' not found" % tar)
             return False
@@ -152,7 +158,7 @@ class TestAssertions(unittest.TestCase):
             print("expected: %r" % expected)
         self.assertTrue(result)
 
-    def _find(self, logpath, loglines, should_find, should_not_find):
+    def _find(self, logpath: Any, loglines: Any, should_find: Any, should_not_find: Any) -> Any:
         found = False
         regexp = re.compile('^' + should_find)
         for line in loglines:

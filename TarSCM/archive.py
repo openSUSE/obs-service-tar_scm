@@ -9,17 +9,14 @@ import glob
 import locale
 import logging
 import tempfile
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from TarSCM.helpers import Helpers
 
-try:
-    from io import StringIO
-except:
-    from StringIO import StringIO
-
 METADATA_PATTERN = re.compile(r'.*/\.(bzr|git|hg|svn)(/.*|$)')
 
-def conv_glob(string):
+
+def conv_glob(string: str) -> str:
     string = re.sub(r'[*]', '.*', string)
     string = re.sub(r'[?]', '.', string)
     string = re.sub(r'\[\!', '[^', string)
@@ -27,12 +24,12 @@ def conv_glob(string):
 
 
 class BaseArchive():
-    def __init__(self):
+    def __init__(self) -> None:
         self.helpers        = Helpers()
-        self.archivefile    = None
-        self.metafile       = None
+        self.archivefile    = None  # type: Optional[str]
+        self.metafile       = None  # type: Optional[str]
 
-    def extract_from_archive(self, repodir, files, outdir):
+    def extract_from_archive(self, repodir: str, files: Any, outdir: str) -> None:
         """Extract all files directly outside of the archive.
         """
         if files is None:
@@ -52,7 +49,7 @@ class BaseArchive():
 
                 shutil.copy2(src, outdir)
 
-    def extract_rename_from_archive(self, repodir, tuples, outdir):
+    def extract_rename_from_archive(self, repodir: str, tuples: Any, outdir: str) -> None:
         """Extract and rename all files directly outside of the archive.
         """
         if tuples is None:
@@ -70,7 +67,11 @@ class BaseArchive():
 
             shutil.copy2(path, os.path.join(outdir, pair.split(':')[1]))
 
-    def filter_files(self, filelist, topdir, args):
+    def filter_files(
+            self,
+            filelist: Iterable[Tuple[str, List[str], List[str]]],
+            topdir: str,
+            args: Any) -> List[str]:
         """
         Filter filelist by exclude/include parameters
         """
@@ -122,7 +123,7 @@ class BaseArchive():
         return sorted(cpiolist)
 
 class ObsCpio(BaseArchive):
-    def create_archive(self, scm_object, **kwargs):
+    def create_archive(self, scm_object: Any, **kwargs: Any) -> None:
         """Create an OBS cpio archive of repodir in destination directory.
         """
         basename         = kwargs['basename']
@@ -154,6 +155,9 @@ class ObsCpio(BaseArchive):
             stdout = archivefile,
             stderr = subprocess.STDOUT
         )
+        stdin = proc.stdin
+        if stdin is None:
+            raise RuntimeError("cpio stdin pipe was not created")
         filelist = os.walk(topdir, topdown=False)
         tstamp = self.helpers.get_timestamp(scm_object, args, topdir)
         for name in self.filter_files(filelist, topdir, args):
@@ -161,15 +165,9 @@ class ObsCpio(BaseArchive):
                 os.utime(name, (tstamp, tstamp), follow_symlinks=False)
             except OSError:
                 pass
-            # bytes() break in python2 with a TypeError as it expects only 1
-            # arg
-            try:
-                proc.stdin.write(name.encode('UTF-8', 'surrogateescape'))
-            except (TypeError, UnicodeDecodeError):
-                proc.stdin.write(name)
-
-            proc.stdin.write(b"\n")
-        proc.stdin.close()
+            stdin.write(name.encode('UTF-8', 'surrogateescape'))
+            stdin.write(b"\n")
+        stdin.close()
         ret_code = proc.wait()
         if ret_code != 0:
             raise SystemExit("Creating the cpio archive failed!")
@@ -194,7 +192,7 @@ class ObsCpio(BaseArchive):
 
 
 class Tar(BaseArchive):
-    def create_archive(self, scm_object, **kwargs):
+    def create_archive(self, scm_object: Any, **kwargs: Any) -> None:
         """Create a tarball of repodir in destination directory."""
         (workdir, topdir) = os.path.split(scm_object.arch_dir)
 
@@ -226,8 +224,8 @@ class Tar(BaseArchive):
             pat = fnmatch.translate(os.path.join(topdir, exc))
             excl_patterns.append(re.compile(pat))
 
-        def reset(tarinfo):
-            """Python 2.7 only: reset uid/gid to 0/0 (root)."""
+        def reset(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo:
+            """Reset uid/gid to 0/0 (root)."""
             tarinfo.uid = tarinfo.gid = 0
             tarinfo.uname = tarinfo.gname = "root"
             if timestamp != 0:
@@ -241,34 +239,26 @@ class Tar(BaseArchive):
         out_file = os.path.join(outdir, dstname + '.' + extension)
         filelist = os.walk(topdir, topdown=False)
 
-        files_added = dict()
+        files_added = {}  # type: Dict[str, bool]
 
         with tarfile.open(out_file, "w", encoding=enc) as tar:
-            try:
-                tar.add(topdir, recursive=False, filter=reset)
-            except TypeError:
-                # Python 2.6 compatibility
-                tar.add(topdir, recursive=False)
+            tar.add(topdir, recursive=False, filter=reset)
             for entry in self.filter_files(filelist, topdir, args):
                 logging.debug("Filtered file: %s", entry)
                 if not files_added.get(entry, False):
                     logging.debug("Adding filtered file: %s", entry)
-                    try:
-                        tar.add(entry, recursive=False, filter=reset)
-                    except TypeError:
-                        # Python 2.6 compatibility
-                        tar.add(entry, exclude=tar_exclude)
+                    tar.add(entry, recursive=False, filter=reset)
                     files_added[entry] = True
                     logging.debug("Added filtered file: %s", entry)
 
-        self.archivefile    = tar.name
+        self.archivefile    = out_file
 
         os.chdir(cwd)
 
 
 class Gbp(BaseArchive):
 
-    def create_archive(self, scm_object, **kwargs):
+    def create_archive(self, scm_object: Any, **kwargs: Any) -> None:
         """Create Debian source artefacts using git-buildpackage.
         """
         args = kwargs['cli']
@@ -339,7 +329,10 @@ class Gbp(BaseArchive):
             version = re.sub(r'%', r':', version)
             with open(cl_path, 'r') as cl:
                 lines = cl.readlines()
-            old_version = re.search(r'.+ \((.+)\) .+', lines[0]).group(1)
+            old_version_match = re.search(r'.+ \((.+)\) .+', lines[0])
+            if old_version_match is None:
+                raise RuntimeError("Malformed debian changelog first line")
+            old_version = old_version_match.group(1)
             # non-native packages MUST have a debian revision (-xyz)
             drev_ov = re.search(r'-', old_version)
             drev_v = re.search(r'-', version)

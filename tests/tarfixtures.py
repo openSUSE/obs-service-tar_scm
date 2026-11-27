@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from typing import Any
 from tests.fixtures import Fixtures
 
 
@@ -10,8 +11,8 @@ class TarFixtures(Fixtures):
     tar tests use this class in order to have something to test against.
     """
 
-    def init(self):
+    def init(self) -> Any:
         pass
 
-    def run(self, cmd):
+    def run(self, cmd: Any) -> Any:
         pass
