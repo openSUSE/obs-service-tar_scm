@@ -133,6 +133,17 @@ class Git(Scm):
         if lang_bak:
             os.environ['LANG'] = lang_bak
 
+    def fetch_upstream_tags(self):
+        """Fetch release tags from the upstream repository into the clone."""
+        if not self.upstream_url:
+            return
+
+        logging.debug("[fetch_upstream_tags] Fetching tags from '%s'",
+                      self.upstream_url)
+
+        command = self._get_scm_cmd() + ['fetch', '--tags', '--filter=tree:0', self.upstream_url]
+        self.helpers.safe_run(command, cwd=self.clone_dir)
+
     def fetch_upstream_scm(self):
         """SCM specific version of fetch_uptream for git."""
         self.auth_url()

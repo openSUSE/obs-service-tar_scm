@@ -97,6 +97,7 @@ class Cli():
         self.maintainers_asc = None
         self.url = None
         self.revision = None
+        self.upstream_url = None
         self.user = None
         self.keyring_passphrase = None
         self.changesgenerate = False
@@ -266,6 +267,7 @@ class Cli():
     def verify_args(self, args):
         # basic argument validation
         # pylint: disable=too-many-branches
+        # pylint: disable=too-many-statements
         if not os.path.isdir(args.outdir):
             sys.exit("%s: No such directory" % args.outdir)
 
