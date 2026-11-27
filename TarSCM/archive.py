@@ -50,7 +50,10 @@ class BaseArchive():
                 if not r_src.startswith(repodir):
                     sys.exit("%s: tries to escape the repository" % src)
 
-                shutil.copy2(src, outdir)
+                if not os.path.isdir(src):
+                    shutil.copy2(src, outdir)
+                else:
+                    logging.warn("%s: Skipping directory" % src)
 
     def extract_rename_from_archive(self, repodir, tuples, outdir):
         """Extract and rename all files directly outside of the archive.
