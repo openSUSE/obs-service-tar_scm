@@ -14,7 +14,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+  # Run the test suite on every supported Python version.
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -47,6 +47,32 @@ jobs:
       - name: Install python dependencies
         run: pip install -r requirements.txt
 
+      - name: Run tests
+        run: |
+          locale
+          make test
+
+  # Lint with the pinned toolchain (pylint < 2.14 in requirements.txt),
+  # which only runs on Python < 3.14: its astroid still uses the ast.Str
+  # and ast.Num node classes that were removed from the ast module in
+  # Python 3.14. Running the linters on a single stable interpreter is
+  # sufficient, as they do not depend on the runtime version under test.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install required dpkg packages
+        run: sudo apt-get install libxslt1-dev bzr subversion mercurial
+
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install python dependencies
+        run: pip install -r requirements.txt
+
       - name: Lint with flake8
         run: make flake8
 
@@ -55,8 +81,3 @@ jobs:
 
       - name: Lint test with pylint
         run: make pylinttest
-
-      - name: Run tests
-        run: |
-          locale
-          make test
