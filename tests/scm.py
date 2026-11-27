@@ -1,6 +1,9 @@
 import os
 import shutil
+import socket
+import tempfile
 import unittest
+from unittest.mock import patch
 
 from TarSCM.scm.base import Scm
 
@@ -31,7 +34,7 @@ class SCMBaseTestCases(unittest.TestCase):
     def test_prep_tree_for_archive(self):
         tasks = TarSCM.Tasks(self.cli)
         scm_base = Scm(self.cli, tasks)
-        basedir = os.path.join(self.tmp_dir, self.__class__.__name__)
+        basedir = tempfile.mkdtemp(dir=self.outdir)
         dir1 = os.path.join(basedir, "test1")
         scm_base.clone_dir = basedir
         os.makedirs(dir1)
@@ -57,6 +60,47 @@ class SCMBaseTestCases(unittest.TestCase):
 
         with self.assertRaises(SystemExit) as ctx:
             scm_base.prep_tree_for_archive("test3", basedir, "test2")
+
+    @patch.dict(os.environ, {"CACHEDIRECTORY": ""})
+    def test_prep_tree_for_archive_ignores_sockets(self):
+        scm_base = Scm(self.cli, TarSCM.Tasks(self.cli))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src_dir = os.path.join(tmpdir, "repo")
+            gitdir = os.path.join(src_dir, ".git")
+
+            os.makedirs(gitdir)
+            scm_base.clone_dir = src_dir
+
+            with open(os.path.join(gitdir, "config"), "w") as config:
+                config.write("repository config\n")
+
+            LINKS = {
+                "config-link": ".git/config",
+                "dangling-link": "missing",
+                "socket-link": ".git/fsmonitor--daemon.ipc",
+            }
+            for name, target in LINKS.items():
+                os.symlink(target, os.path.join(src_dir, name))
+
+            with socket.socket(socket.AF_UNIX) as root_socket, \
+                    socket.socket(socket.AF_UNIX) as git_socket:
+                root_socket.bind(os.path.join(src_dir, "root.sock"))
+                git_socket.bind(os.path.join(gitdir, "fsmonitor--daemon.ipc"))
+                scm_base.prep_tree_for_archive("", tmpdir, "archive")
+
+            dest = os.path.join(tmpdir, "archive")
+
+            self.assertEqual(set(os.listdir(dest)), {".git"} | set(LINKS))
+            self.assertEqual(os.listdir(os.path.join(dest, ".git")), ["config"])
+            with open(os.path.join(dest, ".git", "config")) as config:
+                self.assertEqual(config.read(), "repository config\n")
+            for name, target in LINKS.items():
+                self.assertEqual(os.readlink(os.path.join(dest, name)), target)
+
+            self.assertTrue(os.path.exists(os.path.join(src_dir, "root.sock")))
+            self.assertTrue(
+                os.path.exists(os.path.join(gitdir, "fsmonitor--daemon.ipc"))
+            )
 
     def test_version_iso_cleanup(self):
         # Avoid get_repocache_hash failure in Scm.__init__

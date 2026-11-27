@@ -342,9 +342,7 @@ class Cli():
 
         locale.setlocale(locale.LC_ALL, use_locale)
 
-        os.environ["LC_ALL"] = use_locale
-        os.environ["LANG"] = use_locale
-        os.environ["LANGUAGE"] = use_locale
+        os.environ.update(LC_ALL=use_locale, LANG=use_locale, LANGUAGE=use_locale)
 
         # Filter for suspicious revision formats
         # Allowed: `v1.1-2`
